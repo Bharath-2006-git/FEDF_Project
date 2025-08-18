@@ -11,8 +11,8 @@ Problem Statement
 - Difficulty in identifying major emission contributors (hotspots).
   
 - Challenges in setting and tracking realistic reduction targets.
-  
--Limited actionable insights to drive sustainable practices effectively.
+
+- Limited actionable insights to drive sustainable practices effectively.
 
 Objectives
 
