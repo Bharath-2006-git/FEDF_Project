@@ -4,7 +4,15 @@ The Carbon Emission Tracker is a digital platform that monitors, analyzes, and v
 
 Problem Statement
 
-Limited awareness and lack of real-time tools make it difficult to track emissions, identify hotspots, and set achievable reduction targets.
+- Lack of awareness about actual carbon emissions and their impact.
+  
+- Existing tools are complex, fragmented, or not real-time.
+  
+- Difficulty in identifying major emission contributors (hotspots).
+  
+- Challenges in setting and tracking realistic reduction targets.
+  
+-Limited actionable insights to drive sustainable practices effectively.
 
 Objectives
 
@@ -23,6 +31,8 @@ Expected Outcomes
 - Actionable recommendations to reduce footprints.
 
 - Improved accountability and sustainability awareness.
+
+
 
 Team Members:
 <br>2410030313 - Polisetti Bharath
