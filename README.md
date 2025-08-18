@@ -18,7 +18,5 @@ Expected Outcomes
 - Data visualization dashboards with key metrics (emission levels, trends, hotspots, comparisons).
 - Alerts and notifications when emissions exceed thresholds.
 - Actionable recommendations to reduce emissions and improve sustainability practices.
-
-Enhanced awareness and accountability among users toward reducing their carbon footprint.
-
-Contribution to global sustainability goals by enabling data-driven decisions.
+- Enhanced awareness and accountability among users toward reducing their carbon footprint.
+- Contribution to global sustainability goals by enabling data-driven decisions.
