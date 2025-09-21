@@ -179,7 +179,8 @@ export default function LogEmissions() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="p-6 max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-foreground mb-2">Log Emissions</h1>
@@ -446,6 +447,7 @@ export default function LogEmissions() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
