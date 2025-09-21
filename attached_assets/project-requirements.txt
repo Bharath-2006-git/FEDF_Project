@@ -1,0 +1,133 @@
+Project Name: Carbon Sense - Frontend & Database
+Goal:
+Build a React-based frontend for a carbon tracking platform that helps individuals and industries track and reduce their carbon emissions, with a MySQL database as the backend. The backend should be simple and able to handle basic CRUD operations (e.g., using Express.js with Node.js for simplicity).
+Key Features
+1.	Authentication
+o	Login, Signup, and Logout functionality with user roles: individual, company, and admin.
+o	Store JWT token and user role in localStorage.
+o	On login, redirect users to their respective dashboards based on role.
+2.	Data Input Forms
+o	Individual Form: Log emissions from activities such as travel, fuel, electricity, and waste.
+o	Company Form: Log emissions from production, logistics, electricity, and waste.
+o	Backend interaction: POST requests to submit data.
+3.	Dashboard & Emission Calculator
+o	Show the user's total carbon emissions over a selected period.
+o	Fetch data from the backend and display it in summary cards (e.g., total emissions in kg CO2).
+4.	Visualization (Charts & Graphs)
+o	Individuals:
+	Pie chart for emissions by category.
+	Line/Bar chart for emissions over time.
+o	Companies:
+	Stacked bar charts or heatmaps to show emissions by department.
+	Comparison of emissions over different periods or departments.
+5.	Tips & Recommendations
+o	Display personalized tips from the backend based on user data (e.g., energy-saving tips, eco-friendly transport).
+o	Different tips for individuals vs companies (e.g., lifestyle vs industrial practices).
+6.	Reports & Export
+o	Provide emission reports (monthly/annual).
+o	Ability to export reports as CSV or PDF files.
+7.	Profile Management
+o	Individual profile: Displays the user’s name, email, and past emission data.
+o	Company profile: Displays organization details and department-specific emissions.
+8.	Goal Setting & Tracking
+o	Users can set emission reduction goals.
+o	Track progress and show completion status through a progress bar.
+9.	Comparison Dashboard
+o	Individuals: Compare emissions over different months or years.
+o	Companies: Compare emissions across departments or different quarters.
+10.	Gamification
+•	Display badges/achievements based on emission reduction goals.
+•	Provide progress updates on how many goals have been completed.
+11.	Emission Category Breakdown
+•	Breakdown of emissions by category for both individuals and companies.
+12.	Notifications & Reminders
+•	Remind users of missing emission entries, milestones, and monthly tips.
+13.	What-If Analysis (Scenario Tool)
+•	Let users simulate different emission reduction strategies and see how they affect their total emissions.
+14.	Sustainability Tips Library
+•	A static library of eco-friendly practices.
+•	Different categories of tips: Energy Saving, Transport, Waste, Industrial Practices.
+Frontend (React) Features:
+Pages:
+•	Login.jsx: User login page with email and password fields.
+•	Signup.jsx: User signup page.
+•	Dashboard.jsx: Role-based dashboard that shows emissions and charts.
+•	Profile.jsx: Displays user’s profile information and emission history.
+•	Reports.jsx: Page where users can generate and export emission reports.
+•	Goals.jsx: Displays emission reduction goals and progress.
+•	Comparison.jsx: Allows comparison of emissions between different periods.
+•	Tips.jsx: Displays personalized eco-friendly tips for the user.
+Components:
+•	Auth: Handles login, signup, and authentication flow.
+•	Dashboard: Displays user emissions data, graphs, and charts.
+•	Forms: Emission data entry forms for individuals and companies.
+•	Charts: Components for displaying various charts (e.g., Pie chart, Line/Bar chart).
+•	Notifications: Alerts users for missing data or reminders.
+•	Tips: Displays eco-friendly tips and recommendations.
+Services:
+•	api.js: Contains functions to interact with the backend API (GET, POST) using Axios.
+o	Placeholder API calls to interact with the backend (could be replaced when backend is ready).
+o	Example API:
+o	axios.post('/api/emissions/add', data);
+o	axios.get('/api/emissions/calculate', { params: { userId: 123 } });
+Context:
+•	AuthContext.jsx: Manages authentication state (user, token, role).
+________________________________________
+Backend (Database)
+For simplicity, we will use Node.js with Express.js and MySQL to manage the database interactions.
+Database Structure:
+1.	Users Table:
+o	id, email, password, role (individual, company, admin)
+2.	Emissions Table:
+o	id, user_id, category, quantity, unit, date
+o	Each emission entry is associated with a user and will be tracked with the category (e.g., electricity, fuel, etc.).
+3.	Goals Table:
+o	id, user_id, goal_name, goal_value, target_date
+o	Track emission reduction goals for users.
+4.	Reports Table (optional for storing historical reports):
+o	id, user_id, report_date, file_path
+Backend Endpoints (API Contracts):
+1.	POST /api/auth/login
+o	Request: { "email": "alex@example.com", "password": "123456" }
+o	Response: { "token": "jwt-token-123", "role": "individual", "userId": 1 }
+2.	POST /api/emissions/add
+o	Request: { "userId": 1, "type": "Electricity", "quantity": 250, "unit": "kWh", "date": "2025-09-01" }
+o	Response: { "status": "success", "emission": 120 }
+3.	GET /api/emissions/calculate
+o	Request: { userId: 123 }
+o	Response: { "totalEmissions": 400, "categories": { "electricity": 150, "travel": 100 } }
+4.	GET /api/emissions/history
+o	Request: { userId: 123 }
+o	Response: [{ "date": "2025-01", "emissions": 120 }, { "date": "2025-02", "emissions": 150 }]
+________________________________________
+UI/UX Guidelines
+•	Theme: Eco-friendly (green tones, neutral backgrounds).
+•	Navigation: Simple, role-based navigation bar with sections for Dashboard, Add Data, Profile, Goals, Comparison, and Tips.
+•	Charts: Use Chart.js or Recharts for displaying emission data in visual formats (pie charts, line charts, etc.).
+•	Responsive: Ensure the design is mobile-friendly with adaptive layouts for smaller screens.
+Project Structure (Expected Output)
+src/
+  components/
+    Auth/           # Authentication-related components (Login, Signup)
+    Dashboard/      # Components related to the dashboard (charts, summary)
+    Charts/         # Reusable chart components (Pie, Bar, Line)
+    Forms/          # Data input forms for emissions
+    Notifications/  # Alerts and reminders
+  pages/
+    Login.jsx
+    Signup.jsx
+    Dashboard.jsx
+    Profile.jsx
+    Reports.jsx
+    Goals.jsx
+    Comparison.jsx
+    Tips.jsx
+  services/
+    api.js   <-- Axios instance with API interactions (GET/POST)
+  context/
+    AuthContext.jsx
+Expected Output
+•	A complete React application with authentication, dashboards, data entry forms, charts, tips, and progress tracking.
+•	API services to handle communication with the backend.
+•	Working with dummy data if the backend is unavailable, and easy integration with a simple Node.js/Express.js backend.
+
