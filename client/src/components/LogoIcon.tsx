@@ -1,73 +1,25 @@
-﻿interface LogoProps {
-  size?: "sm" | "md" | "lg";
+﻿import React from "react";
+interface LogoIconProps {
   className?: string;
-  showText?: boolean;
-  name?: string;
-  tagline?: string;
-  iconText?: string;
-  iconBg?: string;
-  imageSrc?: string;
+  size?: number;
+  animate?: boolean;
 }
-export function Logo({ 
-  size = "md", 
-  className = "", 
-  showText = true,
-  name = "CarbonSense",
-  tagline = "Carbon Footprint Tracker", 
-  iconText = "CS",
-  iconBg = "bg-primary",
-  imageSrc
-}: LogoProps) {
-  const sizeClasses = {
-    sm: {
-      icon: "w-6 h-6",
-      text: "text-sm",
-      tagline: "text-xs",
-    },
-    md: {
-      icon: "w-8 h-8", 
-      text: "text-sm",
-      tagline: "text-xs",
-    },
-    lg: {
-      icon: "w-12 h-12",
-      text: "text-lg", 
-      tagline: "text-sm",
-    },
-  };
-  const sizes = sizeClasses[size];
-  return (
-    <div className={`flex items-center gap-2 ${className}`} data-testid="logo">
-      <div className={sizes.icon}>
-        <CarbonSenseSVG />
-      </div>
-      {showText && (
-        <div className="min-w-0">
-          <h2 className={`font-semibold ${sizes.text} text-foreground`} data-testid="logo-name">
-            {name}
-          </h2>
-          <p className={`${sizes.tagline} text-muted-foreground truncate`} data-testid="logo-tagline">
-            {tagline}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-function CarbonSenseSVG() {
+export function LogoIcon({ className = "", size = 40, animate = false }: LogoIconProps) {
   return (
     <svg
+      width={size}
+      height={size}
       viewBox="0 0 100 100"
-      className="w-full h-full"
+      className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <radialGradient id="earthGradient" cx="0.3" cy="0.3">
+        <radialGradient id={`earthGradient-${size}`} cx="0.3" cy="0.3">
           <stop offset="0%" stopColor="#4FC3F7" />
           <stop offset="70%" stopColor="#29B6F6" />
           <stop offset="100%" stopColor="#0277BD" />
         </radialGradient>
-        <linearGradient id="orbitGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <linearGradient id={`orbitGradient-${size}`} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#4CAF50" />
           <stop offset="50%" stopColor="#8BC34A" />
           <stop offset="100%" stopColor="#00BCD4" />
@@ -77,7 +29,7 @@ function CarbonSenseSVG() {
         cx="50"
         cy="50"
         r="30"
-        fill="url(#earthGradient)"
+        fill={`url(#earthGradient-${size})`}
         stroke="#0277BD"
         strokeWidth="1"
       />
@@ -105,11 +57,15 @@ function CarbonSenseSVG() {
         rx="40"
         ry="10"
         fill="none"
-        stroke="url(#orbitGradient)"
+        stroke={`url(#orbitGradient-${size})`}
         strokeWidth="2"
         strokeLinecap="round"
         opacity="0.8"
         transform="rotate(-20 50 50)"
+        style={animate ? {
+          animation: 'spin 20s linear infinite',
+          transformOrigin: '50px 50px'
+        } : {}}
       />
       <ellipse
         cx="50"
@@ -122,6 +78,10 @@ function CarbonSenseSVG() {
         strokeLinecap="round"
         opacity="0.6"
         transform="rotate(30 50 50)"
+        style={animate ? {
+          animation: 'spin 30s linear infinite reverse',
+          transformOrigin: '50px 50px'
+        } : {}}
       />
       <g transform="translate(65, 30)">
         <path
@@ -148,11 +108,25 @@ function CarbonSenseSVG() {
         <circle cx="25" cy="0" r="1" fill="#66BB6A" />
       </g>
       <circle cx="80" cy="45" r="1.5" fill="#4CAF50" opacity="0.8">
-        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+        {animate && (
+          <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+        )}
       </circle>
       <circle cx="20" cy="30" r="1" fill="#00BCD4" opacity="0.6">
-        <animate attributeName="opacity" values="0.3;0.9;0.3" dur="3s" repeatCount="indefinite" />
+        {animate && (
+          <animate attributeName="opacity" values="0.3;0.9;0.3" dur="3s" repeatCount="indefinite" />
+        )}
       </circle>
+      {animate && (
+        <style>
+          {`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+      )}
     </svg>
   );
 }

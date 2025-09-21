@@ -1,9 +1,8 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, Trash2, Car, Home, Leaf } from "lucide-react";
-
 interface TimelineEntry {
   id: string;
   date: string;
@@ -13,13 +12,11 @@ interface TimelineEntry {
   icon: React.ElementType;
   color: string;
 }
-
 interface InteractiveTimelineProps {
   entries?: TimelineEntry[];
   onEntryAdd?: (entry: Omit<TimelineEntry, 'id'>) => void;
   onEntryDelete?: (entryId: string) => void;
 }
-
 export default function InteractiveTimeline({ 
   entries = [],
   onEntryAdd,
@@ -27,32 +24,25 @@ export default function InteractiveTimeline({
 }: InteractiveTimelineProps) {
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<string | null>(null);
-
   const handleDragStart = (entryId: string) => {
     setIsDragging(entryId);
     console.log("Drag started for entry:", entryId);
   };
-
   const handleDragEnd = () => {
     setIsDragging(null);
     console.log("Drag ended");
   };
-
   const handleDeleteEntry = (entryId: string) => {
     onEntryDelete?.(entryId);
     console.log("Entry deleted:", entryId);
   };
-
-  // Group entries by date for timeline visualization
   const entriesByDate = entries.reduce((acc, entry) => {
     const dateKey = entry.date;
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(entry);
     return acc;
   }, {} as Record<string, TimelineEntry[]>);
-
   const sortedDates = Object.keys(entriesByDate).sort();
-
   return (
     <Card className="p-6 bg-gradient-to-br from-blue-50 via-white to-green-50 border-blue-200">
       {/* Header */}
@@ -72,12 +62,10 @@ export default function InteractiveTimeline({
           Add Entry
         </Button>
       </div>
-
       {/* Timeline */}
       <div className="relative">
         {/* Timeline line */}
         <div className="absolute left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-200 via-green-200 to-blue-200 rounded-full" />
-
         {/* Timeline entries */}
         <div className="space-y-6">
           {sortedDates.map((date, dateIndex) => (
@@ -100,14 +88,12 @@ export default function InteractiveTimeline({
                   </h4>
                 </div>
               </div>
-
               {/* Entries for this date */}
               <div className="ml-20 space-y-3">
                 {entriesByDate[date].map((entry, entryIndex) => {
                   const IconComponent = entry.icon;
                   const isSelected = selectedEntry === entry.id;
                   const beingDragged = isDragging === entry.id;
-
                   return (
                     <Card
                       key={entry.id}
@@ -130,7 +116,6 @@ export default function InteractiveTimeline({
                           <div className={`w-10 h-10 ${entry.color} rounded-full flex items-center justify-center`}>
                             <IconComponent className="w-5 h-5 text-white" />
                           </div>
-                          
                           <div>
                             <h5 className="font-semibold text-gray-900">{entry.category}</h5>
                             <div className="flex items-center gap-2 mt-1">
@@ -141,12 +126,11 @@ export default function InteractiveTimeline({
                                 {entry.amount} {entry.unit}
                               </Badge>
                               <span className="text-xs text-muted-foreground">
-                                ≈ {(entry.amount * 2.3).toFixed(1)} kg CO₂
+                                â‰ˆ {(entry.amount * 2.3).toFixed(1)} kg COâ‚‚
                               </span>
                             </div>
                           </div>
                         </div>
-
                         <Button
                           variant="ghost"
                           size="icon"
@@ -167,7 +151,6 @@ export default function InteractiveTimeline({
             </div>
           ))}
         </div>
-
         {/* Empty state */}
         {entries.length === 0 && (
           <div className="text-center py-12">

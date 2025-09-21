@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useAuth, useRoleAccess } from "@/context/AuthContext";
+import { Logo } from "@/components/Logo";
 import { 
   TrendingUp, 
   TrendingDown,
@@ -38,7 +39,6 @@ import {
   AreaChart
 } from "recharts";
 import { dashboardAPI } from "@/services/api";
-
 interface DashboardData {
   totalEmissions: number;
   monthlyEmissions: number;
@@ -46,22 +46,16 @@ interface DashboardData {
   history: Array<{ date: string; emissions: number }>;
   goals: Array<{ id: number; name: string; progress: number; target: number }>;
 }
-
 export default function Dashboard() {
   const { user } = useAuth();
   const { isIndividual, isCompany } = useRoleAccess();
-  
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState("month");
-
-  // Color schemes for charts
   const pieColors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-
   useEffect(() => {
     loadDashboardData();
   }, [timeFilter]);
-
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -73,45 +67,35 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-
   const formatEmissionValue = (value: number) => {
     if (value >= 1000) {
       return `${(value / 1000).toFixed(1)}t`;
     }
     return `${value.toFixed(1)}kg`;
   };
-
   const calculateTrend = () => {
     if (!dashboardData?.history || dashboardData.history.length < 2) return { trend: 0, isPositive: false };
-    
     const current = dashboardData.history[dashboardData.history.length - 1]?.emissions || 0;
     const previous = dashboardData.history[dashboardData.history.length - 2]?.emissions || 0;
-    
     const trend = previous > 0 ? ((current - previous) / previous) * 100 : 0;
-    return { trend: Math.abs(trend), isPositive: trend < 0 }; // Positive trend means reduction (good)
+    return { trend: Math.abs(trend), isPositive: trend < 0 };
   };
-
   const preparePieData = () => {
     if (!dashboardData?.categories) return [];
-    
     return Object.entries(dashboardData.categories).map(([category, value]) => ({
       name: category.charAt(0).toUpperCase() + category.slice(1),
       value: Number(value),
       percentage: ((Number(value) / dashboardData.totalEmissions) * 100).toFixed(1)
     }));
   };
-
   const prepareHistoryData = () => {
     if (!dashboardData?.history) return [];
-    
     return dashboardData.history.map(item => ({
       ...item,
       month: new Date(item.date + '-01').toLocaleDateString('en-US', { month: 'short' })
     }));
   };
-
   const { trend, isPositive } = calculateTrend();
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen transition-colors duration-300 ease-in-out">
@@ -122,21 +106,16 @@ export default function Dashboard() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <div className="p-6 space-y-8 max-w-7xl mx-auto">
-        {/* Welcome Section */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/5 dark:to-blue-500/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
           <div className="relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-3">
-                Welcome back, {user?.firstName || 'User'}! 
-                <div className="animate-bounce">
-                  <Hand className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
-                </div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                Welcome back, {user?.firstName || 'User'}!
               </h1>
               <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
                 {isIndividual() 
@@ -145,7 +124,6 @@ export default function Dashboard() {
                 }
               </p>
             </div>
-            
             <div className="flex items-center gap-4">
               <Select value={timeFilter} onValueChange={setTimeFilter}>
                 <SelectTrigger className="w-32 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200 dark:border-slate-700">
@@ -162,15 +140,13 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* Enhanced Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-red-50/90 to-red-100/90 dark:from-red-950/50 dark:to-red-900/40 border border-red-200/50 dark:border-red-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
             <div>
               <p className="text-sm text-red-600 dark:text-red-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">TOTAL EMISSIONS</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">{formatEmissionValue(dashboardData?.totalEmissions || 0)}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">CO₂ equivalent</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">COâ‚‚ equivalent</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-red-500/25 group-hover:scale-110 transition-all duration-300">
               <TrendingUp className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />
@@ -189,7 +165,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-blue-50/90 to-blue-100/90 dark:from-blue-950/50 dark:to-blue-900/40 border border-blue-200/50 dark:border-blue-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
             <div>
@@ -202,7 +177,6 @@ export default function Dashboard() {
             </div>
           </CardHeader>
         </Card>
-
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-green-50/90 to-green-100/90 dark:from-green-950/50 dark:to-green-900/40 border border-green-200/50 dark:border-green-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
             <div>
@@ -215,7 +189,6 @@ export default function Dashboard() {
             </div>
           </CardHeader>
         </Card>
-
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-purple-50/90 to-purple-100/90 dark:from-purple-950/50 dark:to-purple-900/40 border border-purple-200/50 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
             <div>
@@ -233,10 +206,7 @@ export default function Dashboard() {
           </CardHeader>
         </Card>
       </div>
-
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Emissions by Category - Pie Chart */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 group overflow-hidden border border-white/30 dark:border-slate-700/30">
           <CardHeader className="border-b border-border/50 bg-gradient-to-r from-transparent via-primary/5 to-transparent transition-all duration-300 ease-in-out">
             <CardTitle className="flex items-center gap-2 transition-colors duration-300 ease-in-out">
@@ -267,8 +237,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Emissions Trend - Line Chart */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 group overflow-hidden border border-white/30 dark:border-slate-700/30">
           <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-emerald-500/10 dark:from-emerald-600/10 dark:via-green-600/10 dark:to-emerald-600/10 transition-all duration-300 ease-in-out">
             <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">
@@ -307,10 +275,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Goals and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Active Goals */}
         <Card className="lg:col-span-2 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-white/30 dark:border-slate-700/30">
           <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-emerald-500/10 dark:from-emerald-600/10 dark:via-green-600/10 dark:to-emerald-600/10 transition-colors duration-300 ease-in-out">
             <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">
@@ -344,8 +309,6 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-
-        {/* Quick Actions */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-white/30 dark:border-slate-700/30">
           <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-emerald-500/10 dark:from-emerald-600/10 dark:via-green-600/10 dark:to-emerald-600/10 transition-colors duration-300 ease-in-out">
             <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">
@@ -366,9 +329,8 @@ export default function Dashboard() {
               <BarChart3 className="w-4 h-4 mr-2 transition-transform duration-300 ease-in-out" />
               View Reports
             </Button>
-            
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700 transition-all duration-300 ease-in-out">
-              <h4 className="font-medium mb-2 text-sm text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">💡 Today's Tip</h4>
+              <h4 className="font-medium mb-2 text-sm text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">ðŸ’¡ Today's Tip</h4>
               <p className="text-sm text-slate-600 dark:text-slate-400 transition-colors duration-300 ease-in-out">
                 {isIndividual() 
                   ? "Try using public transportation or biking today to reduce your carbon footprint!"
@@ -379,8 +341,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Achievements */}
       <Card className="shadow-lg transition-all duration-300 ease-in-out">
         <CardHeader className="transition-colors duration-300 ease-in-out">
           <CardTitle className="flex items-center gap-2 transition-colors duration-300 ease-in-out">
@@ -397,7 +357,6 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Logged emissions for 7 days</p>
               </div>
             </div>
-            
             <div className="flex items-center gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 transition-all duration-300 ease-in-out">
               <Target className="w-8 h-8 text-blue-600 dark:text-blue-400 transition-colors duration-300 ease-in-out" />
               <div>
@@ -405,7 +364,6 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Created your first reduction goal</p>
               </div>
             </div>
-            
             <div className="flex items-center gap-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 transition-all duration-300 ease-in-out">
               <TrendingDown className="w-8 h-8 text-purple-600 dark:text-purple-400 transition-colors duration-300 ease-in-out" />
               <div>
