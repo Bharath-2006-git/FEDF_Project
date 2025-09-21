@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "@/components/ThemeProvider";
+import { Logo } from "@/components/Logo";
 import { 
   Leaf, 
   BarChart3, 
@@ -32,19 +33,15 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      {/* Professional Header */}
       <header className="relative z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            {/* Logo */}
             <div className="flex items-center space-x-2">
-              <Leaf className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+              <Logo size="lg" showText={false} />
               <span className="text-2xl font-bold text-slate-900 dark:text-white">CarbonSense</span>
             </div>
 
-            {/* Navigation & Actions */}
             <div className="flex items-center space-x-4">
-              {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -69,7 +66,6 @@ export default function Landing() {
                 </div>
               </Button>
 
-              {/* Auth Buttons */}
               <Link href="/login">
                 <Button variant="ghost" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800">
                   Login
@@ -85,7 +81,6 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="relative overflow-hidden pt-16">
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-blue-500/5" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
@@ -120,44 +115,104 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Value Proposition Section */}
-      <section className="py-16 bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-foreground mb-6">
-                Why Track Your Carbon Footprint?
-              </h2>
-              <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                Understanding your environmental impact is the first step toward making 
-                meaningful changes. CarbonSense makes it simple to track, analyze, 
-                and reduce your personal carbon footprint.
-              </p>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                With easy data input, automatic calculations, and personalized insights, 
-                you'll discover practical ways to live more sustainably and track 
-                your progress over time.
-              </p>
+      <section className="py-16 bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-blue-500/5"></div>
+        
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
+              Why Track Your Carbon Footprint?
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Every action matters. Start your journey toward a more sustainable future today.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div className="relative">
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/50 dark:border-slate-700/50 hover:shadow-2xl transition-all duration-300">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <TrendingDown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                      Understand Your Impact
+                    </h3>
+                    <p className="text-emerald-600 dark:text-emerald-400 font-medium">
+                      Knowledge is Power
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+                    Understanding your environmental impact is the <span className="font-semibold text-emerald-600 dark:text-emerald-400">first step toward meaningful change</span>. 
+                    Transform complex carbon calculations into simple, actionable insights.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                      <span className="text-slate-700 dark:text-slate-300">Discover your biggest emission sources</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                      <span className="text-slate-700 dark:text-slate-300">Track progress with visual analytics</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                      <span className="text-slate-700 dark:text-slate-300">Get personalized reduction strategies</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <h2 className="text-4xl font-bold text-foreground mb-6">
-                Simple & Effective
-              </h2>
-              <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-                No complex setup or technical knowledge required. Just enter your 
-                daily activities and let our calculator do the work.
-              </p>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Set goals, track progress, get personalized tips, and see the real 
-                impact of your sustainability efforts with clear visualizations 
-                and actionable recommendations.
-              </p>
+
+            <div className="relative">
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/50 dark:border-slate-700/50 hover:shadow-2xl transition-all duration-300">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                      Simple & Effective
+                    </h3>
+                    <p className="text-blue-600 dark:text-blue-400 font-medium">
+                      Effortless Tracking
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">No complex setup</span> or technical knowledge required. 
+                    Just enter your daily activities and let our intelligent calculator do the work.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                      <Target className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <span className="text-slate-700 dark:text-slate-300">Set realistic, achievable goals</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                      <BarChart3 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <span className="text-slate-700 dark:text-slate-300">Visualize impact with clear charts</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                      <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <span className="text-slate-700 dark:text-slate-300">Receive smart recommendations</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Problem & Solution Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -248,7 +303,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section className="py-20 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -309,7 +363,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -373,7 +426,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-700 dark:to-blue-700">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-white mb-6">
@@ -399,7 +451,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-gray-900 dark:bg-black text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">

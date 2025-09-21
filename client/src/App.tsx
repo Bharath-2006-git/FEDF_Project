@@ -14,10 +14,15 @@ import { useTheme } from "@/components/ThemeProvider";
 // Import pages
 import Dashboard from "@/pages/Dashboard";
 import LogEmissions from "@/pages/LogEmissions";
+import Tips from "@/pages/Tips";
+import Goals from "@/pages/Goals";
+import Profile from "@/pages/Profile";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
+import ComingSoonPage from "@/pages/ComingSoon";
+import { BarChart3, FileText } from "lucide-react";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -52,15 +57,6 @@ function ThemeToggle() {
       {/* Subtle glow effect on hover */}
       <div className="absolute inset-0 rounded-md bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </Button>
-  );
-}
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">{title}</h1>
-      <p className="text-muted-foreground">This page is coming soon...</p>
-    </div>
   );
 }
 
@@ -117,13 +113,21 @@ function AuthenticatedApp() {
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/dashboard" component={Dashboard} />
+              <Route path="/emissions" component={LogEmissions} />
               <Route path="/log-emissions" component={LogEmissions} />
-              <Route path="/profile" component={() => <PlaceholderPage title="Profile" />} />
-              <Route path="/reports" component={() => <PlaceholderPage title="Reports" />} />
-              <Route path="/goals" component={() => <PlaceholderPage title="Goals" />} />
-              <Route path="/comparison" component={() => <PlaceholderPage title="Comparison" />} />
-              <Route path="/tips" component={() => <PlaceholderPage title="Tips" />} />
-              <Route component={NotFound} />
+              <Route path="/profile" component={Profile} />
+              <Route path="/goals" component={Goals} />
+              <Route path="/tips" component={Tips} />
+              
+              {/* Coming Soon Routes */}
+              <Route path="/analytics" component={() => <ComingSoonPage title="Analytics" description="Advanced analytics and data visualization features are coming soon. Explore detailed carbon footprint analytics and insights." icon={BarChart3} />} />
+              <Route path="/compare" component={() => <ComingSoonPage title="Compare" description="Compare your carbon footprint with industry benchmarks, regional averages, and similar organizations." icon={BarChart3} />} />
+              <Route path="/comparison" component={() => <ComingSoonPage title="Comparison" description="Compare your carbon footprint with industry benchmarks, regional averages, and similar organizations." icon={BarChart3} />} />
+              <Route path="/reports" component={() => <ComingSoonPage title="Reports" description="Advanced reporting and analytics features are coming soon. Generate detailed emission reports, export data, and analyze trends." icon={FileText} />} />
+              <Route path="/what-if" component={() => <ComingSoonPage title="What-If Analysis" description="Scenario analysis and predictive modeling features are coming soon. Explore the impact of different sustainability initiatives." icon={BarChart3} />} />
+              
+              {/* Catch-all route for any other pages - redirect to Coming Soon */}
+              <Route component={() => <ComingSoonPage title="Coming Soon" description="This feature is currently under development. We're working hard to bring you new sustainability tools and insights." icon={BarChart3} />} />
             </Switch>
           </main>
         </div>

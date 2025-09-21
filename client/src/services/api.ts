@@ -1,11 +1,8 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
-
-// Types for API requests and responses
+﻿import axios, { AxiosInstance, AxiosResponse } from 'axios';
 export interface LoginRequest {
   email: string;
   password: string;
 }
-
 export interface SignupRequest {
   email: string;
   password: string;
@@ -15,7 +12,6 @@ export interface SignupRequest {
   companyName?: string;
   companyDepartment?: string;
 }
-
 export interface AuthResponse {
   message: string;
   token: string;
@@ -29,7 +25,6 @@ export interface AuthResponse {
     companyDepartment?: string;
   };
 }
-
 export interface EmissionRequest {
   category: string;
   subcategory?: string;
@@ -39,23 +34,19 @@ export interface EmissionRequest {
   description?: string;
   department?: string;
 }
-
 export interface EmissionResponse {
   status: string;
   emission: number;
   data: any;
 }
-
 export interface EmissionCalculation {
   totalEmissions: number;
   categories: Record<string, number>;
 }
-
 export interface EmissionHistory {
   date: string;
   emissions: number;
 }
-
 export interface Goal {
   id?: number;
   goalName: string;
@@ -66,7 +57,6 @@ export interface Goal {
   status?: string;
   category?: string;
 }
-
 export interface Tip {
   id: number;
   title: string;
@@ -75,13 +65,11 @@ export interface Tip {
   targetRole: string;
   impactLevel: string;
 }
-
 export interface ReportRequest {
   reportType: string;
   startDate: string;
   endDate: string;
 }
-
 export interface DashboardData {
   totalEmissions: number;
   monthlyEmissions: number;
@@ -94,11 +82,9 @@ export interface DashboardData {
     target: number;
   }>;
 }
-
 class ApiService {
   private api: AxiosInstance;
   private isDevelopment = process.env.NODE_ENV === 'development';
-
   constructor() {
     this.api = axios.create({
       baseURL: '/api',
@@ -107,8 +93,6 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     });
-
-    // Request interceptor to add auth token
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('carbonSense_token');
@@ -121,13 +105,10 @@ class ApiService {
         return Promise.reject(error);
       }
     );
-
-    // Response interceptor for error handling
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Token expired or invalid
           localStorage.removeItem('carbonSense_token');
           localStorage.removeItem('carbonSense_user');
           window.location.href = '/login';
@@ -136,8 +117,6 @@ class ApiService {
       }
     );
   }
-
-  // Helper method to handle API calls with fallback to dummy data
   private async apiCall<T>(
     apiCall: () => Promise<AxiosResponse<T>>,
     dummyData: T,
@@ -148,30 +127,20 @@ class ApiService {
       return response.data;
     } catch (error) {
       console.warn(`${errorMessage}, using dummy data:`, error);
-      
-      // In development, return dummy data as fallback
       if (this.isDevelopment) {
         return dummyData;
       }
-      
       throw error;
     }
   }
-
-  // ==================== AUTHENTICATION ====================
-  
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await this.api.post<AuthResponse>('/auth/login', credentials);
     return response.data;
   }
-
   async signup(userData: SignupRequest): Promise<AuthResponse> {
     const response = await this.api.post<AuthResponse>('/auth/signup', userData);
     return response.data;
   }
-
-  // ==================== EMISSIONS ====================
-  
   async addEmission(emission: EmissionRequest): Promise<EmissionResponse> {
     return this.apiCall(
       () => this.api.post<EmissionResponse>('/emissions/add', emission),
@@ -183,7 +152,6 @@ class ApiService {
       'Failed to add emission'
     );
   }
-
   async getEmissionCalculation(startDate?: string, endDate?: string, category?: string): Promise<EmissionCalculation> {
     return this.apiCall(
       () => this.api.get<EmissionCalculation>('/emissions/calculate', {
@@ -201,7 +169,6 @@ class ApiService {
       'Failed to calculate emissions'
     );
   }
-
   async getEmissionHistory(startDate?: string, endDate?: string): Promise<EmissionHistory[]> {
     return this.apiCall(
       () => this.api.get<EmissionHistory[]>('/emissions/history', {
@@ -217,7 +184,6 @@ class ApiService {
       'Failed to get emission history'
     );
   }
-
   async getEmissionsList(startDate?: string, endDate?: string): Promise<any[]> {
     return this.apiCall(
       () => this.api.get<any[]>('/emissions/list', {
@@ -246,9 +212,6 @@ class ApiService {
       'Failed to get emissions list'
     );
   }
-
-  // ==================== GOALS ====================
-  
   async createGoal(goal: Goal): Promise<Goal> {
     return this.apiCall(
       () => this.api.post<Goal>('/goals/create', goal),
@@ -256,7 +219,6 @@ class ApiService {
       'Failed to create goal'
     );
   }
-
   async getGoals(): Promise<Goal[]> {
     return this.apiCall(
       () => this.api.get<Goal[]>('/goals/list'),
@@ -285,7 +247,6 @@ class ApiService {
       'Failed to get goals'
     );
   }
-
   async updateGoalProgress(goalId: number, currentValue: number): Promise<void> {
     await this.apiCall(
       () => this.api.put(`/goals/${goalId}/progress`, { currentValue }),
@@ -293,9 +254,6 @@ class ApiService {
       'Failed to update goal progress'
     );
   }
-
-  // ==================== TIPS ====================
-  
   async getTips(category?: string): Promise<Tip[]> {
     return this.apiCall(
       () => this.api.get<Tip[]>('/tips', { params: { category } }),
@@ -328,9 +286,6 @@ class ApiService {
       'Failed to get tips'
     );
   }
-
-  // ==================== REPORTS ====================
-  
   async generateReport(reportData: ReportRequest): Promise<any> {
     return this.apiCall(
       () => this.api.post('/reports/generate', reportData),
@@ -353,9 +308,6 @@ class ApiService {
       'Failed to generate report'
     );
   }
-
-  // ==================== USER PROFILE ====================
-  
   async getUserProfile(): Promise<any> {
     return this.apiCall(
       () => this.api.get('/user/profile'),
@@ -370,9 +322,6 @@ class ApiService {
       'Failed to get user profile'
     );
   }
-
-  // ==================== DASHBOARD ====================
-  
   async getDashboardData(): Promise<DashboardData> {
     return this.apiCall(
       () => this.api.get<DashboardData>('/dummy/dashboard'),
@@ -400,9 +349,6 @@ class ApiService {
       'Failed to get dashboard data'
     );
   }
-
-  // ==================== UTILITY METHODS ====================
-  
   private calculateDummyCO2(category: string, quantity: number, unit: string): number {
     const emissionFactors: Record<string, Record<string, number>> = {
       electricity: { 'kWh': 0.233 },
@@ -412,17 +358,13 @@ class ApiService {
       production: { 'units': 1.5 },
       logistics: { 'km': 0.1 }
     };
-
     const factor = emissionFactors[category]?.[unit] || 1;
     return quantity * factor;
   }
-
-  // Export data to CSV format
   exportToCSV(data: any[], filename: string): void {
     const csvContent = this.convertToCSV(data);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -433,33 +375,24 @@ class ApiService {
       document.body.removeChild(link);
     }
   }
-
   private convertToCSV(data: any[]): string {
     if (data.length === 0) return '';
-    
     const headers = Object.keys(data[0]);
     const csvHeaders = headers.join(',');
-    
     const csvRows = data.map(row => 
       headers.map(header => {
         const value = row[header];
         return typeof value === 'string' ? `"${value}"` : value;
       }).join(',')
     );
-    
     return [csvHeaders, ...csvRows].join('\n');
   }
 }
-
-// Create and export a singleton instance
 export const apiService = new ApiService();
-
-// Export individual service methods for easier importing
 export const authAPI = {
   login: (credentials: LoginRequest) => apiService.login(credentials),
   signup: (userData: SignupRequest) => apiService.signup(userData),
 };
-
 export const emissionsAPI = {
   add: (emission: EmissionRequest) => apiService.addEmission(emission),
   calculate: (startDate?: string, endDate?: string, category?: string) => 
@@ -469,28 +402,22 @@ export const emissionsAPI = {
   list: (startDate?: string, endDate?: string) => 
     apiService.getEmissionsList(startDate, endDate),
 };
-
 export const goalsAPI = {
   create: (goal: Goal) => apiService.createGoal(goal),
   list: () => apiService.getGoals(),
   updateProgress: (goalId: number, currentValue: number) => 
     apiService.updateGoalProgress(goalId, currentValue),
 };
-
 export const tipsAPI = {
   get: (category?: string) => apiService.getTips(category),
 };
-
 export const reportsAPI = {
   generate: (reportData: ReportRequest) => apiService.generateReport(reportData),
 };
-
 export const userAPI = {
   profile: () => apiService.getUserProfile(),
 };
-
 export const dashboardAPI = {
   getData: () => apiService.getDashboardData(),
 };
-
 export default apiService;

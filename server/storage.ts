@@ -17,83 +17,94 @@ import {
   type InsertGoal
 } from "@shared/schema";
 
-// For now, use in-memory storage with dummy data
+// Initialize database connection
+let db: ReturnType<typeof drizzle>;
+
+async function initializeDatabase() {
+  const connection = await mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'bharath@16',
+    database: 'carbonsense',
+  });
+  
+  db = drizzle(connection);
+  return db;
+}
+
 export class DatabaseStorage {
-  private usersData: User[] = [];
-  private emissionsData: Emission[] = [];
-  private goalsData: Goal[] = [];
-  private nextUserId = 1;
-  private nextEmissionId = 1;
-  private nextGoalId = 1;
+  private dbInitialized = false;
+
+  private async ensureDatabase() {
+    if (!this.dbInitialized) {
+      await initializeDatabase();
+      this.dbInitialized = true;
+    }
+  }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.usersData.find(user => user.id === id);
+    await this.ensureDatabase();
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return this.usersData.find(user => user.email === email);
+    await this.ensureDatabase();
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const newUser: User = {
-      id: this.nextUserId++,
-      email: user.email,
-      password: user.password,
-      role: user.role || 'individual',
-      firstName: user.firstName || null,
-      lastName: user.lastName || null,
-      companyName: user.companyName || null,
-      companyDepartment: user.companyDepartment || null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    this.usersData.push(newUser);
+    await this.ensureDatabase();
+    const result = await db.insert(users).values(user);
+    const newUser = await this.getUser(result[0].insertId as number);
+    if (!newUser) {
+      throw new Error("Failed to create user");
+    }
     return newUser;
   }
 
   async addEmission(emission: InsertEmission): Promise<Emission> {
-    const newEmission: Emission = {
-      id: this.nextEmissionId++,
-      userId: emission.userId,
-      category: emission.category,
-      subcategory: emission.subcategory || null,
-      quantity: emission.quantity,
-      unit: emission.unit,
-      co2Emissions: emission.co2Emissions,
-      date: emission.date || new Date(),
-      description: emission.description || null,
-      department: emission.department || null,
-      createdAt: new Date()
-    };
-    this.emissionsData.push(newEmission);
-    return newEmission;
+    await this.ensureDatabase();
+    const result = await db.insert(emissions).values(emission);
+    const newEmission = await db.select().from(emissions)
+      .where(eq(emissions.id, result[0].insertId as number))
+      .limit(1);
+    return newEmission[0];
   }
 
   async getUserEmissions(userId: number, startDate?: string, endDate?: string): Promise<Emission[]> {
-    let userEmissions = this.emissionsData.filter(emission => emission.userId === userId);
+    await this.ensureDatabase();
     
-    if (startDate || endDate) {
-      userEmissions = userEmissions.filter(emission => {
-        const emissionDate = emission.date;
-        if (startDate && emissionDate < new Date(startDate)) return false;
-        if (endDate && emissionDate > new Date(endDate)) return false;
-        return true;
-      });
-    }
+    const baseCondition = eq(emissions.userId, userId);
     
-    return userEmissions.sort((a, b) => b.date.getTime() - a.date.getTime());
+    const whereCondition = (startDate && endDate)
+      ? and(
+          baseCondition,
+          between(emissions.date, new Date(startDate), new Date(endDate))
+        )
+      : baseCondition;
+    
+    const result = await db.select()
+      .from(emissions)
+      .where(whereCondition)
+      .orderBy(desc(emissions.date));
+    
+    return result;
   }
 
   async calculateTotalEmissions(userId: number, startDate?: string, endDate?: string): Promise<number> {
-    const emissions = await this.getUserEmissions(userId, startDate, endDate);
-    return emissions.reduce((total, emission) => total + Number(emission.co2Emissions), 0);
+    await this.ensureDatabase();
+    const userEmissions = await this.getUserEmissions(userId, startDate, endDate);
+    return userEmissions.reduce((total, emission) => total + Number(emission.co2Emissions), 0);
   }
 
   async getEmissionsByCategory(userId: number, startDate?: string, endDate?: string): Promise<{ category: string; total: number }[]> {
-    const emissions = await this.getUserEmissions(userId, startDate, endDate);
+    await this.ensureDatabase();
+    const userEmissions = await this.getUserEmissions(userId, startDate, endDate);
     const categoryTotals: Record<string, number> = {};
     
-    emissions.forEach(emission => {
+    userEmissions.forEach(emission => {
       if (!categoryTotals[emission.category]) {
         categoryTotals[emission.category] = 0;
       }
@@ -104,61 +115,50 @@ export class DatabaseStorage {
   }
 
   async createGoal(goal: InsertGoal): Promise<Goal> {
-    const newGoal: Goal = {
-      id: this.nextGoalId++,
-      userId: goal.userId,
-      category: goal.category || null,
-      goalName: goal.goalName,
-      goalType: goal.goalType,
-      targetValue: goal.targetValue,
-      currentValue: null,
-      targetDate: goal.targetDate,
-      status: null,
-      completedAt: null,
-      createdAt: new Date()
-    };
-    this.goalsData.push(newGoal);
-    return newGoal;
+    await this.ensureDatabase();
+    const result = await db.insert(goals).values(goal);
+    const newGoal = await db.select().from(goals)
+      .where(eq(goals.id, result[0].insertId as number))
+      .limit(1);
+    return newGoal[0];
   }
 
   async getUserGoals(userId: number): Promise<Goal[]> {
-    return this.goalsData.filter(goal => goal.userId === userId);
+    await this.ensureDatabase();
+    const result = await db.select().from(goals).where(eq(goals.userId, userId));
+    return result;
   }
 
   async updateGoalProgress(goalId: number, currentValue: number): Promise<void> {
-    const goal = this.goalsData.find(g => g.id === goalId);
-    if (goal) {
-      goal.currentValue = currentValue.toString();
-      // Note: 'progress' and 'updatedAt' properties don't exist in the schema
-    }
+    await this.ensureDatabase();
+    await db.update(goals)
+      .set({ currentValue: currentValue.toString() })
+      .where(eq(goals.id, goalId));
   }
 
   async getTipsForUser(role: string, category?: string): Promise<any[]> {
-    // Return dummy tips based on role
-    const individualTips = [
-      { id: 1, title: "Use LED bulbs", content: "Switch to LED lighting to reduce electricity consumption", category: "electricity" },
-      { id: 2, title: "Walk or bike", content: "Use active transportation for short trips", category: "travel" },
-      { id: 3, title: "Reduce heating", content: "Lower your thermostat by 2°C to save energy", category: "electricity" }
-    ];
-
-    const companyTips = [
-      { id: 4, title: "Remote work", content: "Implement remote work policies to reduce commuting emissions", category: "travel" },
-      { id: 5, title: "Energy audit", content: "Conduct regular energy audits to identify savings opportunities", category: "electricity" },
-      { id: 6, title: "Sustainable supply chain", content: "Choose suppliers with strong environmental commitments", category: "production" }
-    ];
-
-    const tips = role === 'individual' ? individualTips : companyTips;
+    await this.ensureDatabase();
     
-    if (category) {
-      return tips.filter(tip => tip.category === category);
-    }
+    const baseCondition = eq(tips.targetRole, role === 'individual' ? 'individual' : 'company');
     
-    return tips;
+    const whereCondition = category 
+      ? and(baseCondition, eq(tips.category, category))
+      : baseCondition;
+    
+    const result = await db.select().from(tips).where(whereCondition);
+    return result;
   }
 
   async saveReport(userId: number, reportType: string, reportDate: Date, filePath: string, reportData: any): Promise<void> {
-    // For now, just log the report
-    console.log(`Report saved: ${reportType} for user ${userId} at ${filePath}`);
+    await this.ensureDatabase();
+    await db.insert(reports).values({
+      userId,
+      reportType,
+      reportDate,
+      filePath,
+      fileFormat: filePath.endsWith('.pdf') ? 'pdf' : 'csv',
+      reportData
+    });
   }
 }
 

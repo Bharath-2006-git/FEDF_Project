@@ -1,20 +1,17 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@shared/schema';
-
 interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
-
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (userData: SignupData) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
-
 interface SignupData {
   email: string;
   password: string;
@@ -24,9 +21,7 @@ interface SignupData {
   companyName?: string;
   companyDepartment?: string;
 }
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -34,11 +29,9 @@ export const useAuth = () => {
   }
   return context;
 };
-
 interface AuthProviderProps {
   children: ReactNode;
 }
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -46,12 +39,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: false,
     isLoading: true,
   });
-
-  // Initialize auth state from localStorage
   useEffect(() => {
     const token = localStorage.getItem('carbonSense_token');
     const userData = localStorage.getItem('carbonSense_user');
-
     if (token && userData) {
       try {
         const user = JSON.parse(userData);
@@ -71,7 +61,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthState(prev => ({ ...prev, isLoading: false }));
     }
   }, []);
-
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await fetch('/api/auth/login', {
@@ -81,24 +70,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         const { token, user } = data;
-        
-        // Store in localStorage
         localStorage.setItem('carbonSense_token', token);
         localStorage.setItem('carbonSense_user', JSON.stringify(user));
-
-        // Update state
         setAuthState({
           user,
           token,
           isAuthenticated: true,
           isLoading: false,
         });
-
         return { success: true };
       } else {
         return { success: false, error: data.message || 'Login failed' };
@@ -108,7 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: false, error: 'Network error. Please try again.' };
     }
   };
-
   const signup = async (userData: SignupData): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await fetch('/api/auth/signup', {
@@ -118,24 +99,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
         body: JSON.stringify(userData),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         const { token, user } = data;
-        
-        // Store in localStorage
         localStorage.setItem('carbonSense_token', token);
         localStorage.setItem('carbonSense_user', JSON.stringify(user));
-
-        // Update state
         setAuthState({
           user,
           token,
           isAuthenticated: true,
           isLoading: false,
         });
-
         return { success: true };
       } else {
         return { success: false, error: data.message || 'Signup failed' };
@@ -145,13 +119,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: false, error: 'Network error. Please try again.' };
     }
   };
-
   const logout = () => {
-    // Clear localStorage
     localStorage.removeItem('carbonSense_token');
     localStorage.removeItem('carbonSense_user');
-
-    // Reset state
     setAuthState({
       user: null,
       token: null,
@@ -159,7 +129,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       isLoading: false,
     });
   };
-
   const updateUser = (userData: Partial<User>) => {
     if (authState.user) {
       const updatedUser = { ...authState.user, ...userData };
@@ -170,7 +139,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }));
     }
   };
-
   const value: AuthContextType = {
     ...authState,
     login,
@@ -178,15 +146,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     updateUser,
   };
-
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-// Higher-order component for protecting routes
 export const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
   return (props: P) => {
     const { isAuthenticated, isLoading } = useAuth();
-
     if (isLoading) {
       return (
         <div className="flex items-center justify-center min-h-screen">
@@ -197,7 +161,6 @@ export const withAuth = <P extends object>(Component: React.ComponentType<P>) =>
         </div>
       );
     }
-
     if (!isAuthenticated) {
       return (
         <div className="flex items-center justify-center min-h-screen">
@@ -208,29 +171,21 @@ export const withAuth = <P extends object>(Component: React.ComponentType<P>) =>
         </div>
       );
     }
-
     return <Component {...props} />;
   };
 };
-
-// Hook for role-based access control
 export const useRoleAccess = () => {
   const { user } = useAuth();
-
   const hasRole = (requiredRole: string | string[]) => {
     if (!user) return false;
-    
     if (Array.isArray(requiredRole)) {
       return requiredRole.includes(user.role);
     }
-    
     return user.role === requiredRole;
   };
-
   const isIndividual = () => hasRole('individual');
   const isCompany = () => hasRole('company');
   const isAdmin = () => hasRole('admin');
-
   return {
     hasRole,
     isIndividual,
