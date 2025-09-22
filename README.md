@@ -117,16 +117,3 @@ npm run build
 
 3. **Deploy to your preferred hosting platform**
 
-## Contributing
-
-We welcome contributions to improve CarbonSense! Please follow these guidelines:
-
-1. Fork the repository and create a feature branch
-2. Implement your changes with appropriate testing
-3. Follow the existing code style and conventions
-4. Update documentation as needed
-5. Submit a pull request with a clear description
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for complete terms and conditions.
