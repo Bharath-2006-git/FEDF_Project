@@ -14,13 +14,47 @@ A modern React-based carbon footprint tracking platform that empowers individual
 
 ## Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Framework**: Tailwind CSS with Shadcn/ui component library
-- **Backend**: Express.js with Node.js
-- **Database**: MySQL with Drizzle ORM for type-safe queries
-- **Visualization**: Recharts for data charts and graphs
-- **Authentication**: Session-based user management
-- **Routing**: Wouter for client-side navigation
+### Frontend
+- **Framework**: React 18.3.1 with TypeScript 5.6.3
+- **Build Tool**: Vite 5.4.19 for fast development and optimized builds
+- **UI Components**: Radix UI primitives with custom styling
+- **Styling**: Tailwind CSS 3.4.15 with custom design system
+- **Animations**: Framer Motion 11.13.1 for smooth interactions
+- **Icons**: Lucide React for consistent iconography
+- **Routing**: Wouter 3.3.5 for lightweight client-side navigation
+- **State Management**: TanStack Query (React Query) 5.60.5 for server state
+- **Form Handling**: React Hook Form 7.55.0 with Zod validation
+
+### Backend
+- **Runtime**: Node.js with Express.js 4.21.2
+- **Language**: TypeScript with tsx for development execution
+- **Authentication**: Passport.js with JWT tokens and bcryptjs hashing
+- **Session Management**: express-session with connect-pg-simple
+- **API**: RESTful endpoints with type-safe request/response handling
+
+### Database & ORM
+- **Database**: MySQL 8.0+ for reliable data storage
+- **ORM**: Drizzle ORM 0.39.1 for type-safe database operations
+- **Schema Management**: Drizzle Kit for migrations and schema generation
+- **Validation**: Zod 3.24.2 for runtime type validation across the stack
+
+### Data Visualization
+- **Charts**: Recharts 2.15.2 for responsive, React-native charts
+- **Data Processing**: Custom emission calculation algorithms
+- **Export**: PapaParse 5.4.1 for CSV data export functionality
+
+### Development Tools
+- **Type Safety**: Shared TypeScript types across frontend/backend
+- **Code Quality**: ESLint 9.13.0 with TypeScript rules
+- **Build Process**: esbuild for production server bundling
+- **Development**: Concurrently for running multiple development servers
+- **Environment**: cross-env for cross-platform environment variables
+
+### Key Architectural Decisions
+- **Monorepo Structure**: Shared types between client/server via `/shared` directory
+- **Type-First Development**: Database schema generates TypeScript types automatically
+- **Runtime Validation**: Zod schemas ensure data integrity at API boundaries
+- **Modern Tooling**: Vite + esbuild for optimal development and build performance
 
 ## Quick Start
 
