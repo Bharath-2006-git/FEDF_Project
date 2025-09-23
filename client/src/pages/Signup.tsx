@@ -98,7 +98,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse"></div>
@@ -117,7 +117,7 @@ export default function Signup() {
           </Link>
         </div>
 
-        <Card className="shadow-2xl border border-white/20 dark:border-slate-700/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl">
+        <Card className="shadow-2xl border border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl">
         <CardHeader className="space-y-6 text-center pb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl mb-4 shadow-lg mx-auto">
             <UserPlus className="w-8 h-8 text-white" />
@@ -287,6 +287,9 @@ export default function Signup() {
                   autoComplete="new-password"
                   className="pl-10 pr-12 h-12 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-600/50 focus:border-slate-400 dark:focus:border-slate-400"
                   disabled={loading}
+                  data-1p-ignore="true"
+                  data-lpignore="true"
+                  style={{ backgroundImage: 'none' }}
                 />
                 <Button
                   type="button"
@@ -322,6 +325,9 @@ export default function Signup() {
                   autoComplete="new-password"
                   className="pl-10 pr-12 h-12 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-600/50 focus:border-slate-400 dark:focus:border-slate-400"
                   disabled={loading}
+                  data-1p-ignore="true"
+                  data-lpignore="true"
+                  style={{ backgroundImage: 'none' }}
                 />
                 <Button
                   type="button"

@@ -26,7 +26,7 @@ export default function Landing() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-200 dark:border-slate-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -80,7 +80,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-16 bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-800">
+      <section className="relative pt-20 pb-16 bg-gradient-to-br from-slate-50/80 to-blue-50/20 dark:from-slate-900/80 dark:to-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -120,7 +120,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white dark:bg-slate-900">
+      <section className="py-20 bg-white/50 dark:bg-slate-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -206,7 +206,7 @@ export default function Landing() {
       </section>
 
       {/* Core Features Grid */}
-      <section className="py-20 bg-gray-50 dark:bg-slate-800">
+      <section className="py-20 bg-slate-50/50 dark:bg-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -221,7 +221,7 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-white dark:bg-slate-900 hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-slate-700">
+            <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200/50 dark:border-slate-700/50">
               <CardHeader className="text-center pb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Calculator className="h-6 w-6 text-white" />
@@ -235,7 +235,7 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-slate-900 hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-slate-700">
+            <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200/50 dark:border-slate-700/50">
               <CardHeader className="text-center pb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <BarChart3 className="h-6 w-6 text-white" />
@@ -249,7 +249,7 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-slate-900 hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-slate-700">
+            <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200/50 dark:border-slate-700/50">
               <CardHeader className="text-center pb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Target className="h-6 w-6 text-white" />
@@ -263,7 +263,7 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-slate-900 hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200 dark:border-slate-700">
+            <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200/50 dark:border-slate-700/50">
               <CardHeader className="text-center pb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Lightbulb className="h-6 w-6 text-white" />
