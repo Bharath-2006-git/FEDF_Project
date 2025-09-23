@@ -110,7 +110,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <div className="p-6 space-y-8 max-w-7xl mx-auto">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/5 dark:to-blue-500/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/5 dark:to-emerald-600/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
           <div className="relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
           <div className="flex items-center justify-between">
             <div>
@@ -155,44 +155,44 @@ export default function Dashboard() {
           <CardContent className="transition-colors duration-300 ease-in-out">
             <div className="flex items-center text-xs text-muted-foreground transition-colors duration-300 ease-in-out">
               {isPositive ? (
-                <TrendingDown className="w-4 h-4 text-green-500 mr-1 transition-colors duration-300 ease-in-out" />
+                <TrendingDown className="w-4 h-4 text-emerald-500 mr-1 transition-colors duration-300 ease-in-out" />
               ) : (
                 <TrendingUp className="w-4 h-4 text-red-500 mr-1 transition-colors duration-300 ease-in-out" />
               )}
-              <span className={`transition-colors duration-300 ease-in-out ${isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+              <span className={`transition-colors duration-300 ease-in-out ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
                 {trend.toFixed(1)}% {isPositive ? "reduction" : "increase"} from last period
               </span>
             </div>
           </CardContent>
         </Card>
-        <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-blue-50/90 to-blue-100/90 dark:from-blue-950/50 dark:to-blue-900/40 border border-blue-200/50 dark:border-blue-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+        <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-blue-50/90 to-cyan-100/90 dark:from-blue-950/50 dark:to-cyan-900/40 border border-blue-200/50 dark:border-blue-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
             <div>
               <p className="text-sm text-blue-600 dark:text-blue-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">THIS MONTH</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">{formatEmissionValue(dashboardData?.monthlyEmissions || 0)}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">Current period</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-blue-500/25 group-hover:scale-110 transition-all duration-300">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-blue-500/25 group-hover:scale-110 transition-all duration-300">
               <Calendar className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />
             </div>
           </CardHeader>
         </Card>
-        <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-green-50/90 to-green-100/90 dark:from-green-950/50 dark:to-green-900/40 border border-green-200/50 dark:border-green-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+        <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-teal-50/90 to-green-100/90 dark:from-teal-950/50 dark:to-green-900/40 border border-teal-200/50 dark:border-teal-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
             <div>
-              <p className="text-sm text-green-600 dark:text-green-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">ACTIVE GOALS</p>
+              <p className="text-sm text-teal-600 dark:text-teal-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">ACTIVE GOALS</p>
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">{dashboardData?.goals?.length || 0}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">Reduction targets</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-green-500/25 group-hover:scale-110 transition-all duration-300">
+            <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-teal-500/25 group-hover:scale-110 transition-all duration-300">
               <Target className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />
             </div>
           </CardHeader>
         </Card>
-        <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-purple-50/90 to-purple-100/90 dark:from-purple-950/50 dark:to-purple-900/40 border border-purple-200/50 dark:border-purple-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+        <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-cyan-50/90 to-emerald-100/90 dark:from-cyan-950/50 dark:to-emerald-900/40 border border-cyan-200/50 dark:border-cyan-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
             <div>
-              <p className="text-sm text-purple-600 dark:text-purple-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">
+              <p className="text-sm text-cyan-600 dark:text-cyan-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">
                 {isCompany() ? "DEPARTMENTS" : "CATEGORIES"}
               </p>
               <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">
@@ -200,17 +200,17 @@ export default function Dashboard() {
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">Data sources</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-purple-500/25 group-hover:scale-110 transition-all duration-300">
+            <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-cyan-500/25 group-hover:scale-110 transition-all duration-300">
               {isCompany() ? <Building className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" /> : <BarChart3 className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />}
             </div>
           </CardHeader>
         </Card>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 group overflow-hidden border border-white/30 dark:border-slate-700/30">
-          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-transparent via-primary/5 to-transparent transition-all duration-300 ease-in-out">
-            <CardTitle className="flex items-center gap-2 transition-colors duration-300 ease-in-out">
-              <BarChart3 className="w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-300" />
+        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 group overflow-hidden border border-emerald-200/30 dark:border-emerald-700/30">
+          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-emerald-50/50 via-teal-50/30 to-cyan-50/50 dark:from-emerald-950/50 dark:via-teal-950/30 dark:to-cyan-950/50 transition-all duration-300 ease-in-out">
+            <CardTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 transition-colors duration-300 ease-in-out">
+              <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
               Emissions by {isCompany() ? "Department" : "Category"}
             </CardTitle>
           </CardHeader>
@@ -237,10 +237,10 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 group overflow-hidden border border-white/30 dark:border-slate-700/30">
-          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-emerald-500/10 dark:from-emerald-600/10 dark:via-green-600/10 dark:to-emerald-600/10 transition-all duration-300 ease-in-out">
-            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">
-              <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
+        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 group overflow-hidden border border-blue-200/30 dark:border-blue-700/30">
+          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-blue-50/50 via-cyan-50/30 to-teal-50/50 dark:from-blue-950/50 dark:via-cyan-950/30 dark:to-teal-950/50 transition-all duration-300 ease-in-out">
+            <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300 transition-colors duration-300 ease-in-out">
+              <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
               Emissions Trend
             </CardTitle>
           </CardHeader>
@@ -250,11 +250,13 @@ export default function Dashboard() {
                 <AreaChart data={prepareHistoryData()}>
                   <defs>
                     <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                      <stop offset="50%" stopColor="#06B6D4" stopOpacity={0.5}/>
                       <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
                     </linearGradient>
                     <linearGradient id="colorEmissionsDark" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#34D399" stopOpacity={0.9}/>
+                      <stop offset="5%" stopColor="#60A5FA" stopOpacity={0.9}/>
+                      <stop offset="50%" stopColor="#22D3EE" stopOpacity={0.6}/>
                       <stop offset="95%" stopColor="#34D399" stopOpacity={0.05}/>
                     </linearGradient>
                   </defs>
@@ -265,7 +267,8 @@ export default function Dashboard() {
                   <Area 
                     type="monotone" 
                     dataKey="emissions" 
-                    stroke="#10B981" 
+                    stroke="#3B82F6" 
+                    strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorEmissions)" 
                   />
@@ -276,10 +279,10 @@ export default function Dashboard() {
         </Card>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-white/30 dark:border-slate-700/30">
-          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-emerald-500/10 dark:from-emerald-600/10 dark:via-green-600/10 dark:to-emerald-600/10 transition-colors duration-300 ease-in-out">
-            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">
-              <Target className="w-5 h-5 text-emerald-600 dark:text-emerald-400 transition-colors duration-300 ease-in-out" />
+        <Card className="lg:col-span-2 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-teal-200/30 dark:border-teal-700/30">
+          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-teal-50/50 via-emerald-50/30 to-green-50/50 dark:from-teal-950/50 dark:via-emerald-950/30 dark:to-green-950/50 transition-colors duration-300 ease-in-out">
+            <CardTitle className="flex items-center gap-2 text-teal-700 dark:text-teal-300 transition-colors duration-300 ease-in-out">
+              <Target className="w-5 h-5 text-teal-600 dark:text-teal-400 transition-colors duration-300 ease-in-out" />
               Active Goals & Progress
             </CardTitle>
           </CardHeader>
@@ -309,23 +312,23 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-white/30 dark:border-slate-700/30">
-          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-emerald-500/10 dark:from-emerald-600/10 dark:via-green-600/10 dark:to-emerald-600/10 transition-colors duration-300 ease-in-out">
-            <CardTitle className="flex items-center gap-2 text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">
-              <Lightbulb className="w-5 h-5 text-emerald-600 dark:text-emerald-400 transition-colors duration-300 ease-in-out" />
+        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-cyan-200/30 dark:border-cyan-700/30">
+          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-cyan-50/50 via-blue-50/30 to-teal-50/50 dark:from-cyan-950/50 dark:via-blue-950/30 dark:to-teal-950/50 transition-colors duration-300 ease-in-out">
+            <CardTitle className="flex items-center gap-2 text-cyan-700 dark:text-cyan-300 transition-colors duration-300 ease-in-out">
+              <Lightbulb className="w-5 h-5 text-cyan-600 dark:text-cyan-400 transition-colors duration-300 ease-in-out" />
               Quick Actions
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-6">
-            <Button className="w-full justify-start bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300" variant="outline">
+            <Button className="w-full justify-start bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300" variant="outline">
               <Plus className="w-4 h-4 mr-2 transition-transform duration-300 ease-in-out" />
               Log New Emission
             </Button>
-            <Button className="w-full justify-start border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all duration-300" variant="outline">
+            <Button className="w-full justify-start border-teal-200 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-300" variant="outline">
               <Target className="w-4 h-4 mr-2 transition-transform duration-300 ease-in-out" />
               Set New Goal
             </Button>
-            <Button className="w-full justify-start border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all duration-300" variant="outline">
+            <Button className="w-full justify-start border-cyan-200 dark:border-cyan-700 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-all duration-300" variant="outline">
               <BarChart3 className="w-4 h-4 mr-2 transition-transform duration-300 ease-in-out" />
               View Reports
             </Button>
@@ -350,22 +353,22 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="transition-colors duration-300 ease-in-out">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 transition-all duration-300 ease-in-out">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400 transition-colors duration-300 ease-in-out" />
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 transition-all duration-300 ease-in-out">
+              <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400 transition-colors duration-300 ease-in-out" />
               <div>
                 <h4 className="font-medium transition-colors duration-300 ease-in-out">First Week Complete</h4>
                 <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Logged emissions for 7 days</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 transition-all duration-300 ease-in-out">
-              <Target className="w-8 h-8 text-blue-600 dark:text-blue-400 transition-colors duration-300 ease-in-out" />
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 transition-all duration-300 ease-in-out">
+              <Target className="w-8 h-8 text-teal-600 dark:text-teal-400 transition-colors duration-300 ease-in-out" />
               <div>
                 <h4 className="font-medium transition-colors duration-300 ease-in-out">Goal Setter</h4>
                 <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Created your first reduction goal</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 transition-all duration-300 ease-in-out">
-              <TrendingDown className="w-8 h-8 text-purple-600 dark:text-purple-400 transition-colors duration-300 ease-in-out" />
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 transition-all duration-300 ease-in-out">
+              <TrendingDown className="w-8 h-8 text-cyan-600 dark:text-cyan-400 transition-colors duration-300 ease-in-out" />
               <div>
                 <h4 className="font-medium transition-colors duration-300 ease-in-out">Trend Tracker</h4>
                 <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Reduced emissions by 15%</p>

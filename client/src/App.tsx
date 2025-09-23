@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -22,6 +22,12 @@ import Signup from "@/pages/Signup";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
 import ComingSoonPage from "@/pages/ComingSoon";
+import Analytics from "@/pages/Analytics";
+import Achievements from "@/pages/Achievements";
+import Notifications from "@/pages/Notifications";
+import Reports from "@/pages/Reports";
+import Comparison from "@/pages/Comparison";
+import WhatIfAnalysis from "@/pages/WhatIfAnalysis";
 import { BarChart3, FileText } from "lucide-react";
 
 function ThemeToggle() {
@@ -96,13 +102,15 @@ function AuthenticatedApp() {
               <SidebarTrigger className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" />
               <div className="flex-1" />
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 hover:scale-105"
-                >
-                  <Bell className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                </Button>
+                <Link href="/notifications">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 hover:scale-105"
+                  >
+                    <Bell className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                  </Button>
+                </Link>
                 <ThemeToggle />
               </div>
             </div>
@@ -118,13 +126,13 @@ function AuthenticatedApp() {
               <Route path="/profile" component={Profile} />
               <Route path="/goals" component={Goals} />
               <Route path="/tips" component={Tips} />
-              
-              {/* Coming Soon Routes */}
-              <Route path="/analytics" component={() => <ComingSoonPage title="Analytics" description="Advanced analytics and data visualization features are coming soon. Explore detailed carbon footprint analytics and insights." icon={BarChart3} />} />
-              <Route path="/compare" component={() => <ComingSoonPage title="Compare" description="Compare your carbon footprint with industry benchmarks, regional averages, and similar organizations." icon={BarChart3} />} />
-              <Route path="/comparison" component={() => <ComingSoonPage title="Comparison" description="Compare your carbon footprint with industry benchmarks, regional averages, and similar organizations." icon={BarChart3} />} />
-              <Route path="/reports" component={() => <ComingSoonPage title="Reports" description="Advanced reporting and analytics features are coming soon. Generate detailed emission reports, export data, and analyze trends." icon={FileText} />} />
-              <Route path="/what-if" component={() => <ComingSoonPage title="What-If Analysis" description="Scenario analysis and predictive modeling features are coming soon. Explore the impact of different sustainability initiatives." icon={BarChart3} />} />
+              <Route path="/analytics" component={Analytics} />
+              <Route path="/achievements" component={Achievements} />
+              <Route path="/notifications" component={Notifications} />
+              <Route path="/reports" component={Reports} />
+              <Route path="/compare" component={Comparison} />
+              <Route path="/comparison" component={Comparison} />
+              <Route path="/what-if" component={WhatIfAnalysis} />
               
               {/* Catch-all route for any other pages - redirect to Coming Soon */}
               <Route component={() => <ComingSoonPage title="Coming Soon" description="This feature is currently under development. We're working hard to bring you new sustainability tools and insights." icon={BarChart3} />} />

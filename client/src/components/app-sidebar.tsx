@@ -7,7 +7,9 @@ import {
   User, 
   Lightbulb,
   Home,
-  FlaskConical
+  FlaskConical,
+  Trophy,
+  Bell
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
@@ -32,6 +34,8 @@ const menuItems = [
   { title: "Log Emissions", url: "/emissions", icon: Plus },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Goals", url: "/goals", icon: Target },
+  { title: "Achievements", url: "/achievements", icon: Trophy },
+  { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Compare", url: "/compare", icon: TrendingUp },
   { title: "Tips", url: "/tips", icon: Lightbulb },
   { title: "Reports", url: "/reports", icon: FileText },

@@ -159,15 +159,15 @@ export default function EmissionVisualization({
         <div className="text-center">
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-500 ${
             totalEmissions < 100 
-              ? 'bg-green-600/20 text-green-400 border border-green-600/30' 
+              ? 'bg-primary/20 text-primary border border-primary/30' 
               : totalEmissions < 200
-                ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30'
-                : 'bg-red-600/20 text-red-400 border border-red-600/30'
+                ? 'bg-chart-2/20 text-chart-2 border border-chart-2/30'
+                : 'bg-destructive/20 text-destructive border border-destructive/30'
           }`}>
             <div className={`w-2 h-2 rounded-full ${
               isPlaying ? 'animate-pulse' : ''
             } ${
-              totalEmissions < 100 ? 'bg-green-400' : totalEmissions < 200 ? 'bg-yellow-400' : 'bg-red-400'
+              totalEmissions < 100 ? 'bg-primary' : totalEmissions < 200 ? 'bg-chart-2' : 'bg-destructive'
             }`} />
             <span className="text-sm font-medium">
               {totalEmissions < 100 ? 'Excellent Performance' 

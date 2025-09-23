@@ -194,38 +194,38 @@ export default function LogEmissions() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800">
+        <Card className="bg-gradient-to-r from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30 border-primary/20 dark:border-primary/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 dark:text-green-400 font-medium">Today's Entries</p>
+                <p className="text-sm text-primary dark:text-primary font-medium">Today's Entries</p>
                 <p className="text-2xl font-bold text-foreground">3</p>
               </div>
-              <CalendarDays className="h-8 w-8 text-green-600" />
+              <CalendarDays className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-blue-200 dark:border-blue-800">
+        <Card className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 border-emerald-200 dark:border-emerald-800">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">This Week</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">This Week</p>
                 <p className="text-2xl font-bold text-foreground">12</p>
               </div>
-              <Plus className="h-8 w-8 text-blue-600" />
+              <Plus className="h-8 w-8 text-emerald-600" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-purple-200 dark:border-purple-800">
+        <Card className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 border-emerald-200 dark:border-emerald-800">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">Total CO₂</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Total CO₂</p>
                 <p className="text-2xl font-bold text-foreground">45.2kg</p>
               </div>
-              <Factory className="h-8 w-8 text-purple-600" />
+              <Factory className="h-8 w-8 text-emerald-600" />
             </div>
           </CardContent>
         </Card>
@@ -386,7 +386,7 @@ export default function LogEmissions() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
+                className="flex-1 h-12 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold"
               >
                 {loading ? (
                   <>
@@ -423,12 +423,12 @@ export default function LogEmissions() {
       </Card>
 
       {/* Tips Section */}
-      <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
+      <Card className="bg-gradient-to-r from-primary/10 to-chart-2/10 dark:from-primary/20 dark:to-chart-2/20 border-primary/20 dark:border-primary/30">
         <CardContent className="p-6">
-          <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-3">
+          <h3 className="font-semibold text-primary dark:text-primary mb-3">
             💡 {isIndividual() ? "Personal" : "Business"} Tips
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-amber-700 dark:text-amber-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-primary/80 dark:text-primary/90">
             {isIndividual() ? (
               <>
                 <div>• Track daily commute separately from leisure travel</div>

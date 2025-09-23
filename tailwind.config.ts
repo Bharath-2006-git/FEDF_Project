@@ -91,7 +91,6 @@ export default {
       backgroundImage: {
         'hero-pattern': "url('@assets/generated_images/Renewable_energy_hero_landscape_5081305b.png')",
         'particles': "url('@assets/generated_images/Carbon_emission_particles_visualization_7651d1ae.png')",
-        'forest-texture': "url('@assets/generated_images/Subtle_forest_texture_overlay_acb04b38.png')",
       },
       keyframes: {
         "accordion-down": {
