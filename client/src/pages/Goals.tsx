@@ -143,11 +143,11 @@ export default function Goals() {
     return Math.min((current / target) * 100, 100);
   };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/5 dark:to-emerald-600/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
-          <div className="relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
+          <div className="relative bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-3">
@@ -261,7 +261,7 @@ export default function Goals() {
               return (
                 <Card 
                   key={goal.id} 
-                  className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/30 dark:border-slate-700/30 hover:shadow-lg transition-all duration-300"
+                  className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30 hover:shadow-lg transition-all duration-300"
                 >
                   <CardHeader className="space-y-4">
                     <div className="flex items-start justify-between">
@@ -322,7 +322,7 @@ export default function Goals() {
           </div>
         )}
         {!loading && goals.length === 0 && (
-          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
+          <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
             <CardContent className="text-center py-12">
               <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-300 mb-2">

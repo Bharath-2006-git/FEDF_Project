@@ -299,7 +299,8 @@ export default function WhatIfAnalysis() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -531,6 +532,7 @@ export default function WhatIfAnalysis() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

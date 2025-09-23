@@ -114,7 +114,7 @@ export default function Achievements() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <div className="p-6 space-y-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="relative">
