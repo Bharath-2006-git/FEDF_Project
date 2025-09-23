@@ -63,7 +63,7 @@ export default function Goals() {
       setLoading(true);
       const response = await fetch('/api/goals', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('carbonSense_token')}`
         }
       });
       if (!response.ok) {
@@ -84,7 +84,7 @@ export default function Goals() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('carbonSense_token')}`
         },
         body: JSON.stringify({
           ...formData,
@@ -119,21 +119,21 @@ export default function Goals() {
   const getStatusIcon = (status: string | null) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-primary" />;
       case 'expired':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
+        return <AlertCircle className="w-5 h-5 text-destructive" />;
       default:
-        return <Clock className="w-5 h-5 text-blue-500" />;
+        return <Clock className="w-5 h-5 text-chart-2" />;
     }
   };
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary';
       case 'expired':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+        return 'bg-destructive/20 text-destructive dark:bg-destructive/30 dark:text-destructive';
       default:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-chart-2/20 text-chart-2 dark:bg-chart-2/30 dark:text-chart-2';
     }
   };
   const calculateProgress = (goal: Goal) => {
@@ -143,10 +143,10 @@ export default function Goals() {
     return Math.min((current / target) * 100, 100);
   };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/5 dark:to-blue-500/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/5 dark:to-emerald-600/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
           <div className="relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
             <div className="flex items-center justify-between">
               <div>
@@ -302,7 +302,7 @@ export default function Goals() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-600 dark:text-slate-400">Due Date:</span>
-                        <span className={`font-medium ${isExpired ? 'text-red-600' : ''}`}>
+                        <span className={`font-medium ${isExpired ? 'text-destructive' : ''}`}>
                           {new Date(goal.targetDate).toLocaleDateString()}
                         </span>
                       </div>

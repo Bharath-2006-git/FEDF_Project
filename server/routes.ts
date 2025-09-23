@@ -105,10 +105,281 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics routes
+  app.get("/api/analytics/monthly-comparison", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const timeRange = req.query.range as string || '6months';
+      // This would typically fetch real data from the database
+      // For now, returning dummy data that matches the frontend expectations
+      res.json({
+        data: [
+          { month: 'Jan', current: 280, previous: 320, change: -12.5 },
+          { month: 'Feb', current: 310, previous: 340, change: -8.8 },
+          { month: 'Mar', current: 290, previous: 350, change: -17.1 },
+          { month: 'Apr', current: 340, previous: 380, change: -10.5 },
+          { month: 'May', current: 320, previous: 360, change: -11.1 },
+          { month: 'Jun', current: 300, previous: 330, change: -9.1 }
+        ]
+      });
+    } catch (error) {
+      console.error('Monthly comparison error:', error);
+      res.status(500).json({ message: "Failed to get monthly comparison" });
+    }
+  });
+
+  app.get("/api/analytics/category-breakdown", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const timeRange = req.query.range as string || '6months';
+      res.json({
+        data: [
+          { category: 'Electricity', value: 450.3, percentage: 36, trend: -5.2 },
+          { category: 'Travel', value: 380.7, percentage: 30, trend: 2.1 },
+          { category: 'Fuel', value: 250.1, percentage: 20, trend: -8.5 },
+          { category: 'Waste', value: 169.4, percentage: 14, trend: -1.3 }
+        ]
+      });
+    } catch (error) {
+      console.error('Category breakdown error:', error);
+      res.status(500).json({ message: "Failed to get category breakdown" });
+    }
+  });
+
+  app.get("/api/analytics/yearly-trends", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      res.json({
+        data: [
+          { year: '2022', emissions: 4200, goals: 4000, achieved: false },
+          { year: '2023', emissions: 3800, goals: 3500, achieved: false },
+          { year: '2024', emissions: 3200, goals: 3400, achieved: true },
+          { year: '2025', emissions: 2800, goals: 3000, achieved: true }
+        ]
+      });
+    } catch (error) {
+      console.error('Yearly trends error:', error);
+      res.status(500).json({ message: "Failed to get yearly trends" });
+    }
+  });
+
+  app.get("/api/analytics/peak-analysis", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const timeRange = req.query.range as string || '6months';
+      res.json({
+        data: {
+          highestDay: { date: '2025-08-15', value: 45.8 },
+          lowestDay: { date: '2025-07-22', value: 8.2 },
+          averageDaily: 23.7
+        }
+      });
+    } catch (error) {
+      console.error('Peak analysis error:', error);
+      res.status(500).json({ message: "Failed to get peak analysis" });
+    }
+  });
+
+  app.get("/api/analytics/export", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const format = req.query.format as string || 'csv';
+      const timeRange = req.query.range as string || '6months';
+      
+      if (format === 'csv') {
+        const csvData = 'Date,Category,Amount,CO2\n2025-09-01,Electricity,250,58.25\n2025-09-02,Travel,50,20.2';
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=carbon-analytics.csv');
+        res.send(csvData);
+      } else {
+        res.status(400).json({ message: "Unsupported format" });
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      res.status(500).json({ message: "Failed to export report" });
+    }
+  });
+
+  // Achievements routes
+  app.get("/api/achievements/user", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      res.json({
+        data: [
+          {
+            id: 1,
+            achievementType: 'goal_completed',
+            title: 'Goal Crusher',
+            description: 'Complete your first emission reduction goal',
+            badgeIcon: 'trophy',
+            unlockedAt: '2025-08-15T10:30:00Z',
+            isUnlocked: true
+          },
+          {
+            id: 2,
+            achievementType: 'streak',
+            title: 'Consistency Champion',
+            description: 'Log emissions for 7 consecutive days',
+            badgeIcon: 'flame',
+            unlockedAt: '2025-08-20T14:15:00Z',
+            isUnlocked: true
+          },
+          {
+            id: 3,
+            achievementType: 'reduction',
+            title: 'Carbon Cutter',
+            description: 'Reduce monthly emissions by 20%',
+            badgeIcon: 'trending-down',
+            progress: 15,
+            maxProgress: 20,
+            isUnlocked: false
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('User achievements error:', error);
+      res.status(500).json({ message: "Failed to get user achievements" });
+    }
+  });
+
+  app.get("/api/achievements/stats", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      res.json({
+        data: {
+          totalAchievements: 12,
+          unlockedAchievements: 6,
+          currentStreak: 14,
+          longestStreak: 28,
+          totalPoints: 850,
+          rank: 'Gold',
+          nextRankPoints: 1000
+        }
+      });
+    } catch (error) {
+      console.error('Achievement stats error:', error);
+      res.status(500).json({ message: "Failed to get achievement stats" });
+    }
+  });
+
+  // Notifications routes
+  app.get("/api/notifications/list", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      res.json({
+        data: [
+          {
+            id: 1,
+            type: 'reminder',
+            message: 'Don\'t forget to log your daily emissions!',
+            isRead: false,
+            scheduledFor: '2025-09-23T09:00:00Z',
+            createdAt: '2025-09-23T09:00:00Z',
+            priority: 'medium'
+          },
+          {
+            id: 2,
+            type: 'milestone',
+            message: 'Congratulations! You\'ve achieved your monthly reduction goal of 15%',
+            isRead: true,
+            scheduledFor: '2025-09-20T10:30:00Z',
+            createdAt: '2025-09-20T10:30:00Z',
+            priority: 'high'
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('Notifications error:', error);
+      res.status(500).json({ message: "Failed to get notifications" });
+    }
+  });
+
+  app.put("/api/notifications/:id/read", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // This would update the notification in the database
+      res.json({ message: "Notification marked as read" });
+    } catch (error) {
+      console.error('Mark notification read error:', error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.put("/api/notifications/read-all", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // This would update all notifications for the user in the database
+      res.json({ message: "All notifications marked as read" });
+    } catch (error) {
+      console.error('Mark all notifications read error:', error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
+  app.delete("/api/notifications/:id", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // This would delete the notification from the database
+      res.json({ message: "Notification deleted" });
+    } catch (error) {
+      console.error('Delete notification error:', error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+
+  app.get("/api/notifications/settings", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      res.json({
+        data: {
+          emailNotifications: true,
+          pushNotifications: true,
+          dailyReminders: true,
+          weeklyReports: true,
+          goalDeadlines: true,
+          achievements: true,
+          tips: true,
+          emissionAlerts: true,
+          reminderTime: '09:00',
+          reportDay: 'monday'
+        }
+      });
+    } catch (error) {
+      console.error('Notification settings error:', error);
+      res.status(500).json({ message: "Failed to get notification settings" });
+    }
+  });
+
+  app.put("/api/notifications/settings", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // This would update the user's notification settings in the database
+      res.json({ message: "Notification settings updated" });
+    } catch (error) {
+      console.error('Update notification settings error:', error);
+      res.status(500).json({ message: "Failed to update notification settings" });
+    }
+  });
+
   // POST /api/auth/login  
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
+
+      // Special handling for demo account
+      if (email === 'demo@carbonsense.com' && password === 'demo123') {
+        const demoUser = {
+          id: 999,
+          email: 'demo@carbonsense.com',
+          firstName: 'Demo',
+          lastName: 'User',
+          role: 'individual',
+          createdAt: new Date().toISOString()
+        };
+
+        const token = jwt.sign(
+          { 
+            userId: demoUser.id, 
+            email: demoUser.email, 
+            role: demoUser.role 
+          },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+
+        return res.json({
+          user: demoUser,
+          token,
+          message: "Demo login successful"
+        });
+      }
 
       // Find user by email
       const user = await storage.getUserByEmail(email);

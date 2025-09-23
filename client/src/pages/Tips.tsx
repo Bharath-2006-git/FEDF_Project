@@ -37,9 +37,9 @@ const categoryIcons = {
 };
 
 const impactColors = {
-  low: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  medium: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", 
-  high: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+  low: "bg-chart-2/20 text-chart-2 dark:bg-chart-2/30 dark:text-chart-2",
+  medium: "bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary", 
+  high: "bg-chart-1/20 text-chart-1 dark:bg-chart-1/30 dark:text-chart-1"
 };
 
 export default function Tips() {
@@ -63,7 +63,7 @@ export default function Tips() {
       
       const response = await fetch(`/api/tips?role=${role}${category ? `&category=${category}` : ''}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('carbonSense_token')}`
         }
       });
 
@@ -85,12 +85,12 @@ export default function Tips() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header Section */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/5 dark:to-blue-500/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/5 dark:to-emerald-600/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
           <div className="relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
             <div className="flex items-center justify-between">
               <div>
@@ -111,10 +111,11 @@ export default function Tips() {
                   onClick={fetchTips}
                   variant="outline"
                   size="sm"
+                  disabled={loading}
                   className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? 'Loading...' : 'Refresh'}
                 </Button>
               </div>
             </div>
@@ -197,7 +198,7 @@ export default function Tips() {
                         {tip.category}
                       </Badge>
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                        <Star className="w-4 h-4 text-primary fill-current" />
                         <span className="text-sm text-slate-500 dark:text-slate-400">Recommended</span>
                       </div>
                     </div>
