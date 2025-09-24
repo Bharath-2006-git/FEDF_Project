@@ -299,7 +299,7 @@ export default function WhatIfAnalysis() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -320,7 +320,7 @@ export default function WhatIfAnalysis() {
       </div>
 
       {/* Predefined Scenarios */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle>Quick Scenarios</CardTitle>
         </CardHeader>
@@ -342,7 +342,7 @@ export default function WhatIfAnalysis() {
       </Card>
 
       {/* Scenario Inputs */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FlaskConical className="w-5 h-5" />
@@ -403,7 +403,7 @@ export default function WhatIfAnalysis() {
 
       {/* Results Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -418,7 +418,7 @@ export default function WhatIfAnalysis() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -433,7 +433,7 @@ export default function WhatIfAnalysis() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -454,7 +454,7 @@ export default function WhatIfAnalysis() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -475,7 +475,7 @@ export default function WhatIfAnalysis() {
       </div>
 
       {/* Results Chart */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle>Scenario Impact Visualization</CardTitle>
         </CardHeader>
@@ -499,7 +499,7 @@ export default function WhatIfAnalysis() {
       </Card>
 
       {/* Recommendations */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="w-5 h-5" />
