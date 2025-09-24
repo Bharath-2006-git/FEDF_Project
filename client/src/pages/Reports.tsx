@@ -244,7 +244,7 @@ export default function Reports() {
   const COLORS = ['#059669', '#0ea5e9', '#f59e0b', '#ef4444'];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -259,7 +259,7 @@ export default function Reports() {
       </div>
 
       {/* Generate New Report */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="w-5 h-5" />
@@ -336,7 +336,7 @@ export default function Reports() {
       {/* Report Visualization */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Emissions Breakdown */}
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
           <CardHeader>
             <CardTitle>Current Period Breakdown</CardTitle>
           </CardHeader>
@@ -366,7 +366,7 @@ export default function Reports() {
         </Card>
 
         {/* Trends Chart */}
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
           <CardHeader>
             <CardTitle>Emission Trends</CardTitle>
           </CardHeader>
@@ -389,7 +389,7 @@ export default function Reports() {
       </div>
 
       {/* Reports List */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />

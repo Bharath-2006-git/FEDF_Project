@@ -212,7 +212,7 @@ export default function Comparison() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -227,7 +227,7 @@ export default function Comparison() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -281,7 +281,7 @@ export default function Comparison() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -296,7 +296,7 @@ export default function Comparison() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -311,7 +311,7 @@ export default function Comparison() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -326,7 +326,7 @@ export default function Comparison() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -346,7 +346,7 @@ export default function Comparison() {
       </div>
 
       {/* Trend Comparison Chart */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle>Performance Trends</CardTitle>
         </CardHeader>
@@ -400,7 +400,7 @@ export default function Comparison() {
       </Card>
 
       {/* Category Benchmarks */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle>Category Benchmarks</CardTitle>
         </CardHeader>
@@ -447,7 +447,7 @@ export default function Comparison() {
       </Card>
 
       {/* Insights & Recommendations */}
-      <Card>
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
           <CardTitle>Insights & Recommendations</CardTitle>
         </CardHeader>

@@ -114,15 +114,15 @@ export default function Achievements() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="p-6 space-y-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 rounded-3xl blur-3xl opacity-75"></div>
-          <div className="relative bg-card/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-card-border">
+          <div className="relative bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/40 dark:border-slate-600/40">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-card-foreground mb-2">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                   Achievements & Progress
                 </h1>
                 <p className="text-lg font-medium text-muted-foreground">
@@ -139,7 +139,7 @@ export default function Achievements() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-card/70 backdrop-blur-xl border border-card-border">
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Points</CardTitle>
               <Star className="h-4 w-4 text-primary" />
@@ -152,7 +152,7 @@ export default function Achievements() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/70 backdrop-blur-xl border border-card-border">
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Current Streak</CardTitle>
               <Flame className="h-4 w-4 text-primary" />
@@ -165,7 +165,7 @@ export default function Achievements() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/70 backdrop-blur-xl border border-card-border">
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Achievements</CardTitle>
               <Trophy className="h-4 w-4 text-primary" />
@@ -180,7 +180,7 @@ export default function Achievements() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/70 backdrop-blur-xl border border-card-border">
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Current Rank</CardTitle>
               <Medal className="h-4 w-4 text-primary" />
@@ -200,21 +200,21 @@ export default function Achievements() {
           <Button 
             variant={filter === 'all' ? 'default' : 'outline'}
             onClick={() => setFilter('all')}
-            className="bg-card/70 backdrop-blur-md border-card-border"
+            className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-md border-white/40 dark:border-slate-600/40"
           >
             All ({achievements.length})
           </Button>
           <Button 
             variant={filter === 'unlocked' ? 'default' : 'outline'}
             onClick={() => setFilter('unlocked')}
-            className="bg-card/70 backdrop-blur-md border-card-border"
+            className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-md border-white/40 dark:border-slate-600/40"
           >
             Unlocked ({achievements.filter(a => a.isUnlocked).length})
           </Button>
           <Button 
             variant={filter === 'locked' ? 'default' : 'outline'}
             onClick={() => setFilter('locked')}
-            className="bg-card/70 backdrop-blur-md border-card-border"
+            className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-md border-white/40 dark:border-slate-600/40"
           >
             Locked ({achievements.filter(a => !a.isUnlocked).length})
           </Button>
@@ -232,7 +232,7 @@ export default function Achievements() {
                 className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                   isUnlocked 
                     ? 'bg-primary/5 border-primary/20 backdrop-blur-xl' 
-                    : 'bg-card/70 border-card-border backdrop-blur-xl'
+                    : 'bg-white/80 dark:bg-slate-800/90 border-white/40 dark:border-slate-600/40 backdrop-blur-xl'
                 }`}
               >
                 {/* Unlock Effect */}
@@ -297,7 +297,7 @@ export default function Achievements() {
 
         {/* Empty State */}
         {filteredAchievements.length === 0 && (
-          <Card className="bg-card/70 backdrop-blur-xl border border-card-border">
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border border-white/40 dark:border-slate-600/40 shadow-lg">
             <CardContent className="text-center py-12">
               <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-card-foreground mb-2">
