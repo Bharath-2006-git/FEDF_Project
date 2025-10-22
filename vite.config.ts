@@ -26,10 +26,10 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    port: 5173,
+    strictPort: false,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.API_URL || 'http://localhost:3000',
         changeOrigin: true,
         secure: false
       }

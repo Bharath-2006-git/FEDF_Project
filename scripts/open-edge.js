@@ -2,6 +2,31 @@
 
 import { spawn } from 'child_process';
 import { platform } from 'os';
+import { createConnection } from 'net';
+
+const findVitePort = async () => {
+  // Common ports Vite uses
+  const commonPorts = [5173, 5174, 5175, 5176, 5177];
+  
+  for (const port of commonPorts) {
+    const isOpen = await new Promise((resolve) => {
+      const socket = createConnection({ port, host: 'localhost' }, () => {
+        socket.end();
+        resolve(true);
+      });
+      socket.on('error', () => resolve(false));
+      socket.setTimeout(500, () => {
+        socket.destroy();
+        resolve(false);
+      });
+    });
+    
+    if (isOpen) {
+      return port;
+    }
+  }
+  return 5173; // default fallback
+};
 
 const openInEdge = (url) => {
   const isWindows = platform() === 'win32';
@@ -44,11 +69,11 @@ const openInEdge = (url) => {
   }
 };
 
-// Get URL from command line arguments
-const url = process.argv[2] || 'http://localhost:5173';
-
-// Wait 3 seconds for the Vite server to start before opening browser
+// Wait for Vite server to start and detect its port
 console.log('⏳ Waiting for Vite server to start...');
-setTimeout(() => {
+setTimeout(async () => {
+  const port = await findVitePort();
+  const url = process.argv[2] || `http://localhost:${port}`;
+  console.log(`🌐 Detected Vite running on port ${port}`);
   openInEdge(url);
 }, 3000);

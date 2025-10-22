@@ -57,23 +57,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/auth/signup
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
+      console.log('📝 Signup request received:', { ...req.body, password: '[REDACTED]' });
+      
       const userData = insertUserSchema.parse(req.body);
+      console.log('✓ Validation passed');
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
+        console.log('❌ User already exists:', userData.email);
         return res.status(400).json({ message: "User already exists" });
       }
+      console.log('✓ Email is available');
 
       // Hash password
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+      console.log('✓ Password hashed');
 
       // Create user
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
       });
+      console.log('✓ User created with ID:', user.id);
 
       // Generate JWT token
       const token = jwt.sign(
@@ -85,6 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JWT_SECRET,
         { expiresIn: '24h' }
       );
+      console.log('✓ JWT token generated');
 
       // Return user data (without password) and token
       const { password, ...userWithoutPassword } = user;
@@ -93,15 +101,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
         message: "User created successfully"
       });
+      console.log('✅ Signup successful for:', userData.email);
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('❌ Signup error:', error.message || error);
+      console.error('Stack trace:', error.stack);
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
           message: "Validation failed", 
           errors: error.errors 
         });
       }
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ 
+        message: "Internal server error",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
@@ -351,10 +364,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/auth/login  
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
+      console.log('🔐 Login request received:', { ...req.body, password: '[REDACTED]' });
+      
       const { email, password } = loginSchema.parse(req.body);
+      console.log('✓ Validation passed');
 
       // Special handling for demo account
       if (email === 'demo@carbonsense.com' && password === 'demo123') {
+        console.log('👤 Demo account login');
         const demoUser = {
           id: 999,
           email: 'demo@carbonsense.com',
@@ -384,14 +401,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find user by email
       const user = await storage.getUserByEmail(email);
       if (!user) {
+        console.log('❌ User not found:', email);
         return res.status(401).json({ message: "Invalid email or password" });
       }
+      console.log('✓ User found');
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
+        console.log('❌ Invalid password for:', email);
         return res.status(401).json({ message: "Invalid email or password" });
       }
+      console.log('✓ Password verified');
 
       // Generate JWT token
       const token = jwt.sign(
@@ -403,6 +424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JWT_SECRET,
         { expiresIn: '24h' }
       );
+      console.log('✓ JWT token generated');
 
       // Return user data (without password) and token
       const { password: _, ...userWithoutPassword } = user;
@@ -411,15 +433,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
         message: "Login successful"
       });
+      console.log('✅ Login successful for:', email);
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error.message || error);
+      console.error('Stack trace:', error.stack);
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
           message: "Validation failed", 
           errors: error.errors 
         });
       }
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ 
+        message: "Internal server error",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
   
