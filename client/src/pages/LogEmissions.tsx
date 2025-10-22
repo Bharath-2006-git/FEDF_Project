@@ -155,8 +155,8 @@ export default function LogEmissions() {
       const result = await emissionsAPI.add(emissionData);
       
       toast({
-        title: "Emission Logged Successfully",
-        description: `Added ${quantity} ${formData.unit} of ${formData.category} (${result.emission.toFixed(2)} kg CO₂)`,
+        title: "✅ Emission Logged Successfully",
+        description: `Added ${quantity} ${formData.unit} of ${formData.category}${formData.subcategory ? ` (${formData.subcategory})` : ''} - ${result.co2Emissions.toFixed(2)} kg CO₂`,
       });
 
       // Reset form
@@ -173,6 +173,11 @@ export default function LogEmissions() {
     } catch (err: any) {
       console.error('Error logging emission:', err);
       setError(err.response?.data?.message || "Failed to log emission. Please try again.");
+      toast({
+        title: "❌ Error",
+        description: err.response?.data?.message || "Failed to log emission. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

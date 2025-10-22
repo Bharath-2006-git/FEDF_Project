@@ -40,9 +40,19 @@ export interface EmissionRequest {
 }
 
 export interface EmissionResponse {
-  status: string;
-  emission: number;
-  data: any;
+  message: string;
+  emission: {
+    id: number;
+    category: string;
+    subcategory?: string;
+    quantity: number;
+    unit: string;
+    co2Emissions: number;
+    date: string;
+    description?: string;
+    department?: string;
+  };
+  co2Emissions: number;
 }
 
 export interface EmissionCalculation {
@@ -147,6 +157,15 @@ class ApiService {
     return response.data;
   }
 
+  async updateEmission(emissionId: number, emission: EmissionRequest): Promise<EmissionResponse> {
+    const response = await this.api.put<EmissionResponse>(`/emissions/${emissionId}`, emission);
+    return response.data;
+  }
+
+  async deleteEmission(emissionId: number): Promise<void> {
+    await this.api.delete(`/emissions/${emissionId}`);
+  }
+
   async getEmissionCalculation(startDate?: string, endDate?: string, category?: string): Promise<EmissionCalculation> {
     const response = await this.api.get<EmissionCalculation>('/emissions/calculate', {
       params: { startDate, endDate, category }
@@ -154,15 +173,29 @@ class ApiService {
     return response.data;
   }
 
-  async getEmissionHistory(startDate?: string, endDate?: string): Promise<EmissionHistory[]> {
-    const response = await this.api.get<EmissionHistory[]>('/emissions/history', {
-      params: { startDate, endDate }
+  async calculateEmission(category: string, quantity: number, unit: string, subcategory?: string): Promise<any> {
+    const response = await this.api.get('/emissions/calculate', {
+      params: { category, quantity, unit, subcategory }
     });
     return response.data;
   }
 
-  async getEmissionsList(startDate?: string, endDate?: string): Promise<any[]> {
-    const response = await this.api.get<any[]>('/emissions/list', {
+  async getEmissionHistory(startDate?: string, endDate?: string): Promise<EmissionHistory[]> {
+    const response = await this.api.get('/emissions/history', {
+      params: { startDate, endDate }
+    });
+    return response.data.history || response.data;
+  }
+
+  async getEmissionsList(startDate?: string, endDate?: string, category?: string, limit?: number): Promise<any[]> {
+    const response = await this.api.get('/emissions/list', {
+      params: { startDate, endDate, category, limit }
+    });
+    return response.data.emissions || response.data;
+  }
+
+  async getEmissionsSummary(startDate?: string, endDate?: string): Promise<any> {
+    const response = await this.api.get('/emissions/summary', {
       params: { startDate, endDate }
     });
     return response.data;
@@ -229,74 +262,6 @@ class ApiService {
     };
   }
 
-  // Analytics API methods
-  async getMonthlyComparison(timeRange: string): Promise<any> {
-    const response = await this.api.get(`/analytics/monthly-comparison?range=${timeRange}`);
-    return response.data;
-  }
-
-  async getCategoryBreakdown(timeRange: string): Promise<any> {
-    const response = await this.api.get(`/analytics/category-breakdown?range=${timeRange}`);
-    return response.data;
-  }
-
-  async getYearlyTrends(): Promise<any> {
-    const response = await this.api.get('/analytics/yearly-trends');
-    return response.data;
-  }
-
-  async getPeakAnalysis(timeRange: string): Promise<any> {
-    const response = await this.api.get(`/analytics/peak-analysis?range=${timeRange}`);
-    return response.data;
-  }
-
-  async exportReport(format: string, timeRange: string): Promise<any> {
-    const response = await this.api.get(`/analytics/export?format=${format}&range=${timeRange}`, {
-      responseType: 'blob'
-    });
-    return response.data;
-  }
-
-  // Achievements API methods
-  async getUserAchievements(): Promise<any> {
-    const response = await this.api.get('/achievements/user');
-    return response.data;
-  }
-
-  async getAchievementStats(): Promise<any> {
-    const response = await this.api.get('/achievements/stats');
-    return response.data;
-  }
-
-  // Notifications API methods
-  async getNotifications(): Promise<any> {
-    const response = await this.api.get('/notifications/list');
-    return response.data;
-  }
-
-  async markNotificationRead(notificationId: number): Promise<void> {
-    await this.api.put(`/notifications/${notificationId}/read`);
-  }
-
-  async markAllNotificationsRead(): Promise<void> {
-    await this.api.put('/notifications/read-all');
-  }
-
-  async deleteNotification(notificationId: number): Promise<void> {
-    await this.api.delete(`/notifications/${notificationId}`);
-  }
-
-  async getNotificationSettings(): Promise<any> {
-    const response = await this.api.get('/notifications/settings');
-    return response.data;
-  }
-
-  async updateNotificationSettings(settings: any): Promise<void> {
-    await this.api.put('/notifications/settings', settings);
-  }
-
-
-
   exportToCSV(data: any[], filename: string): void {
     const csvContent = this.convertToCSV(data);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -339,12 +304,16 @@ export const authAPI = {
 
 export const emissionsAPI = {
   add: (emission: EmissionRequest) => apiService.addEmission(emission),
-  calculate: (startDate?: string, endDate?: string, category?: string) => 
-    apiService.getEmissionCalculation(startDate, endDate, category),
+  update: (emissionId: number, emission: EmissionRequest) => apiService.updateEmission(emissionId, emission),
+  delete: (emissionId: number) => apiService.deleteEmission(emissionId),
+  calculate: (category: string, quantity: number, unit: string, subcategory?: string) => 
+    apiService.calculateEmission(category, quantity, unit, subcategory),
   history: (startDate?: string, endDate?: string) => 
     apiService.getEmissionHistory(startDate, endDate),
-  list: (startDate?: string, endDate?: string) => 
-    apiService.getEmissionsList(startDate, endDate),
+  list: (startDate?: string, endDate?: string, category?: string, limit?: number) => 
+    apiService.getEmissionsList(startDate, endDate, category, limit),
+  summary: (startDate?: string, endDate?: string) =>
+    apiService.getEmissionsSummary(startDate, endDate),
 };
 
 export const goalsAPI = {
@@ -368,19 +337,6 @@ export const userAPI = {
 
 export const dashboardAPI = {
   getData: () => apiService.getDashboardData(),
-  getMonthlyComparison: (timeRange: string) => apiService.getMonthlyComparison(timeRange),
-  getCategoryBreakdown: (timeRange: string) => apiService.getCategoryBreakdown(timeRange),
-  getYearlyTrends: () => apiService.getYearlyTrends(),
-  getPeakAnalysis: (timeRange: string) => apiService.getPeakAnalysis(timeRange),
-  exportReport: (format: string, timeRange: string) => apiService.exportReport(format, timeRange),
-  getUserAchievements: () => apiService.getUserAchievements(),
-  getAchievementStats: () => apiService.getAchievementStats(),
-  getNotifications: () => apiService.getNotifications(),
-  markNotificationRead: (id: number) => apiService.markNotificationRead(id),
-  markAllNotificationsRead: () => apiService.markAllNotificationsRead(),
-  deleteNotification: (id: number) => apiService.deleteNotification(id),
-  getNotificationSettings: () => apiService.getNotificationSettings(),
-  updateNotificationSettings: (settings: any) => apiService.updateNotificationSettings(settings),
 };
 
 export default apiService;

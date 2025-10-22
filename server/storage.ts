@@ -99,6 +99,24 @@ export class DatabaseStorage {
     return data as Emission;
   }
 
+  async updateEmission(emissionId: number, userId: number, updateData: any): Promise<void> {
+    const { error } = await supabase
+      .from("emissions")
+      .update(updateData)
+      .eq("id", emissionId)
+      .eq("user_id", userId);
+    if (error) throw error;
+  }
+
+  async deleteEmission(emissionId: number, userId: number): Promise<void> {
+    const { error } = await supabase
+      .from("emissions")
+      .delete()
+      .eq("id", emissionId)
+      .eq("user_id", userId);
+    if (error) throw error;
+  }
+
   async getUserEmissions(userId: number, startDate?: string, endDate?: string): Promise<Emission[]> {
     let query = supabase.from("emissions").select("*").eq("user_id", userId).order("date", { ascending: false });
     if (startDate && endDate) {
