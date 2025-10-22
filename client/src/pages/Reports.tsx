@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/services/api";
+import { apiService } from "@/services/api";
 import { 
   FileText, 
   Download, 
@@ -60,7 +60,7 @@ export default function Reports() {
     format: 'pdf'
   });
 
-  // Sample report data for visualization
+  // Report data for visualization
   const [reportData, setReportData] = useState({
     totalEmissions: 0,
     breakdown: [] as any[],
@@ -75,43 +75,8 @@ export default function Reports() {
   const loadReports = async () => {
     try {
       setLoading(true);
-      // Simulate API call with dummy data
-      const mockReports: Report[] = [
-        {
-          id: 1,
-          reportType: 'monthly',
-          startDate: '2025-08-01',
-          endDate: '2025-08-31',
-          filePath: '/reports/monthly_august_2025.pdf',
-          fileFormat: 'pdf',
-          createdAt: '2025-09-01T10:00:00Z',
-          totalEmissions: 1250.5,
-          status: 'completed'
-        },
-        {
-          id: 2,
-          reportType: 'quarterly',
-          startDate: '2025-04-01',
-          endDate: '2025-06-30',
-          filePath: '/reports/quarterly_q2_2025.csv',
-          fileFormat: 'csv',
-          createdAt: '2025-07-15T14:30:00Z',
-          totalEmissions: 3680.2,
-          status: 'completed'
-        },
-        {
-          id: 3,
-          reportType: 'annual',
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
-          filePath: '/reports/annual_2024.pdf',
-          fileFormat: 'pdf',
-          createdAt: '2025-01-10T09:15:00Z',
-          totalEmissions: 14250.8,
-          status: 'completed'
-        }
-      ];
-      setReports(mockReports);
+      // Use actual API - for now empty array until backend generates reports
+      setReports([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -125,25 +90,51 @@ export default function Reports() {
 
   const loadReportData = async () => {
     try {
-      // Sample data for current period
+      // Get actual emission data from API
+      const [emissionHistory, categoryBreakdown] = await Promise.all([
+        apiService.getEmissionHistory(),
+        apiService.getCategoryBreakdown('6months')
+      ]);
+
+      const totalEmissions = emissionHistory.reduce((sum: number, item: any) => sum + item.emissions, 0);
+      
+      // Create breakdown data with colors
+      const colorMap: Record<string, string> = {
+        'electricity': '#059669',
+        'travel': '#0ea5e9', 
+        'fuel': '#f59e0b',
+        'waste': '#ef4444',
+        'water': '#8b5cf6',
+        'food': '#ec4899'
+      };
+
+      const breakdown = categoryBreakdown.data?.map((item: any) => ({
+        category: item.category,
+        value: item.value,
+        percentage: item.percentage,
+        color: colorMap[item.category.toLowerCase()] || '#6b7280'
+      })) || [];
+
+      // Create trends data from emission history
+      const trends = emissionHistory.slice(-5).map((item: any) => ({
+        month: new Date(item.date + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        emissions: Math.round(item.emissions),
+        target: Math.round(item.emissions * 0.9) // 10% reduction target
+      }));
+
       setReportData({
-        totalEmissions: 1250.5,
-        breakdown: [
-          { category: 'Electricity', value: 450.3, percentage: 36, color: '#059669' },
-          { category: 'Travel', value: 380.7, percentage: 30, color: '#0ea5e9' },
-          { category: 'Fuel', value: 250.1, percentage: 20, color: '#f59e0b' },
-          { category: 'Waste', value: 169.4, percentage: 14, color: '#ef4444' }
-        ],
-        trends: [
-          { month: 'May', emissions: 1180, target: 1200 },
-          { month: 'Jun', emissions: 1220, target: 1150 },
-          { month: 'Jul', emissions: 1100, target: 1100 },
-          { month: 'Aug', emissions: 1250, target: 1050 },
-          { month: 'Sep', emissions: 980, target: 1000 }
-        ]
+        totalEmissions,
+        breakdown,
+        trends
       });
     } catch (error) {
       console.error('Failed to load report data:', error);
+      // Set empty data structure on error
+      setReportData({
+        totalEmissions: 0,
+        breakdown: [],
+        trends: []
+      });
     }
   };
 
@@ -159,7 +150,7 @@ export default function Reports() {
 
     try {
       setGenerating(true);
-      const response = await api.generateReport({
+      const response = await apiService.generateReport({
         reportType: reportForm.reportType,
         startDate: reportForm.startDate,
         endDate: reportForm.endDate
@@ -206,11 +197,44 @@ export default function Reports() {
 
   const downloadReport = async (report: Report) => {
     try {
-      // Simulate download
+      // Generate real report content based on actual data
+      const emissionData = await apiService.getEmissionHistory();
+      const filteredData = emissionData.filter((item: any) => {
+        const date = new Date(item.date);
+        const start = new Date(report.startDate);
+        const end = new Date(report.endDate);
+        return date >= start && date <= end;
+      });
+
+      const totalEmissions = filteredData.reduce((sum: number, item: any) => sum + item.emissions, 0);
+      const categoryBreakdown = filteredData.reduce((acc: Record<string, number>, item: any) => {
+        acc[item.category] = (acc[item.category] || 0) + item.emissions;
+        return acc;
+      }, {});
+
+      // Generate report content
+      const reportContent = {
+        title: `Carbon Emissions Report - ${report.reportType}`,
+        period: `${report.startDate} to ${report.endDate}`,
+        summary: {
+          totalEmissions: `${totalEmissions.toFixed(2)} kg CO2e`,
+          averageDaily: `${(totalEmissions / filteredData.length || 0).toFixed(2)} kg CO2e/day`,
+          entryCount: filteredData.length
+        },
+        categoryBreakdown,
+        detailedData: filteredData
+      };
+
+      const reportText = JSON.stringify(reportContent, null, 2);
+      const blob = new Blob([reportText], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
       const link = document.createElement('a');
-      link.href = `data:text/plain;charset=utf-8,Sample ${report.reportType} report data for ${report.startDate} to ${report.endDate}`;
-      link.download = `carbon_report_${report.reportType}_${report.id}.${report.fileFormat}`;
+      link.href = url;
+      link.download = `carbon_report_${report.reportType}_${Date.now()}.json`;
       link.click();
+      
+      URL.revokeObjectURL(url);
       
       toast({
         title: "Success",
@@ -219,7 +243,7 @@ export default function Reports() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to download report",
+        description: "Failed to generate and download report",
         variant: "destructive"
       });
     }

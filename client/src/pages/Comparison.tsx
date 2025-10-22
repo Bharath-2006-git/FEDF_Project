@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import api from "@/services/api";
+import { apiService } from "@/services/api";
 import { 
   TrendingUp, 
   TrendingDown,
@@ -63,14 +63,13 @@ export default function Comparison() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const { toast } = useToast();
 
-  // Sample comparison data
   const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
   const [benchmarkData, setBenchmarkData] = useState<BenchmarkData[]>([]);
   const [summaryStats, setSummaryStats] = useState({
-    myTotal: 1250.5,
-    industryAverage: 1580.3,
-    percentileBetter: 72,
-    improvement: -18.5
+    myTotal: 0,
+    industryAverage: 0,
+    percentileBetter: 0,
+    improvement: 0
   });
 
   useEffect(() => {
@@ -81,101 +80,72 @@ export default function Comparison() {
     try {
       setLoading(true);
       
-      // Simulate API call with realistic comparison data
-      const mockComparison: ComparisonData[] = [
-        {
-          period: 'Jan 2025',
-          myEmissions: 280,
-          industryAverage: 350,
-          regionalAverage: 320,
-          bestInClass: 180,
-          difference: -20,
-          trend: 'down'
-        },
-        {
-          period: 'Feb 2025',
-          myEmissions: 310,
-          industryAverage: 365,
-          regionalAverage: 340,
-          bestInClass: 190,
-          difference: -15,
-          trend: 'down'
-        },
-        {
-          period: 'Mar 2025',
-          myEmissions: 290,
-          industryAverage: 355,
-          regionalAverage: 325,
-          bestInClass: 185,
-          difference: -18,
-          trend: 'down'
-        },
-        {
-          period: 'Apr 2025',
-          myEmissions: 340,
-          industryAverage: 370,
-          regionalAverage: 345,
-          bestInClass: 200,
-          difference: -8,
-          trend: 'stable'
-        },
-        {
-          period: 'May 2025',
-          myEmissions: 320,
-          industryAverage: 360,
-          regionalAverage: 335,
-          bestInClass: 195,
-          difference: -11,
-          trend: 'down'
-        },
-        {
-          period: 'Jun 2025',
-          myEmissions: 300,
-          industryAverage: 358,
-          regionalAverage: 330,
-          bestInClass: 188,
-          difference: -16,
-          trend: 'down'
-        }
-      ];
+      // Get user's actual emission data
+      const [userHistory, categoryBreakdown] = await Promise.all([
+        apiService.getEmissionHistory(),
+        apiService.getCategoryBreakdown(timeRange)
+      ]);
 
-      const mockBenchmarks: BenchmarkData[] = [
-        {
-          category: 'Electricity',
-          myValue: 450.3,
-          industryAverage: 580.2,
-          topPerformers: 320.1,
-          unit: 'kg CO₂',
-          percentile: 78
-        },
-        {
-          category: 'Travel',
-          myValue: 380.7,
-          industryAverage: 450.8,
-          topPerformers: 220.5,
-          unit: 'kg CO₂',
-          percentile: 65
-        },
-        {
-          category: 'Fuel',
-          myValue: 250.1,
-          industryAverage: 320.4,
-          topPerformers: 180.3,
-          unit: 'kg CO₂',
-          percentile: 72
-        },
-        {
-          category: 'Waste',
-          myValue: 169.4,
-          industryAverage: 229.1,
-          topPerformers: 95.7,
-          unit: 'kg CO₂',
-          percentile: 81
-        }
-      ];
+      // Calculate user's total emissions
+      const userTotal = userHistory.reduce((sum: number, item: any) => sum + item.emissions, 0);
 
-      setComparisonData(mockComparison);
-      setBenchmarkData(mockBenchmarks);
+      // Industry benchmarks (these could come from a benchmarking API in the future)
+      const industryBenchmarks = {
+        electricity: { average: 580.2, topPerformers: 320.1 },
+        travel: { average: 450.8, topPerformers: 220.5 },
+        fuel: { average: 320.4, topPerformers: 180.3 },
+        waste: { average: 229.1, topPerformers: 95.7 },
+        total: { average: 1580.3, topPerformers: 950.0 }
+      };
+
+      // Create comparison data from user's actual emissions
+      const comparisonData: ComparisonData[] = userHistory.slice(-6).map((item: any, index: number) => {
+        const monthDate = new Date(item.date + '-01');
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const industryAvg = industryBenchmarks.total.average / 12; // Monthly average
+        const bestInClass = industryBenchmarks.total.topPerformers / 12;
+        const difference = ((item.emissions - industryAvg) / industryAvg) * 100;
+        
+        return {
+          period: monthName,
+          myEmissions: Math.round(item.emissions),
+          industryAverage: Math.round(industryAvg),
+          regionalAverage: Math.round(industryAvg * 0.9), // Assume regional is 10% better
+          bestInClass: Math.round(bestInClass),
+          difference: Math.round(difference),
+          trend: difference < -5 ? 'down' : difference > 5 ? 'up' : 'stable'
+        };
+      });
+
+      // Create benchmark data from category breakdown
+      const benchmarkData: BenchmarkData[] = categoryBreakdown.data?.map((category: any) => {
+        const categoryKey = category.category.toLowerCase() as keyof typeof industryBenchmarks;
+        const benchmark = industryBenchmarks[categoryKey] || { average: category.value * 1.5, topPerformers: category.value * 0.8 };
+        const percentile = Math.min(95, Math.max(5, 100 - ((category.value / benchmark.average) * 100)));
+        
+        return {
+          category: category.category,
+          myValue: category.value,
+          industryAverage: benchmark.average,
+          topPerformers: benchmark.topPerformers,
+          unit: 'kg CO₂',
+          percentile: Math.round(percentile)
+        };
+      }) || [];
+
+      // Calculate summary stats
+      const improvement = userTotal > 0 ? ((userTotal - industryBenchmarks.total.average) / industryBenchmarks.total.average) * 100 : 0;
+      const percentileBetter = Math.min(95, Math.max(5, 100 - ((userTotal / industryBenchmarks.total.average) * 100)));
+
+      setSummaryStats({
+        myTotal: userTotal,
+        industryAverage: industryBenchmarks.total.average,
+        percentileBetter: Math.round(percentileBetter),
+        improvement: Math.round(improvement)
+      });
+
+      setComparisonData(comparisonData);
+      setBenchmarkData(benchmarkData);
 
     } catch (error) {
       toast({

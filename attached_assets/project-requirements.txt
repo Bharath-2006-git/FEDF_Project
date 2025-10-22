@@ -1,6 +1,6 @@
 Project Name: Carbon Sense - Frontend & Database
 Goal:
-Build a React-based frontend for a carbon tracking platform that helps individuals and industries track and reduce their carbon emissions, with a MySQL database as the backend. The backend should be simple and able to handle basic CRUD operations (e.g., using Express.js with Node.js for simplicity).
+Build a React-based frontend for a carbon tracking platform that helps individuals and industries track and reduce their carbon emissions, with Supabase (Postgres) as the backend. The backend should be simple and able to handle basic CRUD operations (e.g., using Express.js with Node.js for simplicity).
 Key Features
 1.	Authentication
 o	Login, Signup, and Logout functionality with user roles: individual, company, and admin.
@@ -74,7 +74,7 @@ Context:
 •	AuthContext.jsx: Manages authentication state (user, token, role).
 ________________________________________
 Backend (Database)
-For simplicity, we will use Node.js with Express.js and MySQL to manage the database interactions.
+For simplicity, we will use Node.js with Express.js and Supabase (Postgres) to manage the database interactions.
 Database Structure:
 1.	Users Table:
 o	id, email, password, role (individual, company, admin)

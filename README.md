@@ -33,7 +33,7 @@ A modern React-based carbon footprint tracking platform that empowers individual
 - **API**: RESTful endpoints with type-safe request/response handling
 
 ### Database & ORM
-- **Database**: MySQL 8.0+ for reliable data storage
+- **Database**: Supabase (Postgres) for hosted backend and authentication
 - **ORM**: Drizzle ORM 0.39.1 for type-safe database operations
 - **Schema Management**: Drizzle Kit for migrations and schema generation
 - **Validation**: Zod 3.24.2 for runtime type validation across the stack
@@ -62,7 +62,7 @@ A modern React-based carbon footprint tracking platform that empowers individual
 
 - Node.js 18.0 or higher
 - npm or yarn package manager
-- MySQL 8.0 or compatible database
+- Supabase project (Postgres) or compatible Postgres database
 
 ### Installation & Setup
 

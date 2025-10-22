@@ -1,164 +1,114 @@
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
-import { eq, desc, and, between, sum } from "drizzle-orm";
-import { 
-  users, 
-  emissions, 
-  goals, 
-  reports, 
-  tips, 
-  achievements,
-  notifications,
-  type User, 
+import { createClient } from "@supabase/supabase-js";
+import dotenv from "dotenv";
+import {
+  type User,
   type InsertUser,
   type Emission,
   type InsertEmission,
   type Goal,
-  type InsertGoal
+  type InsertGoal,
 } from "@shared/schema";
 
-// Initialize database connection
-let db: ReturnType<typeof drizzle>;
+dotenv.config();
 
-async function initializeDatabase() {
-  const connection = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'bharath@16',
-    database: 'carbonsense',
-  });
-  
-  db = drizzle(connection);
-  return db;
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in environment");
 }
 
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+});
+
 export class DatabaseStorage {
-  private dbInitialized = false;
-
-  private async ensureDatabase() {
-    if (!this.dbInitialized) {
-      await initializeDatabase();
-      this.dbInitialized = true;
-    }
-  }
-
   async getUser(id: number): Promise<User | undefined> {
-    await this.ensureDatabase();
-    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    return result[0];
+    const { data, error } = await supabase.from("users").select("*").eq("id", id).limit(1).maybeSingle();
+    if (error) throw error;
+    return data as User | undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    await this.ensureDatabase();
-    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
+    const { data, error } = await supabase.from("users").select("*").eq("email", email).limit(1).maybeSingle();
+    if (error) throw error;
+    return data as User | undefined;
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    await this.ensureDatabase();
-    const result = await db.insert(users).values(user);
-    const newUser = await this.getUser(result[0].insertId as number);
-    if (!newUser) {
-      throw new Error("Failed to create user");
-    }
-    return newUser;
+    const { data, error } = await supabase.from("users").insert(user).select().single();
+    if (error) throw error;
+    return data as User;
   }
 
   async addEmission(emission: InsertEmission): Promise<Emission> {
-    await this.ensureDatabase();
-    const result = await db.insert(emissions).values(emission);
-    const newEmission = await db.select().from(emissions)
-      .where(eq(emissions.id, result[0].insertId as number))
-      .limit(1);
-    return newEmission[0];
+    const { data, error } = await supabase.from("emissions").insert(emission).select().single();
+    if (error) throw error;
+    return data as Emission;
   }
 
   async getUserEmissions(userId: number, startDate?: string, endDate?: string): Promise<Emission[]> {
-    await this.ensureDatabase();
-    
-    const baseCondition = eq(emissions.userId, userId);
-    
-    const whereCondition = (startDate && endDate)
-      ? and(
-          baseCondition,
-          between(emissions.date, new Date(startDate), new Date(endDate))
-        )
-      : baseCondition;
-    
-    const result = await db.select()
-      .from(emissions)
-      .where(whereCondition)
-      .orderBy(desc(emissions.date));
-    
-    return result;
+    let query = supabase.from("emissions").select("*").eq("user_id", userId).order("date", { ascending: false });
+    if (startDate && endDate) {
+      query = query.gte("date", startDate).lte("date", endDate);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data as any) || [];
   }
 
   async calculateTotalEmissions(userId: number, startDate?: string, endDate?: string): Promise<number> {
-    await this.ensureDatabase();
-    const userEmissions = await this.getUserEmissions(userId, startDate, endDate);
-    return userEmissions.reduce((total, emission) => total + Number(emission.co2Emissions), 0);
+    const emissions = await this.getUserEmissions(userId, startDate, endDate);
+    return emissions.reduce((total, e) => total + Number((e as any).co2_emissions ?? (e as any).co2Emissions ?? 0), 0);
   }
 
   async getEmissionsByCategory(userId: number, startDate?: string, endDate?: string): Promise<{ category: string; total: number }[]> {
-    await this.ensureDatabase();
-    const userEmissions = await this.getUserEmissions(userId, startDate, endDate);
-    const categoryTotals: Record<string, number> = {};
-    
-    userEmissions.forEach(emission => {
-      if (!categoryTotals[emission.category]) {
-        categoryTotals[emission.category] = 0;
-      }
-      categoryTotals[emission.category] += Number(emission.co2Emissions);
+    const emissions = await this.getUserEmissions(userId, startDate, endDate);
+    const totals: Record<string, number> = {};
+    emissions.forEach((e: any) => {
+      const category = e.category;
+      const value = Number(e.co2_emissions ?? e.co2Emissions ?? 0);
+      totals[category] = (totals[category] || 0) + value;
     });
-    
-    return Object.entries(categoryTotals).map(([category, total]) => ({ category, total }));
+    return Object.entries(totals).map(([category, total]) => ({ category, total }));
   }
 
   async createGoal(goal: InsertGoal): Promise<Goal> {
-    await this.ensureDatabase();
-    const result = await db.insert(goals).values(goal);
-    const newGoal = await db.select().from(goals)
-      .where(eq(goals.id, result[0].insertId as number))
-      .limit(1);
-    return newGoal[0];
+    const { data, error } = await supabase.from("goals").insert(goal).select().single();
+    if (error) throw error;
+    return data as Goal;
   }
 
   async getUserGoals(userId: number): Promise<Goal[]> {
-    await this.ensureDatabase();
-    const result = await db.select().from(goals).where(eq(goals.userId, userId));
-    return result;
+    const { data, error } = await supabase.from("goals").select("*").eq("user_id", userId);
+    if (error) throw error;
+    return (data as any) || [];
   }
 
   async updateGoalProgress(goalId: number, currentValue: number): Promise<void> {
-    await this.ensureDatabase();
-    await db.update(goals)
-      .set({ currentValue: currentValue.toString() })
-      .where(eq(goals.id, goalId));
+    const { error } = await supabase.from("goals").update({ current_value: currentValue }).eq("id", goalId);
+    if (error) throw error;
   }
 
   async getTipsForUser(role: string, category?: string): Promise<any[]> {
-    await this.ensureDatabase();
-    
-    const baseCondition = eq(tips.targetRole, role === 'individual' ? 'individual' : 'company');
-    
-    const whereCondition = category 
-      ? and(baseCondition, eq(tips.category, category))
-      : baseCondition;
-    
-    const result = await db.select().from(tips).where(whereCondition);
-    return result;
+    let query = supabase.from("tips").select("*").eq("target_role", role === "individual" ? "individual" : "company");
+    if (category) query = query.eq("category", category);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data as any) || [];
   }
 
   async saveReport(userId: number, reportType: string, reportDate: Date, filePath: string, reportData: any): Promise<void> {
-    await this.ensureDatabase();
-    await db.insert(reports).values({
-      userId,
-      reportType,
-      reportDate,
-      filePath,
-      fileFormat: filePath.endsWith('.pdf') ? 'pdf' : 'csv',
-      reportData
-    });
+    const payload = {
+      user_id: userId,
+      report_type: reportType,
+      report_date: reportDate,
+      file_path: filePath,
+      file_format: filePath.endsWith(".pdf") ? "pdf" : "csv",
+      report_data: reportData,
+    };
+    const { error } = await supabase.from("reports").insert(payload);
+    if (error) throw error;
   }
 }
 
