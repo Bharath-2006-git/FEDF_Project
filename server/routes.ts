@@ -36,20 +36,88 @@ const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextF
   });
 };
 
-// Helper function to calculate CO2 emissions
-const calculateCO2Emissions = (category: string, quantity: number, unit: string): number => {
-  // Emission factors (kg CO2 per unit)
+// Helper function to calculate CO2 emissions with comprehensive emission factors
+const calculateCO2Emissions = (category: string, quantity: number, unit: string, subcategory?: string): number => {
+  // Comprehensive emission factors (kg CO2 per unit)
   const emissionFactors: Record<string, Record<string, number>> = {
-    electricity: { kWh: 0.5 },
-    travel: { km: 0.2, mile: 0.32 },
-    fuel: { liter: 2.3, gallon: 8.7 },
-    production: { unit: 1.5 },
-    logistics: { km: 0.8 },
-    waste: { kg: 0.1 }
+    electricity: { 
+      kWh: 0.5,  // Grid average
+      MWh: 500
+    },
+    travel: { 
+      km: 0.15,      // Average vehicle
+      mile: 0.24,    // Average vehicle
+      miles: 0.24,
+      hours: 5.0     // For flights (approximate)
+    },
+    fuel: { 
+      liter: 2.31,        // Gasoline
+      liters: 2.31,
+      gallon: 8.74,       // Gasoline
+      gallons: 8.74,
+      cubic_meters: 2.0,  // Natural gas
+      "cubic meters": 2.0
+    },
+    production: { 
+      unit: 1.5,
+      units: 1.5,
+      kg: 0.5,
+      tons: 500,
+      hours: 10.0
+    },
+    logistics: { 
+      km: 0.8,
+      miles: 1.29,
+      packages: 2.5,
+      tons: 100
+    },
+    waste: { 
+      kg: 0.5,     // Landfill waste
+      lbs: 0.23,
+      bags: 3.0,   // Assuming ~6kg per bag
+      tons: 500,
+      cubic_meters: 50,
+      "cubic meters": 50
+    }
   };
 
-  const factor = emissionFactors[category]?.[unit] || 1;
-  return quantity * factor;
+  // Subcategory-specific factors (override category defaults)
+  const subcategoryFactors: Record<string, Record<string, Record<string, number>>> = {
+    travel: {
+      car: { km: 0.21, mile: 0.34, miles: 0.34 },
+      bus: { km: 0.05, mile: 0.08, miles: 0.08 },
+      train: { km: 0.04, mile: 0.06, miles: 0.06 },
+      plane: { km: 0.25, mile: 0.40, miles: 0.40, hours: 90.0 },
+      bike: { km: 0, mile: 0, miles: 0 },
+      walk: { km: 0, mile: 0, miles: 0 }
+    },
+    fuel: {
+      gasoline: { liter: 2.31, liters: 2.31, gallon: 8.74, gallons: 8.74 },
+      diesel: { liter: 2.68, liters: 2.68, gallon: 10.15, gallons: 10.15 },
+      natural_gas: { cubic_meters: 2.0, "cubic meters": 2.0, liter: 0.002, liters: 0.002 },
+      heating_oil: { liter: 2.52, liters: 2.52, gallon: 9.54, gallons: 9.54 }
+    },
+    waste: {
+      household: { kg: 0.5, lbs: 0.23, bags: 3.0 },
+      recyclable: { kg: 0.1, lbs: 0.05, bags: 0.6 },
+      organic: { kg: 0.3, lbs: 0.14, bags: 1.8 },
+      electronic: { kg: 1.5, lbs: 0.68, bags: 9.0 },
+      industrial: { kg: 0.8, lbs: 0.36, tons: 800 },
+      hazardous: { kg: 2.0, lbs: 0.91, tons: 2000 }
+    }
+  };
+
+  // Try subcategory-specific factor first, then category default, then fallback
+  let factor = 1.0; // Default fallback
+  
+  if (subcategory && subcategoryFactors[category]?.[subcategory]?.[unit]) {
+    factor = subcategoryFactors[category][subcategory][unit];
+  } else if (emissionFactors[category]?.[unit]) {
+    factor = emissionFactors[category][unit];
+  }
+
+  const result = quantity * factor;
+  return Math.round(result * 1000) / 1000; // Round to 3 decimal places
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -115,249 +183,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Internal server error",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
-    }
-  });
-
-  // Analytics routes
-  app.get("/api/analytics/monthly-comparison", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const timeRange = req.query.range as string || '6months';
-      // This would typically fetch real data from the database
-      // For now, returning dummy data that matches the frontend expectations
-      res.json({
-        data: [
-          { month: 'Jan', current: 280, previous: 320, change: -12.5 },
-          { month: 'Feb', current: 310, previous: 340, change: -8.8 },
-          { month: 'Mar', current: 290, previous: 350, change: -17.1 },
-          { month: 'Apr', current: 340, previous: 380, change: -10.5 },
-          { month: 'May', current: 320, previous: 360, change: -11.1 },
-          { month: 'Jun', current: 300, previous: 330, change: -9.1 }
-        ]
-      });
-    } catch (error) {
-      console.error('Monthly comparison error:', error);
-      res.status(500).json({ message: "Failed to get monthly comparison" });
-    }
-  });
-
-  app.get("/api/analytics/category-breakdown", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const timeRange = req.query.range as string || '6months';
-      res.json({
-        data: [
-          { category: 'Electricity', value: 450.3, percentage: 36, trend: -5.2 },
-          { category: 'Travel', value: 380.7, percentage: 30, trend: 2.1 },
-          { category: 'Fuel', value: 250.1, percentage: 20, trend: -8.5 },
-          { category: 'Waste', value: 169.4, percentage: 14, trend: -1.3 }
-        ]
-      });
-    } catch (error) {
-      console.error('Category breakdown error:', error);
-      res.status(500).json({ message: "Failed to get category breakdown" });
-    }
-  });
-
-  app.get("/api/analytics/yearly-trends", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      res.json({
-        data: [
-          { year: '2022', emissions: 4200, goals: 4000, achieved: false },
-          { year: '2023', emissions: 3800, goals: 3500, achieved: false },
-          { year: '2024', emissions: 3200, goals: 3400, achieved: true },
-          { year: '2025', emissions: 2800, goals: 3000, achieved: true }
-        ]
-      });
-    } catch (error) {
-      console.error('Yearly trends error:', error);
-      res.status(500).json({ message: "Failed to get yearly trends" });
-    }
-  });
-
-  app.get("/api/analytics/peak-analysis", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const timeRange = req.query.range as string || '6months';
-      res.json({
-        data: {
-          highestDay: { date: '2025-08-15', value: 45.8 },
-          lowestDay: { date: '2025-07-22', value: 8.2 },
-          averageDaily: 23.7
-        }
-      });
-    } catch (error) {
-      console.error('Peak analysis error:', error);
-      res.status(500).json({ message: "Failed to get peak analysis" });
-    }
-  });
-
-  app.get("/api/analytics/export", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const format = req.query.format as string || 'csv';
-      const timeRange = req.query.range as string || '6months';
-      
-      if (format === 'csv') {
-        const csvData = 'Date,Category,Amount,CO2\n2025-09-01,Electricity,250,58.25\n2025-09-02,Travel,50,20.2';
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename=carbon-analytics.csv');
-        res.send(csvData);
-      } else {
-        res.status(400).json({ message: "Unsupported format" });
-      }
-    } catch (error) {
-      console.error('Export error:', error);
-      res.status(500).json({ message: "Failed to export report" });
-    }
-  });
-
-  // Achievements routes
-  app.get("/api/achievements/user", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      res.json({
-        data: [
-          {
-            id: 1,
-            achievementType: 'goal_completed',
-            title: 'Goal Crusher',
-            description: 'Complete your first emission reduction goal',
-            badgeIcon: 'trophy',
-            unlockedAt: '2025-08-15T10:30:00Z',
-            isUnlocked: true
-          },
-          {
-            id: 2,
-            achievementType: 'streak',
-            title: 'Consistency Champion',
-            description: 'Log emissions for 7 consecutive days',
-            badgeIcon: 'flame',
-            unlockedAt: '2025-08-20T14:15:00Z',
-            isUnlocked: true
-          },
-          {
-            id: 3,
-            achievementType: 'reduction',
-            title: 'Carbon Cutter',
-            description: 'Reduce monthly emissions by 20%',
-            badgeIcon: 'trending-down',
-            progress: 15,
-            maxProgress: 20,
-            isUnlocked: false
-          }
-        ]
-      });
-    } catch (error) {
-      console.error('User achievements error:', error);
-      res.status(500).json({ message: "Failed to get user achievements" });
-    }
-  });
-
-  app.get("/api/achievements/stats", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      res.json({
-        data: {
-          totalAchievements: 12,
-          unlockedAchievements: 6,
-          currentStreak: 14,
-          longestStreak: 28,
-          totalPoints: 850,
-          rank: 'Gold',
-          nextRankPoints: 1000
-        }
-      });
-    } catch (error) {
-      console.error('Achievement stats error:', error);
-      res.status(500).json({ message: "Failed to get achievement stats" });
-    }
-  });
-
-  // Notifications routes
-  app.get("/api/notifications/list", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      res.json({
-        data: [
-          {
-            id: 1,
-            type: 'reminder',
-            message: 'Don\'t forget to log your daily emissions!',
-            isRead: false,
-            scheduledFor: '2025-09-23T09:00:00Z',
-            createdAt: '2025-09-23T09:00:00Z',
-            priority: 'medium'
-          },
-          {
-            id: 2,
-            type: 'milestone',
-            message: 'Congratulations! You\'ve achieved your monthly reduction goal of 15%',
-            isRead: true,
-            scheduledFor: '2025-09-20T10:30:00Z',
-            createdAt: '2025-09-20T10:30:00Z',
-            priority: 'high'
-          }
-        ]
-      });
-    } catch (error) {
-      console.error('Notifications error:', error);
-      res.status(500).json({ message: "Failed to get notifications" });
-    }
-  });
-
-  app.put("/api/notifications/:id/read", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      // This would update the notification in the database
-      res.json({ message: "Notification marked as read" });
-    } catch (error) {
-      console.error('Mark notification read error:', error);
-      res.status(500).json({ message: "Failed to mark notification as read" });
-    }
-  });
-
-  app.put("/api/notifications/read-all", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      // This would update all notifications for the user in the database
-      res.json({ message: "All notifications marked as read" });
-    } catch (error) {
-      console.error('Mark all notifications read error:', error);
-      res.status(500).json({ message: "Failed to mark all notifications as read" });
-    }
-  });
-
-  app.delete("/api/notifications/:id", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      // This would delete the notification from the database
-      res.json({ message: "Notification deleted" });
-    } catch (error) {
-      console.error('Delete notification error:', error);
-      res.status(500).json({ message: "Failed to delete notification" });
-    }
-  });
-
-  app.get("/api/notifications/settings", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      res.json({
-        data: {
-          emailNotifications: true,
-          pushNotifications: true,
-          dailyReminders: true,
-          weeklyReports: true,
-          goalDeadlines: true,
-          achievements: true,
-          tips: true,
-          emissionAlerts: true,
-          reminderTime: '09:00',
-          reportDay: 'monday'
-        }
-      });
-    } catch (error) {
-      console.error('Notification settings error:', error);
-      res.status(500).json({ message: "Failed to get notification settings" });
-    }
-  });
-
-  app.put("/api/notifications/settings", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      // This would update the user's notification settings in the database
-      res.json({ message: "Notification settings updated" });
-    } catch (error) {
-      console.error('Update notification settings error:', error);
-      res.status(500).json({ message: "Failed to update notification settings" });
     }
   });
 
@@ -453,70 +278,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/emissions/add
   app.post("/api/emissions/add", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('📊 Add emission request received');
+      
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
       const { category, subcategory, quantity, unit, date, description, department } = req.body;
       
-      // Calculate CO2 emissions
-      const co2Emissions = calculateCO2Emissions(category, quantity, unit);
+      // Validation
+      if (!category || !quantity || !unit || !date) {
+        return res.status(400).json({ 
+          message: 'Missing required fields: category, quantity, unit, and date are required' 
+        });
+      }
+
+      const quantityNum = parseFloat(quantity);
+      if (isNaN(quantityNum) || quantityNum <= 0) {
+        return res.status(400).json({ 
+          message: 'Quantity must be a positive number' 
+        });
+      }
+
+      // Calculate CO2 emissions with subcategory support
+      const co2Emissions = calculateCO2Emissions(category, quantityNum, unit, subcategory);
       
+      console.log(`✓ Calculated CO2: ${co2Emissions}kg for ${quantityNum}${unit} of ${category}${subcategory ? `/${subcategory}` : ''}`);
+      
+      // Convert camelCase to snake_case for database
       const emissionData = {
-        userId: req.user.userId,
+        user_id: req.user.userId,
         category,
-        subcategory,
-        quantity: quantity.toString(),
+        subcategory: subcategory || null,
+        quantity: quantityNum.toString(),
         unit,
-        co2Emissions: co2Emissions.toString(),
+        co2_emissions: co2Emissions.toString(),
         date: new Date(date),
-        description,
-        department
+        description: description || null,
+        department: department || null
       };
 
-      const emission = await storage.addEmission(emissionData);
+      const emission = await storage.addEmission(emissionData as any);
+      
+      console.log(`✅ Emission logged successfully with ID: ${emission.id}`);
       
       res.status(201).json({
-        emission,
-        message: "Emission logged successfully"
+        message: "Emission logged successfully",
+        emission: {
+          id: emission.id,
+          category,
+          subcategory,
+          quantity: quantityNum,
+          unit,
+          co2Emissions,
+          date,
+          description,
+          department
+        },
+        co2Emissions
       });
-    } catch (error) {
-      console.error('Add emission error:', error);
-      res.status(500).json({ message: "Internal server error" });
+    } catch (error: any) {
+      console.error('❌ Add emission error:', error);
+      res.status(500).json({ 
+        message: "Failed to log emission",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
   // GET /api/emissions/calculate
   app.get("/api/emissions/calculate", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('🧮 Calculate emissions request received');
+      
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
-      const { category, quantity, unit } = req.query;
+      const { category, subcategory, quantity, unit } = req.query;
+      
+      // Validation
+      if (!category || !quantity || !unit) {
+        return res.status(400).json({ 
+          message: 'Missing required parameters: category, quantity, and unit are required' 
+        });
+      }
+
+      const quantityNum = parseFloat(quantity as string);
+      if (isNaN(quantityNum) || quantityNum <= 0) {
+        return res.status(400).json({ 
+          message: 'Quantity must be a positive number' 
+        });
+      }
       
       // Calculate emissions for given parameters
       const co2Emissions = calculateCO2Emissions(
         category as string,
-        parseFloat(quantity as string),
-        unit as string
+        quantityNum,
+        unit as string,
+        subcategory as string
       );
+
+      console.log(`✓ Calculated: ${co2Emissions}kg CO2 for ${quantityNum}${unit} of ${category}`);
 
       res.json({
         co2Emissions,
         category,
-        quantity,
-        unit
+        subcategory: subcategory || null,
+        quantity: quantityNum,
+        unit,
+        message: "Emissions calculated successfully"
       });
-    } catch (error) {
-      console.error('Calculate emissions error:', error);
-      res.status(500).json({ message: "Internal server error" });
+    } catch (error: any) {
+      console.error('❌ Calculate emissions error:', error);
+      res.status(500).json({ 
+        message: "Failed to calculate emissions",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
   // GET /api/emissions/history
   app.get("/api/emissions/history", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('📜 Emissions history request received');
+      
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
@@ -529,10 +415,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endDate as string
       );
 
+      console.log(`✓ Found ${emissions.length} emissions for user ${req.user.userId}`);
+
       // Group by month for history
-      const history = emissions.reduce((acc, emission) => {
-        const month = emission.date.toISOString().substring(0, 7); // YYYY-MM
-        const co2 = Number(emission.co2Emissions);
+      const history = emissions.reduce((acc, emission: any) => {
+        const emissionDate = emission.date instanceof Date ? emission.date : new Date(emission.date);
+        const month = emissionDate.toISOString().substring(0, 7); // YYYY-MM
+        const co2 = Number(emission.co2_emissions || emission.co2Emissions || 0);
         
         if (!acc[month]) {
           acc[month] = 0;
@@ -541,37 +430,268 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return acc;
       }, {} as Record<string, number>);
 
-      const historyArray = Object.entries(history).map(([date, emissions]) => ({
-        date,
-        emissions
-      }));
+      const historyArray = Object.entries(history)
+        .map(([date, emissions]) => ({
+          date,
+          emissions: Math.round(emissions * 1000) / 1000 // Round to 3 decimal places
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date)); // Sort chronologically
 
-      res.json(historyArray);
-    } catch (error) {
-      console.error('Emissions history error:', error);
-      res.status(500).json({ message: "Internal server error" });
+      console.log(`✅ Returning ${historyArray.length} months of history`);
+
+      res.json({
+        history: historyArray,
+        totalEmissions: historyArray.reduce((sum, item) => sum + item.emissions, 0),
+        count: emissions.length
+      });
+    } catch (error: any) {
+      console.error('❌ Emissions history error:', error);
+      res.status(500).json({ 
+        message: "Failed to get emissions history",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
   // GET /api/emissions/list
   app.get("/api/emissions/list", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('📋 Emissions list request received');
+      
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+      
+      const { startDate, endDate, category, limit } = req.query;
+      
+      let emissions = await storage.getUserEmissions(
+        req.user.userId,
+        startDate as string,
+        endDate as string
+      );
+
+      // Filter by category if provided
+      if (category) {
+        emissions = emissions.filter((e: any) => e.category === category);
+      }
+
+      // Convert snake_case to camelCase for frontend
+      const formattedEmissions = emissions.map((e: any) => ({
+        id: e.id,
+        userId: e.user_id,
+        category: e.category,
+        subcategory: e.subcategory,
+        quantity: Number(e.quantity),
+        unit: e.unit,
+        co2Emissions: Number(e.co2_emissions || e.co2Emissions),
+        date: e.date,
+        description: e.description,
+        department: e.department,
+        createdAt: e.created_at
+      }));
+
+      // Apply limit if provided
+      const limitedEmissions = limit 
+        ? formattedEmissions.slice(0, parseInt(limit as string))
+        : formattedEmissions;
+
+      console.log(`✅ Returning ${limitedEmissions.length} emissions`);
+
+      res.json({
+        emissions: limitedEmissions,
+        total: formattedEmissions.length,
+        filtered: !!category,
+        totalEmissions: formattedEmissions.reduce((sum, e) => sum + e.co2Emissions, 0)
+      });
+    } catch (error: any) {
+      console.error('❌ Emissions list error:', error);
+      res.status(500).json({ 
+        message: "Failed to get emissions list",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  // GET /api/emissions/summary - Get emission statistics and summary
+  app.get("/api/emissions/summary", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log('📊 Emissions summary request received');
+      
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
       const { startDate, endDate } = req.query;
       
+      // Get all emissions for the period
       const emissions = await storage.getUserEmissions(
         req.user.userId,
         startDate as string,
         endDate as string
       );
 
-      res.json(emissions);
-    } catch (error) {
-      console.error('Emissions list error:', error);
-      res.status(500).json({ message: "Internal server error" });
+      // Calculate total emissions
+      const totalEmissions = emissions.reduce((sum, e: any) => {
+        return sum + Number(e.co2_emissions || e.co2Emissions || 0);
+      }, 0);
+
+      // Calculate emissions by category
+      const byCategory = emissions.reduce((acc, e: any) => {
+        const category = e.category;
+        const value = Number(e.co2_emissions || e.co2Emissions || 0);
+        acc[category] = (acc[category] || 0) + value;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Calculate emissions by subcategory
+      const bySubcategory = emissions.reduce((acc, e: any) => {
+        const subcategory = e.subcategory;
+        if (subcategory) {
+          const value = Number(e.co2_emissions || e.co2Emissions || 0);
+          acc[subcategory] = (acc[subcategory] || 0) + value;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Get average daily emissions
+      const dates = new Set(emissions.map((e: any) => {
+        const date = e.date instanceof Date ? e.date : new Date(e.date);
+        return date.toISOString().split('T')[0];
+      }));
+      const averageDaily = dates.size > 0 ? totalEmissions / dates.size : 0;
+
+      // Find highest emission day
+      const dailyEmissions = emissions.reduce((acc, e: any) => {
+        const date = e.date instanceof Date ? e.date : new Date(e.date);
+        const dateStr = date.toISOString().split('T')[0];
+        const value = Number(e.co2_emissions || e.co2Emissions || 0);
+        acc[dateStr] = (acc[dateStr] || 0) + value;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const highestDay = Object.entries(dailyEmissions)
+        .sort(([, a], [, b]) => b - a)[0];
+      
+      const lowestDay = Object.entries(dailyEmissions)
+        .sort(([, a], [, b]) => a - b)[0];
+
+      console.log(`✅ Summary: ${totalEmissions.toFixed(2)}kg CO2 from ${emissions.length} entries`);
+
+      res.json({
+        totalEmissions: Math.round(totalEmissions * 1000) / 1000,
+        totalEntries: emissions.length,
+        byCategory,
+        bySubcategory,
+        averageDaily: Math.round(averageDaily * 1000) / 1000,
+        highestDay: highestDay ? { date: highestDay[0], value: Math.round(highestDay[1] * 1000) / 1000 } : null,
+        lowestDay: lowestDay ? { date: lowestDay[0], value: Math.round(lowestDay[1] * 1000) / 1000 } : null,
+        uniqueDays: dates.size,
+        period: {
+          startDate: startDate || null,
+          endDate: endDate || null
+        }
+      });
+    } catch (error: any) {
+      console.error('❌ Emissions summary error:', error);
+      res.status(500).json({ 
+        message: "Failed to get emissions summary",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  // PUT /api/emissions/:id - Update an emission entry
+  app.put("/api/emissions/:id", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log('✏️ Update emission request received');
+      
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const emissionId = parseInt(req.params.id);
+      const { category, subcategory, quantity, unit, date, description, department } = req.body;
+      
+      // Validation
+      if (!category || !quantity || !unit || !date) {
+        return res.status(400).json({ 
+          message: 'Missing required fields: category, quantity, unit, and date are required' 
+        });
+      }
+
+      const quantityNum = parseFloat(quantity);
+      if (isNaN(quantityNum) || quantityNum <= 0) {
+        return res.status(400).json({ 
+          message: 'Quantity must be a positive number' 
+        });
+      }
+
+      // Recalculate CO2 emissions
+      const co2Emissions = calculateCO2Emissions(category, quantityNum, unit, subcategory);
+      
+      const updateData = {
+        category,
+        subcategory: subcategory || null,
+        quantity: quantityNum.toString(),
+        unit,
+        co2_emissions: co2Emissions.toString(),
+        date: new Date(date),
+        description: description || null,
+        department: department || null
+      };
+
+      await storage.updateEmission(emissionId, req.user.userId, updateData);
+      
+      console.log(`✅ Emission ${emissionId} updated successfully`);
+      
+      res.json({
+        message: "Emission updated successfully",
+        emission: {
+          id: emissionId,
+          category,
+          subcategory,
+          quantity: quantityNum,
+          unit,
+          co2Emissions,
+          date,
+          description,
+          department
+        }
+      });
+    } catch (error: any) {
+      console.error('❌ Update emission error:', error);
+      res.status(500).json({ 
+        message: "Failed to update emission",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  // DELETE /api/emissions/:id - Delete an emission entry
+  app.delete("/api/emissions/:id", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log('🗑️ Delete emission request received');
+      
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const emissionId = parseInt(req.params.id);
+      
+      await storage.deleteEmission(emissionId, req.user.userId);
+      
+      console.log(`✅ Emission ${emissionId} deleted successfully`);
+      
+      res.json({
+        message: "Emission deleted successfully",
+        id: emissionId
+      });
+    } catch (error: any) {
+      console.error('❌ Delete emission error:', error);
+      res.status(500).json({ 
+        message: "Failed to delete emission",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
