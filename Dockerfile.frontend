@@ -1,0 +1,27 @@
+# Use Node.js LTS
+FROM node:20-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY client/package*.json ./client/ 2>/dev/null || :
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY client/ ./client/
+COPY shared/ ./shared/
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
+COPY components.json ./
+
+# Expose Vite dev server port
+EXPOSE 5173
+
+# Start development server
+CMD ["npm", "run", "dev"]
