@@ -26,19 +26,71 @@ export class DatabaseStorage {
   async getUser(id: number): Promise<User | undefined> {
     const { data, error } = await supabase.from("users").select("*").eq("id", id).limit(1).maybeSingle();
     if (error) throw error;
-    return data as User | undefined;
+    if (!data) return undefined;
+    
+    // Convert snake_case to camelCase
+    return {
+      id: (data as any).id,
+      email: (data as any).email,
+      password: (data as any).password,
+      role: (data as any).role,
+      firstName: (data as any).first_name,
+      lastName: (data as any).last_name,
+      companyName: (data as any).company_name,
+      companyDepartment: (data as any).company_department,
+      createdAt: (data as any).created_at,
+      updatedAt: (data as any).updated_at,
+    } as User;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const { data, error } = await supabase.from("users").select("*").eq("email", email).limit(1).maybeSingle();
     if (error) throw error;
-    return data as User | undefined;
+    if (!data) return undefined;
+    
+    // Convert snake_case to camelCase
+    return {
+      id: (data as any).id,
+      email: (data as any).email,
+      password: (data as any).password,
+      role: (data as any).role,
+      firstName: (data as any).first_name,
+      lastName: (data as any).last_name,
+      companyName: (data as any).company_name,
+      companyDepartment: (data as any).company_department,
+      createdAt: (data as any).created_at,
+      updatedAt: (data as any).updated_at,
+    } as User;
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const { data, error } = await supabase.from("users").insert(user).select().single();
+    // Convert camelCase to snake_case for database
+    const dbUser = {
+      email: user.email,
+      password: user.password,
+      role: user.role,
+      first_name: user.firstName,
+      last_name: user.lastName,
+      company_name: user.companyName,
+      company_department: user.companyDepartment,
+    };
+    
+    const { data, error } = await supabase.from("users").insert(dbUser).select().single();
     if (error) throw error;
-    return data as User;
+    
+    // Convert snake_case back to camelCase for response
+    return {
+      id: (data as any).id,
+      email: (data as any).email,
+      password: (data as any).password,
+      role: (data as any).role,
+      firstName: (data as any).first_name,
+      lastName: (data as any).last_name,
+      companyName: (data as any).company_name,
+      companyDepartment: (data as any).company_department,
+      createdAt: (data as any).created_at,
+      updatedAt: (data as any).updated_at,
+    } as User;
   }
 
   async addEmission(emission: InsertEmission): Promise<Emission> {

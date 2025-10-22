@@ -89,19 +89,46 @@ npm run db:push
 ```
 
 5. **Launch development environment**:
-```bash
-npm run dev
-```
 
-Access the application at `http://localhost:5173`
+   **Client only** (frontend development):
+   ```bash
+   npm run dev
+   ```
+   
+   **Full stack** (both frontend and backend):
+   ```bash
+   npm run dev:full
+   ```
+
+The application will automatically find available ports and start:
+- Frontend (Vite): Usually on `http://localhost:5173` (or next available port)
+- Backend API: Usually on `http://localhost:3000` (or next available port)
+
+**Note**: The application now intelligently finds available ports, so you don't need to worry about port conflicts!
 
 ## Available Scripts
 
-- `npm run dev` - Start development server with hot reload
+- `npm run dev` - Start Vite development server (frontend only)
+- `npm run dev:full` - Start both frontend and backend servers concurrently
+- `npm run dev:server` - Start backend server only
+- `npm run dev:client` - Start frontend client only
 - `npm run build` - Create optimized production build
 - `npm run start` - Run production server
 - `npm run check` - Run TypeScript type checking
 - `npm run db:push` - Push database schema changes
+
+## Port Configuration
+
+The application uses dynamic port allocation:
+
+- **Vite Dev Server**: Automatically finds available port starting from 5173
+- **Backend API**: Automatically finds available port starting from 3000 (configurable via `PORT` env variable)
+- **No port killing**: The project no longer kills existing processes on ports
+- **Cross-platform**: Works seamlessly on Windows, macOS, and Linux
+
+If you need to specify custom ports, you can:
+- Set `PORT=3001` in your `.env` file for the backend
+- Vite will automatically increment ports if 5173 is busy
 
 ## Project Architecture
 

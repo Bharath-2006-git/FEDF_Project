@@ -85,10 +85,11 @@ app.use((req, res, next) => {
   const preferredPort = parseInt(process.env.PORT || '3000', 10);
   const port = await findAvailablePort(preferredPort);
   
-  server.listen(port, () => {
-    log(`serving on port ${port}`);
+  server.listen(port, '0.0.0.0', () => {
+    log(`✓ Server running at http://localhost:${port}`);
     if (port !== preferredPort) {
-      log(`Note: Preferred port ${preferredPort} was in use, using port ${port} instead`);
+      log(`  Note: Preferred port ${preferredPort} was in use, using port ${port} instead`);
     }
+    log(`  API endpoint: http://localhost:${port}/api`);
   });
 })();
