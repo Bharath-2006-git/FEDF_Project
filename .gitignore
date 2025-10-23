@@ -17,6 +17,9 @@ out/
 .env.test.local
 .env.production.local
 
+# Keep .env.example for reference
+!.env.example
+
 # OS generated files
 .DS_Store
 .DS_Store?

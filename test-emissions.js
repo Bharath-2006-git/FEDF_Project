@@ -3,7 +3,7 @@
  * Tests all emission logging, calculation, and retrieval endpoints
  */
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'http://localhost:5000/api';
 let authToken = null;
 let testUserId = null;
 let createdEmissionIds = [];

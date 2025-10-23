@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+import os
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -17,10 +19,12 @@ class Settings(BaseSettings):
     # Server
     port: int = 5000
     host: str = "0.0.0.0"
-    debug: bool = True
+    debug: bool = False
     
     class Config:
-        env_file = ".env"
+        # Look for .env in parent directory first, then current directory
+        env_file = str(Path(__file__).parent.parent / ".env")
+        env_file_encoding = 'utf-8'
         case_sensitive = False
 
 
