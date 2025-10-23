@@ -262,6 +262,76 @@ class ApiService {
     };
   }
 
+  async getCategoryBreakdown(timeRange: string): Promise<any> {
+    const response = await this.api.get('/analytics/category-breakdown', {
+      params: { timeRange }
+    });
+    return response.data;
+  }
+
+  async getMonthlyComparison(timeRange: string): Promise<any> {
+    const response = await this.api.get('/analytics/monthly-comparison', {
+      params: { timeRange }
+    });
+    return response.data;
+  }
+
+  async getYearlyTrends(): Promise<any> {
+    const response = await this.api.get('/analytics/yearly-trends');
+    return response.data;
+  }
+
+  async getPeakAnalysis(timeRange: string): Promise<any> {
+    const response = await this.api.get('/analytics/peak-analysis', {
+      params: { timeRange }
+    });
+    return response.data;
+  }
+
+  async exportReport(format: string, timeRange: string): Promise<any> {
+    const response = await this.api.get('/analytics/export', {
+      params: { format, timeRange },
+      responseType: format === 'csv' ? 'blob' : 'json'
+    });
+    return response.data;
+  }
+
+  async getUserAchievements(): Promise<any> {
+    const response = await this.api.get('/achievements/user');
+    return response.data;
+  }
+
+  async getAchievementStats(): Promise<any> {
+    const response = await this.api.get('/achievements/stats');
+    return response.data;
+  }
+
+  async getNotifications(): Promise<any> {
+    const response = await this.api.get('/notifications');
+    return response.data;
+  }
+
+  async getNotificationSettings(): Promise<any> {
+    const response = await this.api.get('/notifications/settings');
+    return response.data;
+  }
+
+  async markNotificationRead(notificationId: number): Promise<void> {
+    await this.api.put(`/notifications/${notificationId}/read`);
+  }
+
+  async markAllNotificationsRead(): Promise<void> {
+    await this.api.put('/notifications/read-all');
+  }
+
+  async deleteNotification(notificationId: number): Promise<void> {
+    await this.api.delete(`/notifications/${notificationId}`);
+  }
+
+  async updateNotificationSettings(settings: any): Promise<void> {
+    await this.api.put('/notifications/settings', settings);
+  }
+
   exportToCSV(data: any[], filename: string): void {
     const csvContent = this.convertToCSV(data);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -337,6 +407,19 @@ export const userAPI = {
 
 export const dashboardAPI = {
   getData: () => apiService.getDashboardData(),
+  getCategoryBreakdown: (timeRange: string) => apiService.getCategoryBreakdown(timeRange),
+  getMonthlyComparison: (timeRange: string) => apiService.getMonthlyComparison(timeRange),
+  getYearlyTrends: () => apiService.getYearlyTrends(),
+  getPeakAnalysis: (timeRange: string) => apiService.getPeakAnalysis(timeRange),
+  exportReport: (format: string, timeRange: string) => apiService.exportReport(format, timeRange),
+  getUserAchievements: () => apiService.getUserAchievements(),
+  getAchievementStats: () => apiService.getAchievementStats(),
+  getNotifications: () => apiService.getNotifications(),
+  getNotificationSettings: () => apiService.getNotificationSettings(),
+  markNotificationRead: (notificationId: number) => apiService.markNotificationRead(notificationId),
+  markAllNotificationsRead: () => apiService.markAllNotificationsRead(),
+  deleteNotification: (notificationId: number) => apiService.deleteNotification(notificationId),
+  updateNotificationSettings: (settings: any) => apiService.updateNotificationSettings(settings),
 };
 
 export default apiService;

@@ -29,10 +29,21 @@ export default defineConfig({
     strictPort: false,
     proxy: {
       '/api': {
-        target: process.env.API_URL || 'http://localhost:3000',
+        target: process.env.VITE_API_URL || process.env.API_URL || 'http://localhost:5000',
         changeOrigin: true,
         secure: false
       }
     }
   },
+  preview: {
+    port: parseInt(process.env.PORT || '4173'),
+    host: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || process.env.API_URL || 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
 });

@@ -223,12 +223,33 @@ This is a **complete, production-ready** application with all features fully imp
 
 ## Production Deployment
 
-1. **Build the application**:
+### Deploy to Render (Recommended)
+
+1. **Validate deployment readiness**:
 ```bash
-npm run build
+npm run validate-deployment
 ```
 
-2. **Configure production environment variables**
+2. **Push code to GitHub**:
+```bash
+git add .
+git commit -m "Ready for deployment"
+git push
+```
 
-3. **Deploy to your preferred hosting platform**
+3. **Follow the deployment guide**:
+See `RENDER_DEPLOYMENT.md` for detailed instructions on deploying to Render.com
+
+**Required Environment Variables:**
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
+- `JWT_SECRET` - Random secret for JWT signing
+- `VITE_API_URL` - Backend API URL (frontend)
+
+### Alternative Deployment Options
+
+- **Docker**: Use included `Dockerfile.backend` and `Dockerfile.frontend`
+- **Manual**: Follow build steps and deploy to any Node.js hosting platform
+
+For detailed deployment instructions, see `RENDER_DEPLOYMENT.md`.
 

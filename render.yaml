@@ -1,0 +1,41 @@
+services:
+  # Backend API Service
+  - type: web
+    name: carbonsense-api
+    env: python
+    region: oregon
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRATION_HOURS
+        value: 24
+      - key: DEBUG
+        value: false
+      - key: FRONTEND_URL
+        value: https://carbonsense-frontend.onrender.com
+    healthCheckPath: /health
+
+  # Frontend Service
+  - type: web
+    name: carbonsense-frontend
+    env: node
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview -- --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: 20.16.0
+      - key: VITE_API_URL
+        value: https://carbonsense-api.onrender.com
+      - key: API_URL
+        value: https://carbonsense-api.onrender.com
