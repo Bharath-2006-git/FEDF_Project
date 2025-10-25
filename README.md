@@ -1,6 +1,24 @@
 # CarbonSense
 
+> **✅ PROJECT STATUS: FULLY FUNCTIONAL & READY TO USE**
+> 
+> All systems are working! Login, Registration, Database, and Backend are fully operational.
+> See [QUICK_START.md](QUICK_START.md) for immediate setup or [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed documentation.
+
 A modern React-based carbon footprint tracking platform that empowers individuals and organizations to monitor, analyze, and reduce their environmental impact through data visualization and sustainable practices.
+
+## 🚀 Quick Start
+
+```powershell
+# Start the full application (backend + frontend)
+npm run dev:full
+```
+
+Then open http://localhost:5174 and login with:
+- **Demo Account**: demo@carbonsense.com / demo123
+- **Or create your own account** via signup page
+
+For detailed setup instructions, see [QUICK_START.md](QUICK_START.md)
 
 ## Features
 
