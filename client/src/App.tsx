@@ -17,8 +17,8 @@ import LogEmissions from "@/pages/LogEmissions";
 import Tips from "@/pages/Tips";
 import Goals from "@/pages/Goals";
 import Profile from "@/pages/Profile";
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
+import Auth from "@/pages/Auth";
+import AuthCallback from "@/pages/AuthCallback";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
 import ComingSoonPage from "@/pages/ComingSoon";
@@ -83,8 +83,10 @@ function AuthenticatedApp() {
   if (!isAuthenticated) {
     return (
       <Switch>
-        <Route path="/login" component={Login} />
-        <Route path="/signup" component={Signup} />
+        <Route path="/auth" component={Auth} />
+        <Route path="/auth-callback" component={AuthCallback} />
+        <Route path="/login" component={Auth} />
+        <Route path="/signup" component={Auth} />
         <Route path="/" component={Landing} />
         <Route component={Landing} />
       </Switch>

@@ -9,6 +9,7 @@ interface AuthState {
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (userData: SignupData) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -119,6 +120,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: false, error: 'Network error. Please try again.' };
     }
   };
+
+  const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Redirect to Google OAuth endpoint
+      window.location.href = '/api/auth/google';
+      return { success: true };
+    } catch (error) {
+      console.error('Google login error:', error);
+      return { success: false, error: 'Failed to initiate Google login' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('carbonSense_token');
     localStorage.removeItem('carbonSense_user');
@@ -143,6 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ...authState,
     login,
     signup,
+    loginWithGoogle,
     logout,
     updateUser,
   };
