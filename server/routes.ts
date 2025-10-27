@@ -58,17 +58,18 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
   );
 }
 
-// Extend Express Request interface to include user
-interface AuthenticatedRequest extends Request {
-  user?: {
-    userId: number;
-    email: string;
-    role: string;
-  };
+// Define custom user type for JWT payload
+interface JWTUser {
+  userId: number;
+  email: string;
+  role: string;
 }
 
+// Type alias for authenticated requests
+type AuthenticatedRequest = Request & { user?: JWTUser };
+
 // Middleware to verify JWT token
-const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -80,7 +81,7 @@ const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextF
     if (err) {
       return res.status(403).json({ message: 'Invalid token' });
     }
-    req.user = user;
+    (req as AuthenticatedRequest).user = user as JWTUser;
     next();
   });
 };
@@ -383,11 +384,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // POST /api/emissions/add
-  app.post("/api/emissions/add", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/emissions/add", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('📊 Add emission request received');
       
-      if (!req.user) {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
@@ -414,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Convert camelCase to snake_case for database
       const emissionData = {
-        user_id: req.user.userId,
+        user_id: user.userId,
         category,
         subcategory: subcategory || null,
         quantity: quantityNum.toString(),
@@ -454,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/emissions/calculate
-  app.get("/api/emissions/calculate", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/emissions/calculate", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('🧮 Calculate emissions request received');
       
@@ -506,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/emissions/history
-  app.get("/api/emissions/history", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/emissions/history", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('📜 Emissions history request received');
       
@@ -517,12 +519,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { startDate, endDate } = req.query;
       
       const emissions = await storage.getUserEmissions(
-        req.user.userId,
+        (req as AuthenticatedRequest).user!.userId,
         startDate as string,
         endDate as string
       );
 
-      console.log(`✓ Found ${emissions.length} emissions for user ${req.user.userId}`);
+      console.log(`✓ Found ${emissions.length} emissions for user ${(req as AuthenticatedRequest).user!.userId}`);
 
       // Group by month for history
       const history = emissions.reduce((acc, emission: any) => {
@@ -561,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/emissions/list
-  app.get("/api/emissions/list", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/emissions/list", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('📋 Emissions list request received');
       
@@ -572,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { startDate, endDate, category, limit } = req.query;
       
       let emissions = await storage.getUserEmissions(
-        req.user.userId,
+        (req as AuthenticatedRequest).user!.userId,
         startDate as string,
         endDate as string
       );
@@ -620,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/emissions/summary - Get emission statistics and summary
-  app.get("/api/emissions/summary", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/emissions/summary", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('📊 Emissions summary request received');
       
@@ -632,7 +634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get all emissions for the period
       const emissions = await storage.getUserEmissions(
-        req.user.userId,
+        (req as AuthenticatedRequest).user!.userId,
         startDate as string,
         endDate as string
       );
@@ -708,7 +710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PUT /api/emissions/:id - Update an emission entry
-  app.put("/api/emissions/:id", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.put("/api/emissions/:id", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('✏️ Update emission request received');
       
@@ -747,7 +749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         department: department || null
       };
 
-      await storage.updateEmission(emissionId, req.user.userId, updateData);
+      await storage.updateEmission(emissionId, (req as AuthenticatedRequest).user!.userId, updateData);
       
       console.log(`✅ Emission ${emissionId} updated successfully`);
       
@@ -775,7 +777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // DELETE /api/emissions/:id - Delete an emission entry
-  app.delete("/api/emissions/:id", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.delete("/api/emissions/:id", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('🗑️ Delete emission request received');
       
@@ -785,7 +787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const emissionId = parseInt(req.params.id);
       
-      await storage.deleteEmission(emissionId, req.user.userId);
+      await storage.deleteEmission(emissionId, (req as AuthenticatedRequest).user!.userId);
       
       console.log(`✅ Emission ${emissionId} deleted successfully`);
       
@@ -803,14 +805,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/goals
-  app.post("/api/goals", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/goals", authenticateToken, async (req: Request, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
       const goalData = {
-        userId: req.user.userId,
+        userId: (req as AuthenticatedRequest).user!.userId,
         ...req.body
       };
 
@@ -824,13 +826,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/goals
-  app.get("/api/goals", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/goals", authenticateToken, async (req: Request, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
-      const goals = await storage.getUserGoals(req.user.userId);
+      const goals = await storage.getUserGoals((req as AuthenticatedRequest).user!.userId);
       res.json(goals);
     } catch (error) {
       console.error('Goals list error:', error);
@@ -839,14 +841,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/tips
-  app.get("/api/tips", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/tips", authenticateToken, async (req: Request, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
       const { category, limit } = req.query;
-      const userRole = req.user.role;
+      const userRole = (req as AuthenticatedRequest).user!.role;
 
       const tips = await storage.getTipsForUser(userRole, category as string);
       
@@ -863,7 +865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/reports/generate
-  app.post("/api/reports/generate", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/reports/generate", authenticateToken, async (req: Request, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -881,11 +883,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For now, return dummy report since createReport doesn't exist yet  
       const report = {
         id: Date.now(),
-        userId: req.user.userId,
+        userId: (req as AuthenticatedRequest).user!.userId,
         reportType,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        filePath: `/reports/${req.user.userId}_${reportType}_${Date.now()}.json`,
+        filePath: `/reports/${(req as AuthenticatedRequest).user!.userId}_${reportType}_${Date.now()}.json`,
         status: 'completed',
         createdAt: new Date()
       };
@@ -902,13 +904,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/user/profile
-  app.get("/api/user/profile", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/user/profile", authenticateToken, async (req: Request, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
-      const user = await storage.getUser(req.user.userId);
+      const user = await storage.getUser((req as AuthenticatedRequest).user!.userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -922,7 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PUT /api/profile  
-  app.put("/api/profile", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  app.put("/api/profile", authenticateToken, async (req: Request, res: Response) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -967,3 +969,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
+
