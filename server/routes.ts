@@ -6,8 +6,57 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { loginSchema, insertUserSchema, insertEmissionSchema, insertGoalSchema } from "@shared/schema";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/api/auth/google/callback";
+
+// Configure Google OAuth Strategy
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: GOOGLE_CALLBACK_URL,
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          // Extract user info from Google profile
+          const email = profile.emails?.[0]?.value;
+          if (!email) {
+            return done(new Error("No email found in Google profile"), undefined);
+          }
+
+          // Check if user exists
+          let user = await storage.getUserByEmail(email);
+
+          if (!user) {
+            // Create new user from Google profile
+            const names = profile.displayName?.split(" ") || ["", ""];
+            const firstName = profile.name?.givenName || names[0] || "User";
+            const lastName = profile.name?.familyName || names[names.length - 1] || "";
+
+            user = await storage.createUser({
+              email,
+              password: await bcrypt.hash(Math.random().toString(36), 10), // Random password for OAuth users
+              firstName,
+              lastName,
+              role: "individual",
+            });
+          }
+
+          return done(null, user);
+        } catch (error) {
+          return done(error as Error, undefined);
+        }
+      }
+    )
+  );
+}
 
 // Extend Express Request interface to include user
 interface AuthenticatedRequest extends Request {
@@ -273,6 +322,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
+  });
+
+  // GET /api/auth/google - Initiate Google OAuth
+  app.get("/api/auth/google", (req: Request, res: Response, next: NextFunction) => {
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+      return res.status(503).json({ 
+        message: "Google OAuth is not configured. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env file." 
+      });
+    }
+    passport.authenticate("google", { 
+      scope: ["profile", "email"],
+      session: false 
+    })(req, res, next);
+  });
+
+  // GET /api/auth/google/callback - Google OAuth callback
+  app.get("/api/auth/google/callback", (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("google", { 
+      session: false,
+      failureRedirect: process.env.NODE_ENV === 'production' 
+        ? '/auth?error=google_auth_failed'
+        : 'http://localhost:5173/auth?error=google_auth_failed'
+    }, (err: any, user: any) => {
+      if (err || !user) {
+        console.error('Google OAuth error:', err);
+        const frontendUrl = process.env.NODE_ENV === 'production' 
+          ? '/auth?error=google_auth_failed'
+          : 'http://localhost:5173/auth?error=google_auth_failed';
+        return res.redirect(frontendUrl);
+      }
+
+      try {
+        // Generate JWT token
+        const token = jwt.sign(
+          { 
+            userId: user.id, 
+            email: user.email, 
+            role: user.role 
+          },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+
+        // Remove password from user object
+        const { password, ...userWithoutPassword } = user;
+
+        // Redirect to frontend with token and user data
+        // Using URL hash to pass data to frontend (client-side only)
+        const userData = encodeURIComponent(JSON.stringify(userWithoutPassword));
+        const frontendUrl = process.env.NODE_ENV === 'production' 
+          ? '/auth-callback' 
+          : 'http://localhost:5173/auth-callback';
+        res.redirect(`${frontendUrl}?token=${token}&user=${userData}`);
+      } catch (error) {
+        console.error('Token generation error:', error);
+        res.redirect('/auth?error=token_generation_failed');
+      }
+    })(req, res, next);
   });
   
   // POST /api/emissions/add

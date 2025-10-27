@@ -27,9 +27,10 @@ export default defineConfig({
       deny: ["**/.*"],
     },
     strictPort: false,
+    port: 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || process.env.API_URL || 'http://localhost:5000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false
       }
@@ -40,7 +41,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || process.env.API_URL || 'http://localhost:5000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false
       }
