@@ -88,82 +88,208 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
 
 // Helper function to calculate CO2 emissions with comprehensive emission factors
 const calculateCO2Emissions = (category: string, quantity: number, unit: string, subcategory?: string): number => {
-  // Comprehensive emission factors (kg CO2 per unit)
+  // Comprehensive emission factors (kg CO2 per unit) - Based on DEFRA, EPA, and IPCC data
   const emissionFactors: Record<string, Record<string, number>> = {
     electricity: { 
-      kWh: 0.5,  // Grid average
-      MWh: 500
+      kWh: 0.5,      // Grid average (varies by country, US average ~0.45-0.5)
+      MWh: 500,
+      GWh: 500000
     },
     travel: { 
-      km: 0.15,      // Average vehicle
-      mile: 0.24,    // Average vehicle
+      km: 0.15,      // Average vehicle (mixed transport)
+      mile: 0.24,
       miles: 0.24,
-      hours: 5.0     // For flights (approximate)
+      hours: 5.0     // Generic, overridden by subcategory
     },
     fuel: { 
-      liter: 2.31,        // Gasoline
+      liter: 2.31,        // Gasoline default
       liters: 2.31,
-      gallon: 8.74,       // Gasoline
+      gallon: 8.74,       // Gasoline default
       gallons: 8.74,
-      cubic_meters: 2.0,  // Natural gas
-      "cubic meters": 2.0
+      cubic_meter: 2.0,
+      cubic_meters: 2.0,
+      m3: 2.0,
+      kg: 3.0,           // For solid fuels
+      ton: 3000,
+      tons: 3000
     },
     production: { 
       unit: 1.5,
       units: 1.5,
       kg: 0.5,
+      ton: 500,
       tons: 500,
-      hours: 10.0
+      hours: 10.0,
+      pieces: 0.8
     },
     logistics: { 
-      km: 0.8,
+      km: 0.8,           // Heavy truck
+      mile: 1.29,
       miles: 1.29,
+      package: 2.5,
       packages: 2.5,
-      tons: 100
+      ton_km: 0.062,     // Ton-kilometer
+      'ton-km': 0.062
     },
     waste: { 
-      kg: 0.5,     // Landfill waste
+      kg: 0.5,           // Landfill waste
       lbs: 0.23,
-      bags: 3.0,   // Assuming ~6kg per bag
+      pound: 0.23,
+      pounds: 0.23,
+      bag: 3.0,
+      bags: 3.0,
+      ton: 500,
       tons: 500,
+      cubic_meter: 50,
       cubic_meters: 50,
-      "cubic meters": 50
+      m3: 50
+    },
+    water: {
+      liter: 0.0003,     // Water treatment emissions
+      liters: 0.0003,
+      gallon: 0.001,
+      gallons: 0.001,
+      m3: 0.3,
+      cubic_meter: 0.3,
+      cubic_meters: 0.3
     }
   };
 
-  // Subcategory-specific factors (override category defaults)
+  // Subcategory-specific factors (more accurate, override category defaults)
   const subcategoryFactors: Record<string, Record<string, Record<string, number>>> = {
+    electricity: {
+      grid: { kWh: 0.5, MWh: 500 },                    // Grid average
+      coal: { kWh: 0.95, MWh: 950 },                   // Coal-powered
+      natural_gas: { kWh: 0.45, MWh: 450 },            // Natural gas
+      renewable: { kWh: 0.01, MWh: 10 },               // Solar/Wind
+      nuclear: { kWh: 0.012, MWh: 12 },                // Nuclear
+      hydro: { kWh: 0.024, MWh: 24 }                   // Hydroelectric
+    },
     travel: {
-      car: { km: 0.21, mile: 0.34, miles: 0.34 },
-      bus: { km: 0.05, mile: 0.08, miles: 0.08 },
-      train: { km: 0.04, mile: 0.06, miles: 0.06 },
-      plane: { km: 0.25, mile: 0.40, miles: 0.40, hours: 90.0 },
-      bike: { km: 0, mile: 0, miles: 0 },
-      walk: { km: 0, mile: 0, miles: 0 }
+      // Cars
+      car: { km: 0.21, mile: 0.34, miles: 0.34 },                  // Average car
+      car_small: { km: 0.15, mile: 0.24, miles: 0.24 },            // Small car
+      car_medium: { km: 0.19, mile: 0.31, miles: 0.31 },           // Medium car
+      car_large: { km: 0.28, mile: 0.45, miles: 0.45 },            // Large car/SUV
+      car_electric: { km: 0.05, mile: 0.08, miles: 0.08 },         // Electric car
+      car_hybrid: { km: 0.11, mile: 0.18, miles: 0.18 },           // Hybrid car
+      
+      // Public transport
+      bus: { km: 0.05, mile: 0.08, miles: 0.08 },                  // Local bus
+      coach: { km: 0.03, mile: 0.048, miles: 0.048 },              // Long-distance coach
+      train: { km: 0.04, mile: 0.06, miles: 0.06 },                // Average train
+      train_electric: { km: 0.035, mile: 0.056, miles: 0.056 },    // Electric train
+      train_diesel: { km: 0.06, mile: 0.096, miles: 0.096 },       // Diesel train
+      subway: { km: 0.03, mile: 0.048, miles: 0.048 },             // Metro/Underground
+      tram: { km: 0.03, mile: 0.048, miles: 0.048 },               // Tram/Light rail
+      
+      // Air travel
+      plane: { km: 0.25, mile: 0.40, miles: 0.40, hours: 90.0 },           // Average flight
+      plane_short: { km: 0.15, mile: 0.24, miles: 0.24, hours: 70.0 },     // Short-haul (<500km)
+      plane_medium: { km: 0.14, mile: 0.23, miles: 0.23, hours: 85.0 },    // Medium-haul (500-3500km)
+      plane_long: { km: 0.19, mile: 0.31, miles: 0.31, hours: 100.0 },     // Long-haul (>3500km)
+      plane_economy: { km: 0.14, mile: 0.23, miles: 0.23, hours: 85.0 },   // Economy class
+      plane_business: { km: 0.28, mile: 0.45, miles: 0.45, hours: 170.0 }, // Business class
+      plane_first: { km: 0.42, mile: 0.68, miles: 0.68, hours: 255.0 },    // First class
+      
+      // Other
+      motorcycle: { km: 0.11, mile: 0.18, miles: 0.18 },           // Motorcycle
+      scooter: { km: 0.07, mile: 0.11, miles: 0.11 },              // Motor scooter
+      bike: { km: 0, mile: 0, miles: 0 },                          // Bicycle (zero emissions)
+      ebike: { km: 0.003, mile: 0.005, miles: 0.005 },             // E-bike
+      walk: { km: 0, mile: 0, miles: 0 },                          // Walking (zero emissions)
+      
+      // Taxis/Rideshare
+      taxi: { km: 0.21, mile: 0.34, miles: 0.34 },                 // Regular taxi
+      taxi_electric: { km: 0.05, mile: 0.08, miles: 0.08 },        // Electric taxi
+      rideshare: { km: 0.19, mile: 0.31, miles: 0.31 }             // Rideshare (shared)
     },
     fuel: {
-      gasoline: { liter: 2.31, liters: 2.31, gallon: 8.74, gallons: 8.74 },
-      diesel: { liter: 2.68, liters: 2.68, gallon: 10.15, gallons: 10.15 },
-      natural_gas: { cubic_meters: 2.0, "cubic meters": 2.0, liter: 0.002, liters: 0.002 },
-      heating_oil: { liter: 2.52, liters: 2.52, gallon: 9.54, gallons: 9.54 }
+      // Liquid fuels
+      gasoline: { liter: 2.31, liters: 2.31, gallon: 8.74, gallons: 8.74 },           // Petrol
+      diesel: { liter: 2.68, liters: 2.68, gallon: 10.15, gallons: 10.15 },           // Diesel
+      jet_fuel: { liter: 2.52, liters: 2.52, gallon: 9.54, gallons: 9.54 },           // Aviation fuel
+      heating_oil: { liter: 2.96, liters: 2.96, gallon: 11.21, gallons: 11.21 },      // Heating oil
+      lpg: { liter: 1.51, liters: 1.51, gallon: 5.72, gallons: 5.72, kg: 2.98 },      // LPG
+      
+      // Gaseous fuels
+      natural_gas: { cubic_meter: 2.0, cubic_meters: 2.0, m3: 2.0, kg: 2.75 },        // Natural gas
+      propane: { cubic_meter: 2.35, cubic_meters: 2.35, m3: 2.35, kg: 2.98 },         // Propane
+      butane: { kg: 3.03 },                                                            // Butane
+      
+      // Solid fuels
+      coal: { kg: 2.86, ton: 2860, tons: 2860 },                                      // Coal
+      charcoal: { kg: 2.5, ton: 2500, tons: 2500 },                                   // Charcoal
+      wood: { kg: 1.5, ton: 1500, tons: 1500 },                                       // Wood
+      peat: { kg: 1.0, ton: 1000, tons: 1000 }                                        // Peat
     },
     waste: {
-      household: { kg: 0.5, lbs: 0.23, bags: 3.0 },
-      recyclable: { kg: 0.1, lbs: 0.05, bags: 0.6 },
-      organic: { kg: 0.3, lbs: 0.14, bags: 1.8 },
-      electronic: { kg: 1.5, lbs: 0.68, bags: 9.0 },
-      industrial: { kg: 0.8, lbs: 0.36, tons: 800 },
-      hazardous: { kg: 2.0, lbs: 0.91, tons: 2000 }
+      // General waste
+      household: { kg: 0.5, lbs: 0.23, bag: 3.0, bags: 3.0 },                         // Mixed household
+      commercial: { kg: 0.45, lbs: 0.20, bag: 2.7, bags: 2.7 },                       // Commercial
+      industrial: { kg: 0.8, lbs: 0.36, ton: 800, tons: 800 },                        // Industrial
+      
+      // Specific waste types
+      recyclable: { kg: 0.1, lbs: 0.05, bag: 0.6, bags: 0.6 },                        // Recyclables
+      paper: { kg: 0.9, lbs: 0.41, ton: 900, tons: 900 },                             // Paper/Cardboard
+      plastic: { kg: 2.1, lbs: 0.95, ton: 2100, tons: 2100 },                         // Plastic
+      glass: { kg: 0.5, lbs: 0.23, ton: 500, tons: 500 },                             // Glass
+      metal: { kg: 0.7, lbs: 0.32, ton: 700, tons: 700 },                             // Metal
+      organic: { kg: 0.3, lbs: 0.14, bag: 1.8, bags: 1.8 },                           // Food/Organic
+      electronic: { kg: 1.5, lbs: 0.68, unit: 10.0 },                                 // E-waste
+      hazardous: { kg: 2.0, lbs: 0.91, ton: 2000, tons: 2000 },                       // Hazardous
+      medical: { kg: 1.8, lbs: 0.82 },                                                // Medical waste
+      construction: { kg: 0.4, lbs: 0.18, ton: 400, tons: 400 }                       // Construction debris
+    },
+    production: {
+      // Manufacturing
+      steel: { kg: 1.85, ton: 1850, tons: 1850 },                                     // Steel production
+      aluminum: { kg: 11.5, ton: 11500, tons: 11500 },                                // Aluminum
+      cement: { kg: 0.93, ton: 930, tons: 930 },                                      // Cement
+      concrete: { kg: 0.13, ton: 130, tons: 130 },                                    // Concrete
+      plastic: { kg: 3.5, ton: 3500, tons: 3500 },                                    // Plastic
+      paper: { kg: 1.3, ton: 1300, tons: 1300 },                                      // Paper
+      glass: { kg: 0.85, ton: 850, tons: 850 },                                       // Glass
+      
+      // Food production
+      beef: { kg: 27.0 },                                                              // Beef
+      lamb: { kg: 24.0 },                                                              // Lamb
+      pork: { kg: 7.0 },                                                               // Pork
+      chicken: { kg: 6.9 },                                                            // Chicken
+      fish: { kg: 5.5 },                                                               // Fish
+      dairy: { kg: 3.2, liter: 1.3, liters: 1.3 },                                    // Dairy products
+      vegetables: { kg: 0.4 },                                                         // Vegetables
+      grains: { kg: 0.5 }                                                              // Grains
+    },
+    logistics: {
+      // Road freight
+      truck_small: { km: 0.3, mile: 0.48, miles: 0.48 },                              // Small truck
+      truck_medium: { km: 0.5, mile: 0.80, miles: 0.80 },                             // Medium truck
+      truck_heavy: { km: 0.8, mile: 1.29, miles: 1.29 },                              // Heavy truck/HGV
+      van: { km: 0.25, mile: 0.40, miles: 0.40 },                                     // Delivery van
+      
+      // Sea freight
+      ship: { ton_km: 0.011, 'ton-km': 0.011 },                                       // Container ship
+      cargo_ship: { ton_km: 0.011, 'ton-km': 0.011 },                                 // Cargo ship
+      
+      // Air freight
+      air_freight: { ton_km: 0.602, 'ton-km': 0.602 },                                // Air cargo
+      
+      // Rail freight
+      rail_freight: { ton_km: 0.027, 'ton-km': 0.027 }                                // Rail cargo
     }
   };
 
+  // Normalize unit name (replace spaces with underscores for consistent lookup)
+  const normalizedUnit = unit.toLowerCase().replace(/\s+/g, '_');
+  
   // Try subcategory-specific factor first, then category default, then fallback
   let factor = 1.0; // Default fallback
   
-  if (subcategory && subcategoryFactors[category]?.[subcategory]?.[unit]) {
-    factor = subcategoryFactors[category][subcategory][unit];
-  } else if (emissionFactors[category]?.[unit]) {
-    factor = emissionFactors[category][unit];
+  if (subcategory && subcategoryFactors[category]?.[subcategory]?.[normalizedUnit]) {
+    factor = subcategoryFactors[category][subcategory][normalizedUnit];
+  } else if (emissionFactors[category]?.[normalizedUnit]) {
+    factor = emissionFactors[category][normalizedUnit];
   }
 
   const result = quantity * factor;
@@ -456,13 +582,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/emissions/calculate
-  app.get("/api/emissions/calculate", authenticateToken, async (req: Request, res: Response) => {
+  app.get("/api/emissions/calculate", async (req: Request, res: Response) => {
     try {
       console.log('🧮 Calculate emissions request received');
-      
-      if (!req.user) {
-        return res.status(401).json({ message: 'User not authenticated' });
-      }
       
       const { category, subcategory, quantity, unit } = req.query;
       
@@ -502,6 +624,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('❌ Calculate emissions error:', error);
       res.status(500).json({ 
         message: "Failed to calculate emissions",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  // GET /api/emissions/categories - Return available categories and subcategories metadata
+  app.get("/api/emissions/categories", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      console.log('📋 Categories metadata request received');
+      
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      // Define metadata for all categories and subcategories
+      const metadata = {
+        electricity: {
+          description: "Electricity consumption from various sources",
+          units: ["kWh", "MWh", "GWh"],
+          defaultUnit: "kWh",
+          subcategories: {
+            grid: { name: "Grid Average", description: "Standard grid electricity mix" },
+            coal: { name: "Coal-Powered", description: "Electricity from coal power plants" },
+            natural_gas: { name: "Natural Gas", description: "Electricity from natural gas plants" },
+            renewable: { name: "Renewable", description: "Solar, wind, and other renewables" },
+            nuclear: { name: "Nuclear", description: "Nuclear power generation" },
+            hydro: { name: "Hydroelectric", description: "Hydroelectric power" }
+          }
+        },
+        travel: {
+          description: "Transportation and travel emissions",
+          units: ["km", "mile", "miles", "hours"],
+          defaultUnit: "km",
+          subcategories: {
+            // Cars
+            car: { name: "Car (Average)", description: "Average passenger car" },
+            car_small: { name: "Small Car", description: "Compact/subcompact car" },
+            car_medium: { name: "Medium Car", description: "Mid-size sedan" },
+            car_large: { name: "Large Car/SUV", description: "Large car or SUV" },
+            car_electric: { name: "Electric Car", description: "Battery electric vehicle" },
+            car_hybrid: { name: "Hybrid Car", description: "Hybrid electric vehicle" },
+            // Public transport
+            bus: { name: "Bus", description: "Local bus service" },
+            coach: { name: "Coach", description: "Long-distance coach" },
+            train: { name: "Train (Average)", description: "Passenger train" },
+            train_electric: { name: "Electric Train", description: "Electric passenger train" },
+            train_diesel: { name: "Diesel Train", description: "Diesel passenger train" },
+            subway: { name: "Subway/Metro", description: "Underground/metro rail" },
+            tram: { name: "Tram", description: "Tram or light rail" },
+            // Air travel
+            plane: { name: "Plane (Average)", description: "Average flight" },
+            plane_short: { name: "Short-Haul Flight", description: "Flights under 500km" },
+            plane_medium: { name: "Medium-Haul Flight", description: "Flights 500-3500km" },
+            plane_long: { name: "Long-Haul Flight", description: "Flights over 3500km" },
+            plane_economy: { name: "Plane (Economy)", description: "Economy class seating" },
+            plane_business: { name: "Plane (Business)", description: "Business class seating" },
+            plane_first: { name: "Plane (First)", description: "First class seating" },
+            // Other
+            motorcycle: { name: "Motorcycle", description: "Motorcycle or motorbike" },
+            scooter: { name: "Scooter", description: "Motor scooter" },
+            bike: { name: "Bicycle", description: "Bicycle (zero emissions)" },
+            ebike: { name: "E-Bike", description: "Electric bicycle" },
+            walk: { name: "Walking", description: "Walking (zero emissions)" },
+            taxi: { name: "Taxi", description: "Regular taxi service" },
+            taxi_electric: { name: "Electric Taxi", description: "Electric taxi service" },
+            rideshare: { name: "Rideshare", description: "Shared rideshare service" }
+          }
+        },
+        fuel: {
+          description: "Fuel consumption emissions",
+          units: ["liter", "liters", "gallon", "gallons", "cubic_meter", "cubic_meters", "m3", "kg", "ton", "tons"],
+          defaultUnit: "liters",
+          subcategories: {
+            gasoline: { name: "Gasoline/Petrol", description: "Automotive gasoline" },
+            diesel: { name: "Diesel", description: "Diesel fuel" },
+            jet_fuel: { name: "Jet Fuel", description: "Aviation fuel" },
+            heating_oil: { name: "Heating Oil", description: "Heating/furnace oil" },
+            lpg: { name: "LPG", description: "Liquefied petroleum gas" },
+            natural_gas: { name: "Natural Gas", description: "Natural gas/methane" },
+            propane: { name: "Propane", description: "Propane gas" },
+            butane: { name: "Butane", description: "Butane gas" },
+            coal: { name: "Coal", description: "Coal fuel" },
+            charcoal: { name: "Charcoal", description: "Charcoal" },
+            wood: { name: "Wood", description: "Wood/biomass" },
+            peat: { name: "Peat", description: "Peat fuel" }
+          }
+        },
+        waste: {
+          description: "Waste disposal emissions",
+          units: ["kg", "lbs", "pound", "pounds", "bag", "bags", "ton", "tons", "cubic_meter", "cubic_meters", "m3"],
+          defaultUnit: "kg",
+          subcategories: {
+            household: { name: "Household Waste", description: "Mixed household waste" },
+            commercial: { name: "Commercial Waste", description: "Commercial/office waste" },
+            industrial: { name: "Industrial Waste", description: "Industrial waste" },
+            recyclable: { name: "Recyclables", description: "Recyclable materials" },
+            paper: { name: "Paper/Cardboard", description: "Paper and cardboard" },
+            plastic: { name: "Plastic", description: "Plastic waste" },
+            glass: { name: "Glass", description: "Glass waste" },
+            metal: { name: "Metal", description: "Metal waste" },
+            organic: { name: "Organic/Food", description: "Food and organic waste" },
+            electronic: { name: "E-Waste", description: "Electronic waste" },
+            hazardous: { name: "Hazardous", description: "Hazardous waste" },
+            medical: { name: "Medical", description: "Medical waste" },
+            construction: { name: "Construction", description: "Construction debris" }
+          }
+        },
+        production: {
+          description: "Manufacturing and production emissions",
+          units: ["kg", "ton", "tons", "unit", "units", "liter", "liters"],
+          defaultUnit: "kg",
+          subcategories: {
+            steel: { name: "Steel", description: "Steel production" },
+            aluminum: { name: "Aluminum", description: "Aluminum production" },
+            cement: { name: "Cement", description: "Cement production" },
+            concrete: { name: "Concrete", description: "Concrete production" },
+            plastic: { name: "Plastic", description: "Plastic manufacturing" },
+            paper: { name: "Paper", description: "Paper production" },
+            glass: { name: "Glass", description: "Glass manufacturing" },
+            beef: { name: "Beef", description: "Beef production" },
+            lamb: { name: "Lamb", description: "Lamb production" },
+            pork: { name: "Pork", description: "Pork production" },
+            chicken: { name: "Chicken", description: "Chicken production" },
+            fish: { name: "Fish", description: "Fish production" },
+            dairy: { name: "Dairy", description: "Dairy products" },
+            vegetables: { name: "Vegetables", description: "Vegetable production" },
+            grains: { name: "Grains", description: "Grain production" }
+          }
+        },
+        logistics: {
+          description: "Logistics and freight emissions",
+          units: ["km", "mile", "miles", "ton_km", "ton-km", "package", "packages"],
+          defaultUnit: "km",
+          subcategories: {
+            truck_small: { name: "Small Truck", description: "Small delivery truck" },
+            truck_medium: { name: "Medium Truck", description: "Medium freight truck" },
+            truck_heavy: { name: "Heavy Truck/HGV", description: "Heavy goods vehicle" },
+            van: { name: "Delivery Van", description: "Delivery van" },
+            ship: { name: "Container Ship", description: "Ocean container shipping" },
+            cargo_ship: { name: "Cargo Ship", description: "Cargo vessel" },
+            air_freight: { name: "Air Freight", description: "Air cargo" },
+            rail_freight: { name: "Rail Freight", description: "Rail cargo" }
+          }
+        },
+        water: {
+          description: "Water usage and treatment emissions",
+          units: ["liter", "liters", "gallon", "gallons", "m3", "cubic_meter", "cubic_meters"],
+          defaultUnit: "liters",
+          subcategories: null
+        }
+      };
+
+      console.log('✅ Categories metadata returned successfully');
+      res.json({
+        categories: metadata,
+        message: "Categories metadata retrieved successfully"
+      });
+    } catch (error: any) {
+      console.error('❌ Categories metadata error:', error);
+      res.status(500).json({ 
+        message: "Failed to retrieve categories metadata",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth, useRoleAccess } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
   CalendarDays,
   Loader2
 } from "lucide-react";
-import { emissionsAPI } from "@/services/api";
+import { emissionsAPI, apiService } from "@/services/api";
 
 interface EmissionFormData {
   category: string;
@@ -47,6 +47,14 @@ export default function LogEmissions() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState({
+    todayEntries: 0,
+    weekEntries: 0,
+    monthEmissions: 0,
+    todayChange: 0,
+    weekDays: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   // Individual categories
   const individualCategories = [
@@ -115,6 +123,42 @@ export default function LogEmissions() {
   const categories = isIndividual() ? individualCategories : companyCategories;
   const selectedCategory = categories.find(cat => cat.value === formData.category);
 
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      setStatsLoading(true);
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - 7);
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+
+      // Fetch data for different periods
+      const [todayData, weekData, monthData, yesterdayData] = await Promise.all([
+        apiService.getEmissionsSummary(today.toISOString().split('T')[0], today.toISOString().split('T')[0]),
+        apiService.getEmissionsSummary(startOfWeek.toISOString().split('T')[0], today.toISOString().split('T')[0]),
+        apiService.getEmissionsSummary(startOfMonth.toISOString().split('T')[0], today.toISOString().split('T')[0]),
+        apiService.getEmissionsSummary(yesterday.toISOString().split('T')[0], yesterday.toISOString().split('T')[0])
+      ]);
+
+      setStats({
+        todayEntries: todayData.totalEntries || 0,
+        weekEntries: weekData.totalEntries || 0,
+        monthEmissions: Math.round((monthData.totalEmissions || 0) * 10) / 10,
+        todayChange: (todayData.totalEntries || 0) - (yesterdayData.totalEntries || 0),
+        weekDays: weekData.uniqueDays || 0
+      });
+    } catch (err) {
+      console.error('Error loading stats:', err);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   const handleInputChange = (field: keyof EmissionFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -158,6 +202,9 @@ export default function LogEmissions() {
         title: "✅ Emission Logged Successfully",
         description: `Added ${quantity} ${formData.unit} of ${formData.category}${formData.subcategory ? ` (${formData.subcategory})` : ''} - ${result.co2Emissions.toFixed(2)} kg CO₂`,
       });
+
+      // Reload stats to reflect new entry
+      loadStats();
 
       // Reset form
       setFormData({
@@ -209,8 +256,19 @@ export default function LogEmissions() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Today's Entries</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">3</p>
-                <p className="text-xs text-green-600 dark:text-green-400 font-medium">+2 from yesterday</p>
+                {statsLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <p className="text-2xl font-bold text-slate-400">--</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.todayEntries}</p>
+                    <p className={`text-xs font-medium ${stats.todayChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {stats.todayChange >= 0 ? '+' : ''}{stats.todayChange} from yesterday
+                    </p>
+                  </>
+                )}
               </div>
               <div className="p-3 bg-blue-500/10 dark:bg-blue-400/20 rounded-xl group-hover:bg-blue-500/20 dark:group-hover:bg-blue-400/30 transition-colors">
                 <CalendarDays className="h-7 w-7 text-blue-600 dark:text-blue-400" />
@@ -224,8 +282,17 @@ export default function LogEmissions() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300">This Week</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">12</p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">5 days tracked</p>
+                {statsLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <p className="text-2xl font-bold text-slate-400">--</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.weekEntries}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">{stats.weekDays} days tracked</p>
+                  </>
+                )}
               </div>
               <div className="p-3 bg-cyan-500/10 dark:bg-cyan-400/20 rounded-xl group-hover:bg-cyan-500/20 dark:group-hover:bg-cyan-400/30 transition-colors">
                 <Plus className="h-7 w-7 text-cyan-600 dark:text-cyan-400" />
@@ -239,8 +306,17 @@ export default function LogEmissions() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total CO₂</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">45.2kg</p>
-                <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">This month</p>
+                {statsLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <p className="text-2xl font-bold text-slate-400">--</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.monthEmissions}kg</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">This month</p>
+                  </>
+                )}
               </div>
               <div className="p-3 bg-teal-500/10 dark:bg-teal-400/20 rounded-xl group-hover:bg-teal-500/20 dark:group-hover:bg-teal-400/30 transition-colors">
                 <Factory className="h-7 w-7 text-teal-600 dark:text-teal-400" />
