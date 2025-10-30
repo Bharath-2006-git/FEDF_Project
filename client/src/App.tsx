@@ -23,12 +23,8 @@ import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
 import ComingSoonPage from "@/pages/ComingSoon";
 import Analytics from "@/pages/Analytics";
-import Achievements from "@/pages/Achievements";
-import Notifications from "@/pages/Notifications";
 import Reports from "@/pages/Reports";
-import Comparison from "@/pages/Comparison";
-import WhatIfAnalysis from "@/pages/WhatIfAnalysis";
-import { BarChart3, FileText } from "lucide-react";
+import { BarChart3, Award, Bell as BellIcon, GitCompare, FlaskConical } from "lucide-react";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -129,12 +125,14 @@ function AuthenticatedApp() {
               <Route path="/goals" component={Goals} />
               <Route path="/tips" component={Tips} />
               <Route path="/analytics" component={Analytics} />
-              <Route path="/achievements" component={Achievements} />
-              <Route path="/notifications" component={Notifications} />
               <Route path="/reports" component={Reports} />
-              <Route path="/compare" component={Comparison} />
-              <Route path="/comparison" component={Comparison} />
-              <Route path="/what-if" component={WhatIfAnalysis} />
+              
+              {/* Future Features - Coming Soon */}
+              <Route path="/achievements" component={() => <ComingSoonPage title="Achievements" description="Track your sustainability milestones and earn badges for your environmental efforts. This gamification feature is coming soon!" icon={Award} />} />
+              <Route path="/notifications" component={() => <ComingSoonPage title="Notifications" description="Stay updated with personalized reminders, goal deadlines, and emission alerts. This feature is coming soon!" icon={BellIcon} />} />
+              <Route path="/compare" component={() => <ComingSoonPage title="Comparison Dashboard" description="Compare your emissions with industry benchmarks and regional averages. This feature is coming soon!" icon={GitCompare} />} />
+              <Route path="/comparison" component={() => <ComingSoonPage title="Comparison Dashboard" description="Compare your emissions with industry benchmarks and regional averages. This feature is coming soon!" icon={GitCompare} />} />
+              <Route path="/what-if" component={() => <ComingSoonPage title="What-If Analysis" description="Simulate different emission reduction scenarios and see projected outcomes. This advanced feature is coming soon!" icon={FlaskConical} />} />
               
               {/* Catch-all route for any other pages - redirect to Coming Soon */}
               <Route component={() => <ComingSoonPage title="Coming Soon" description="This feature is currently under development. We're working hard to bring you new sustainability tools and insights." icon={BarChart3} />} />

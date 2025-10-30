@@ -9,7 +9,8 @@ import {
   Home,
   FlaskConical,
   Trophy,
-  Bell
+  Bell,
+  Clock
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
@@ -29,18 +30,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 
-const menuItems = [
+// Core features menu items
+const coreMenuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Log Emissions", url: "/emissions", icon: Plus },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Goals", url: "/goals", icon: Target },
-  { title: "Achievements", url: "/achievements", icon: Trophy },
-  { title: "Notifications", url: "/notifications", icon: Bell },
-  { title: "Compare", url: "/compare", icon: TrendingUp },
-  { title: "Tips", url: "/tips", icon: Lightbulb },
   { title: "Reports", url: "/reports", icon: FileText },
+  { title: "Goals", url: "/goals", icon: Target },
+  { title: "Tips", url: "/tips", icon: Lightbulb },
   { title: "Profile", url: "/profile", icon: User },
-  { title: "What-If Analysis", url: "/what-if", icon: FlaskConical },
+];
+
+// Future features - coming soon
+const futureMenuItems = [
+  { title: "Achievements", url: "/achievements", icon: Trophy, badge: "Soon" },
+  { title: "Notifications", url: "/notifications", icon: Bell, badge: "Soon" },
+  { title: "Compare", url: "/compare", icon: TrendingUp, badge: "Soon" },
+  { title: "What-If Analysis", url: "/what-if", icon: FlaskConical, badge: "Soon" },
 ];
 
 export function AppSidebar() {
@@ -58,11 +64,14 @@ export function AppSidebar() {
       </SidebarHeader>
       
       <SidebarContent className="bg-white dark:bg-slate-900">
+        {/* Core Features */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-2 px-3">NAVIGATION</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-2 px-3">
+            CORE FEATURES
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1 px-2">
-              {menuItems.map((item) => (
+              {coreMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
@@ -76,6 +85,37 @@ export function AppSidebar() {
                     <Link href={item.url}>
                       <item.icon className="w-5 h-5" />
                       <span className="text-sm font-medium">{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Future Features */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-2 px-3 flex items-center gap-2">
+            COMING SOON
+            <Clock className="w-3 h-3" />
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1 px-2">
+              {futureMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild 
+                    className="font-semibold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200 opacity-60"
+                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="w-5 h-5" />
+                      <span className="text-sm font-medium flex items-center gap-2">
+                        {item.title}
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold">
+                          {item.badge}
+                        </span>
+                      </span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

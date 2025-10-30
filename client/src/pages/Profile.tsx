@@ -1,123 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth, useRoleAccess } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "@/hooks/use-toast";
 import { 
   User, 
-  Settings, 
   Shield, 
-  Bell, 
-  Eye, 
-  Save,
-  Building,
   Mail,
   Calendar,
-  Edit
+  BarChart3,
+  Target,
+  Leaf,
+  Clock,
+  Info
 } from "lucide-react";
-
-interface ProfileFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  companyName?: string;
-  companyDepartment?: string;
-}
-
-interface SettingsData {
-  notifications: {
-    email: boolean;
-    push: boolean;
-    tips: boolean;
-    goals: boolean;
-  };
-  privacy: {
-    profileVisible: boolean;
-    dataSharing: boolean;
-  };
-}
+import { apiService } from "@/services/api";
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { isIndividual, isCompany } = useRoleAccess();
   
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [profileData, setProfileData] = useState<ProfileFormData>({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    companyName: user?.companyName || "",
-    companyDepartment: user?.companyDepartment || ""
+  const [stats, setStats] = useState({
+    totalEmissions: 0,
+    totalEntries: 0,
+    goalsCompleted: 0,
+    memberSince: ""
   });
+  const [loading, setLoading] = useState(true);
 
-  const [settings, setSettings] = useState<SettingsData>({
-    notifications: {
-      email: true,
-      push: true,
-      tips: true,
-      goals: true
-    },
-    privacy: {
-      profileVisible: true,
-      dataSharing: false
-    }
-  });
+  useEffect(() => {
+    loadProfileStats();
+  }, []);
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const loadProfileStats = async () => {
     try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('carbonSense_token')}`
-        },
-        body: JSON.stringify(profileData)
+      const emissionHistory = await apiService.getEmissionHistory();
+      const goals = await apiService.getGoals();
+      
+      const totalEmissions = emissionHistory.reduce((sum: number, item: any) => 
+        sum + (item.emissions || 0), 0
+      );
+      
+      const completedGoals = goals.filter((g: any) => g.status === 'completed').length;
+      
+      setStats({
+        totalEmissions: Math.round(totalEmissions * 100) / 100,
+        totalEntries: emissionHistory.length,
+        goalsCompleted: completedGoals,
+        memberSince: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }) : 'N/A'
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
-      }
-
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been updated successfully.",
-      });
-
-      setIsEditing(false);
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message,
-        variant: "destructive"
-      });
+    } catch (error) {
+      console.error('Failed to load profile stats:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSettingsUpdate = async (section: string, key: string, value: boolean) => {
-    setSettings(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section as keyof SettingsData],
-        [key]: value
-      }
-    }));
-
-    // In a real app, you would save this to the backend
-    toast({
-      title: "Settings Updated",
-      description: "Your preference has been saved.",
-    });
   };
 
   return (
@@ -132,248 +73,163 @@ export default function Profile() {
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-3">
                   <User className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-                  Profile Settings
+                  Profile
                 </h1>
                 <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                  Manage your account information and preferences
+                  View your account information and statistics
                 </p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Note about read-only profile */}
+        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="text-blue-800 dark:text-blue-200">
+            Profile information is currently read-only. Profile editing features will be available in a future update.
+          </AlertDescription>
+        </Alert>
+
         {/* Profile Information */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Profile Information
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                {isEditing ? 'Cancel' : 'Edit'}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleProfileUpdate} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={profileData.firstName}
-                    onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={profileData.lastName}
-                    onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                  disabled={!isEditing}
-                />
-              </div>
-
-              {isCompany() && (
-                <>
-                  <Separator />
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Building className="w-5 h-5" />
-                      Company Information
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="companyName">Company Name</Label>
-                        <Input
-                          id="companyName"
-                          value={profileData.companyName}
-                          onChange={(e) => setProfileData({...profileData, companyName: e.target.value})}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="companyDepartment">Department</Label>
-                        <Input
-                          id="companyDepartment"
-                          value={profileData.companyDepartment}
-                          onChange={(e) => setProfileData({...profileData, companyDepartment: e.target.value})}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {isEditing && (
-                <div className="flex gap-3">
-                  <Button type="submit" disabled={loading}>
-                    <Save className="w-4 h-4 mr-2" />
-                    {loading ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </div>
-              )}
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Account Info */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
-          <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              Account Information
+              <User className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              Profile Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-slate-500" />
-                <div>
-                  <p className="font-medium">Account Type</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 capitalize">
-                    {user?.role} Account
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Full Name
+                </p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  {user?.firstName} {user?.lastName || ''}
+                </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-slate-500" />
-                <div>
-                  <p className="font-medium">Member Since</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  Email Address
+                </p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Account Type
+                </p>
+                <Badge variant="secondary" className="text-sm">
+                  {isIndividual() ? '👤 Individual Account' : isCompany() ? '🏢 Company Account' : 'Account'}
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Member Since
+                </p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  {stats.memberSince}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Notification Settings */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
+        {/* Statistics */}
+        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              Notification Preferences
+              <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              Your Statistics
             </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Receive updates via email
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.email}
-                  onCheckedChange={(value) => handleSettingsUpdate('notifications', 'email', value)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Goal Reminders</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Get notified about goal progress
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.goals}
-                  onCheckedChange={(value) => handleSettingsUpdate('notifications', 'goals', value)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Weekly Tips</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Receive eco-friendly tips weekly
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.tips}
-                  onCheckedChange={(value) => handleSettingsUpdate('notifications', 'tips', value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Privacy Settings */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              Privacy Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Profile Visibility</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Make your profile visible to other users
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.privacy.profileVisible}
-                  onCheckedChange={(value) => handleSettingsUpdate('privacy', 'profileVisible', value)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Anonymous Data Sharing</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Share anonymized data for research
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.privacy.dataSharing}
-                  onCheckedChange={(value) => handleSettingsUpdate('privacy', 'dataSharing', value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Danger Zone */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-red-200/30 dark:border-red-700/30">
-          <CardHeader>
-            <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <Alert>
-                <AlertDescription>
-                  Once you delete your account, there is no going back. Please be certain.
-                </AlertDescription>
-              </Alert>
-              <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
-                Delete Account
-              </Button>
-            </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Loading statistics...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                    <Leaf className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <p className="text-sm font-medium">Total Emissions</p>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    {stats.totalEmissions.toFixed(1)} <span className="text-sm font-normal text-slate-600 dark:text-slate-400">kg CO2e</span>
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                    <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <p className="text-sm font-medium">Total Entries</p>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    {stats.totalEntries}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                    <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <p className="text-sm font-medium">Goals Completed</p>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    {stats.goalsCompleted}
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Future Features Info */}
+        <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
+              <Clock className="w-5 h-5" />
+              Coming Soon
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+              The following features will be available in future updates:
+            </p>
+            <ul className="space-y-2 text-sm text-amber-700 dark:text-amber-300">
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">•</span>
+                Edit profile information (name, email)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">•</span>
+                Change password
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">•</span>
+                Upload profile picture
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">•</span>
+                Notification preferences
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-amber-500">•</span>
+                Privacy settings
+              </li>
+            </ul>
           </CardContent>
         </Card>
       </div>
