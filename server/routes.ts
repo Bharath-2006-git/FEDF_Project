@@ -1222,6 +1222,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/dummy/dashboard - for testing
+  // Analytics endpoints
+  app.get("/api/analytics/category-breakdown", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const emissions = await storage.getUserEmissions(user.userId);
+      
+      // Calculate category breakdown
+      const categoryTotals: Record<string, number> = {};
+      let totalEmissions = 0;
+
+      emissions.forEach((emission: any) => {
+        const category = emission.category;
+        const co2Amount = Number(emission.co2_emissions ?? emission.co2Emissions ?? emission.co2Amount ?? 0);
+        categoryTotals[category] = (categoryTotals[category] || 0) + co2Amount;
+        totalEmissions += co2Amount;
+      });
+
+      const categoryBreakdown = Object.entries(categoryTotals).map(([category, value]) => ({
+        category: category.charAt(0).toUpperCase() + category.slice(1),
+        value: parseFloat(value.toFixed(2)),
+        percentage: totalEmissions > 0 ? parseFloat(((value / totalEmissions) * 100).toFixed(1)) : 0,
+        trend: parseFloat((Math.random() * 20 - 10).toFixed(1)) // Mock trend for now
+      }));
+
+      res.json({ data: categoryBreakdown });
+    } catch (error) {
+      console.error('Category breakdown error:', error);
+      res.status(500).json({ message: 'Failed to get category breakdown' });
+    }
+  });
+
+  app.get("/api/analytics/monthly-comparison", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const emissions = await storage.getUserEmissions(user.userId);
+      
+      // Group by month
+      const monthlyData: Record<string, number> = {};
+      emissions.forEach((emission: any) => {
+        const month = new Date(emission.date).toISOString().substring(0, 7);
+        const co2Amount = Number(emission.co2_emissions ?? emission.co2Emissions ?? emission.co2Amount ?? 0);
+        monthlyData[month] = (monthlyData[month] || 0) + co2Amount;
+      });
+
+      // Get last 12 months
+      const months = Object.keys(monthlyData).sort().slice(-12);
+      const comparison = months.map((month, index) => {
+        const current = monthlyData[month] || 0;
+        const previous = index > 0 ? (monthlyData[months[index - 1]] || 0) : current;
+        const change = previous > 0 ? ((current - previous) / previous * 100) : 0;
+        
+        return {
+          month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          current: parseFloat(current.toFixed(2)),
+          previous: parseFloat(previous.toFixed(2)),
+          change: parseFloat(change.toFixed(1))
+        };
+      });
+
+      res.json({ data: comparison });
+    } catch (error) {
+      console.error('Monthly comparison error:', error);
+      res.status(500).json({ message: 'Failed to get monthly comparison' });
+    }
+  });
+
+  app.get("/api/analytics/yearly-trends", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const emissions = await storage.getUserEmissions(user.userId);
+      const goals = await storage.getUserGoals(user.userId);
+      
+      // Group by year
+      const yearlyData: Record<string, number> = {};
+      emissions.forEach((emission: any) => {
+        const year = new Date(emission.date).getFullYear().toString();
+        const co2Amount = Number(emission.co2_emissions ?? emission.co2Emissions ?? emission.co2Amount ?? 0);
+        yearlyData[year] = (yearlyData[year] || 0) + co2Amount;
+      });
+
+      const yearlyTrends = Object.entries(yearlyData).map(([year, emissionsTotal]) => {
+        const goal = goals.find((g: any) => {
+          const targetDate = g.target_date || g.targetDate;
+          return targetDate && new Date(targetDate).getFullYear().toString() === year;
+        });
+        const goalTarget = goal ? ((goal as any).targetValue || (goal as any).target_value) : emissionsTotal * 1.1;
+        
+        return {
+          year,
+          emissions: parseFloat(emissionsTotal.toFixed(2)),
+          goals: parseFloat(Number(goalTarget).toFixed(2)),
+          achieved: emissionsTotal <= Number(goalTarget)
+        };
+      });
+
+      res.json({ data: yearlyTrends });
+    } catch (error) {
+      console.error('Yearly trends error:', error);
+      res.status(500).json({ message: 'Failed to get yearly trends' });
+    }
+  });
+
+  app.get("/api/analytics/peak-analysis", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const emissions = await storage.getUserEmissions(user.userId);
+      
+      if (emissions.length === 0) {
+        return res.json({ 
+          data: {
+            highestDay: { date: 'N/A', value: 0 },
+            lowestDay: { date: 'N/A', value: 0 },
+            averageDaily: 0
+          }
+        });
+      }
+
+      // Group by day
+      const dailyData: Record<string, number> = {};
+      emissions.forEach((emission: any) => {
+        const date = new Date(emission.date).toISOString().split('T')[0];
+        const co2Amount = Number(emission.co2_emissions ?? emission.co2Emissions ?? emission.co2Amount ?? 0);
+        dailyData[date] = (dailyData[date] || 0) + co2Amount;
+      });
+
+      const entries = Object.entries(dailyData);
+      const highest = entries.reduce((max, curr) => curr[1] > max[1] ? curr : max);
+      const lowest = entries.reduce((min, curr) => curr[1] < min[1] ? curr : min);
+      const total = entries.reduce((sum, curr) => sum + curr[1], 0);
+      const average = total / entries.length;
+
+      res.json({ 
+        data: {
+          highestDay: { 
+            date: new Date(highest[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), 
+            value: parseFloat(highest[1].toFixed(2)) 
+          },
+          lowestDay: { 
+            date: new Date(lowest[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), 
+            value: parseFloat(lowest[1].toFixed(2)) 
+          },
+          averageDaily: parseFloat(average.toFixed(2))
+        }
+      });
+    } catch (error) {
+      console.error('Peak analysis error:', error);
+      res.status(500).json({ message: 'Failed to get peak analysis' });
+    }
+  });
+
+  app.get("/api/analytics/export", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const { format } = req.query;
+      const emissions = await storage.getUserEmissions(user.userId);
+
+      if (format === 'csv') {
+        // Generate CSV
+        const csvHeader = 'Date,Category,Description,Quantity,Unit,CO2 Amount (kg)\n';
+        const csvRows = emissions.map((e: any) => 
+          `${new Date(e.date).toISOString().split('T')[0]},${e.category},${e.description || ''},${e.quantity},${e.unit},${e.co2_emissions || e.co2Emissions || e.co2Amount || 0}`
+        ).join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=emissions-report.csv');
+        res.send(csvHeader + csvRows);
+      } else {
+        // Return JSON for PDF generation on client
+        res.json({ data: emissions });
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      res.status(500).json({ message: 'Failed to export data' });
+    }
+  });
+
   app.get("/api/dummy/dashboard", (req: Request, res: Response) => {
     const dummyData = {
       totalEmissions: 1234.5,
