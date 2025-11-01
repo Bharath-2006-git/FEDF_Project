@@ -1,32 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && npm run build:server",
-  "outputDirectory": "dist/public",
-  "devCommand": "npm run dev:full",
-  "builds": [
-    {
-      "src": "dist/server.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/health",
-      "dest": "dist/server.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "dist/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "outputDirectory": "dist/public"
 }
