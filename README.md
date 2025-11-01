@@ -233,14 +233,19 @@ npm run build:server
 
 ### Deployment Options
 
-**Docker**: Use the included `Dockerfile.backend` and `Dockerfile.frontend` for containerized deployment.
+**Vercel** (Recommended for this project):
+1. Connect your GitHub repository to Vercel
+2. Configure environment variables in Vercel dashboard
+3. Vercel will automatically detect the build settings from `vercel.json`
 
-**Cloud Platforms**: Compatible with Render, Heroku, Vercel, AWS, or any Node.js hosting platform.
+**Other Cloud Platforms**: 
+Compatible with Render, Heroku, Railway, AWS, or any Node.js hosting platform.
 
 **Manual Deployment**: 
 1. Build the application using the commands above
 2. Configure environment variables on your hosting platform
 3. Deploy the `dist` folder (frontend) and server build
+4. Ensure both frontend and backend are properly configured
 
 ## Contributing
 
