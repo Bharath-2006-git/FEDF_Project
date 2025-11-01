@@ -234,6 +234,31 @@ export default function Reports() {
     }
   };
 
+  // Helper to decode any HTML entities that might be present in category names or other strings
+  const decodeHtml = (input: string) => {
+    try {
+      const txt = document.createElement('textarea');
+      txt.innerHTML = input || '';
+      return txt.value;
+    } catch (e) {
+      return input || '';
+    }
+  };
+
+  // Convert hex color ('#rrggbb') to jsPDF rgb array
+  const hexToRgb = (hex: string) => {
+    try {
+      const clean = (hex || '#6b7280').replace('#', '');
+      const bigint = parseInt(clean, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return [r, g, b];
+    } catch (e) {
+      return [107, 114, 128];
+    }
+  };
+
   const generatePDFReport = (emissions: any[], totalEmissions: number, breakdown: any[], averageDaily: number) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -254,11 +279,12 @@ export default function Reports() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
-    doc.text('CarbonSense', 35, 23);
+  doc.text('CarbonSense', 35, 23);
     
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Carbon Emissions Report', 35, 32);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  // Use plain text (avoid emojis/unicode that jsPDF may not support)
+  doc.text('Carbon Emissions Report', 35, 32);
     
     // Report Info box in header
     doc.setFontSize(9);
@@ -267,9 +293,9 @@ export default function Reports() {
       month: 'long', 
       day: 'numeric' 
     });
-    doc.text(`Generated: ${reportDate}`, pageWidth - 15, 18, { align: 'right' });
-    doc.text(`Period: ${reportForm.startDate} to ${reportForm.endDate}`, pageWidth - 15, 25, { align: 'right' });
-    doc.text(`User: ${user?.firstName || 'User'}`, pageWidth - 15, 32, { align: 'right' });
+  doc.text(`Generated: ${reportDate}`, pageWidth - 15, 18, { align: 'right' });
+  doc.text(`Period: ${reportForm.startDate} to ${reportForm.endDate}`, pageWidth - 15, 25, { align: 'right' });
+  doc.text(`User: ${user?.firstName || 'User'}`, pageWidth - 15, 32, { align: 'right' });
     
     // Key Metrics Highlight Boxes
     let yPos = 65;
@@ -323,15 +349,18 @@ export default function Reports() {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(16, 185, 129);
-    doc.text('📊 Report Summary', 30, yPos);
+  // Plain section title (avoid emoji)
+  doc.text('Report Summary', 30, yPos);
     
     yPos += 5;
     
+    const daysCount = Math.ceil((new Date(reportForm.endDate).getTime() - new Date(reportForm.startDate).getTime()) / (1000 * 60 * 60 * 24)) || 0;
+    const emissionsPerEntry = emissions.length ? (totalEmissions / emissions.length) : 0;
     const summaryData = [
       ['Report Type', reportForm.reportType.charAt(0).toUpperCase() + reportForm.reportType.slice(1)],
-      ['Analysis Period', `${Math.ceil((new Date(reportForm.endDate).getTime() - new Date(reportForm.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`],
-      ['Emissions per Entry', `${(totalEmissions / emissions.length).toFixed(2)} kg CO₂e`],
-      ['Status', totalEmissions < averageDaily * 30 ? '✓ Below Target' : '⚠ Above Target']
+      ['Analysis Period', `${daysCount} day(s)`],
+      ['Emissions per Entry', emissions.length ? `${emissionsPerEntry.toFixed(2)} kg CO₂e` : '-'],
+      ['Status', (totalEmissions < (averageDaily * 30)) ? 'Below target' : 'Above target']
     ];
     
     autoTable(doc, {
@@ -371,15 +400,17 @@ export default function Reports() {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(16, 185, 129);
-    doc.text('🏭 Emissions by Category', 30, yPos);
+  // Avoid emoji; use clear section title
+  doc.text('Emissions by Category', 30, yPos);
     
     yPos += 5;
     
+    // Build category table rows; we'll draw a colored bar in the Distribution column using autoTable's hooks
     const categoryData = breakdown.map(item => [
-      item.category,
-      `${item.value.toFixed(2)} kg`,
-      `${item.percentage.toFixed(1)}%`,
-      '█'.repeat(Math.round(item.percentage / 5)) // Visual bar
+      decodeHtml(String(item.category)),
+      `${(item.value || 0).toFixed(2)} kg`,
+      `${(item.percentage || 0).toFixed(1)}%`,
+      (item.percentage || 0)
     ]);
     
     autoTable(doc, {
@@ -406,7 +437,40 @@ export default function Reports() {
         0: { fontStyle: 'bold', cellWidth: 50 },
         1: { halign: 'right', cellWidth: 40 },
         2: { halign: 'right', cellWidth: 30 },
-        3: { textColor: [16, 185, 129], cellWidth: 'auto' }
+        3: { cellWidth: 60, halign: 'left' }
+      },
+      // Draw a colored bar representing distribution in the 4th column
+      didDrawCell: (data) => {
+        try {
+          if (data.column.index === 3 && data.cell && typeof data.cell.raw !== 'undefined') {
+            const pct = Number(data.cell.raw) || 0;
+            const rowIndex = data.row.index;
+            const color = (breakdown[rowIndex] && breakdown[rowIndex].color) || '#6b7280';
+            const [r, g, b] = hexToRgb(color);
+
+            // bar coords
+            const padding = 2;
+            const barX = data.cell.x + padding;
+            const barY = data.cell.y + (data.cell.height / 2) - 3;
+            const maxBarWidth = data.cell.width - (padding * 2);
+            const barWidth = Math.max(0, Math.min(maxBarWidth, (pct / 100) * maxBarWidth));
+
+            // background track
+            doc.setFillColor(229, 231, 235);
+            doc.roundedRect(data.cell.x + padding, barY - 1, maxBarWidth, 6, 1, 1, 'F');
+
+            // colored bar
+            doc.setFillColor(r, g, b);
+            doc.roundedRect(barX, barY - 1, barWidth, 6, 1, 1, 'F');
+
+            // Draw percentage text on top, right aligned inside cell
+            doc.setFontSize(9);
+            doc.setTextColor(64, 64, 64);
+            doc.text(`${pct.toFixed(1)}%`, data.cell.x + data.cell.width - padding, data.cell.y + data.cell.height / 2 + 3, { align: 'right' });
+          }
+        } catch (e) {
+          // non-fatal for drawing
+        }
       }
     });
     
@@ -424,24 +488,24 @@ export default function Reports() {
       
       yPos = 35;
       
-      // Section divider
-      doc.setDrawColor(16, 185, 129);
-      doc.setLineWidth(2);
-      doc.line(15, yPos, 25, yPos);
+  // Section divider
+  doc.setDrawColor(16, 185, 129);
+  doc.setLineWidth(2);
+  doc.line(15, yPos, 25, yPos);
       
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(16, 185, 129);
-      doc.text('📋 Detailed Emissions Log', 30, yPos + 5);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(16, 185, 129);
+  doc.text('Detailed Emissions Log', 30, yPos + 5);
       
       yPos += 10;
       
       const emissionData = emissions.slice(0, 50).map((item: any) => [
         new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        item.category,
-        item.subcategory || '-',
-        `${item.quantity} ${item.unit}`,
-        `${item.co2Emissions.toFixed(2)} kg`
+        decodeHtml(String(item.category || '-')),
+        decodeHtml(String(item.subcategory || '-')),
+        `${item.quantity || 0} ${item.unit || ''}`,
+        `${(item.co2Emissions || 0).toFixed(2)} kg`
       ]);
       
       autoTable(doc, {

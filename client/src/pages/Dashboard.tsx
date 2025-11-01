@@ -162,66 +162,50 @@ export default function Dashboard() {
         />
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-red-50/90 to-red-100/90 dark:from-red-950/50 dark:to-red-900/40 border border-red-200/50 dark:border-red-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
-            <div>
-              <p className="text-sm text-red-600 dark:text-red-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">TOTAL EMISSIONS</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">{formatEmissionValue(dashboardData?.totalEmissions || 0)}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">COâ‚‚ equivalent</p>
+          <CardHeader className="flex flex-row items-center justify-between pb-4 pt-6 px-6">
+            <div className="flex-1">
+              <p className="text-sm text-red-600 dark:text-red-400 font-bold tracking-wide mb-2">TOTAL EMISSIONS</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{formatEmissionValue(dashboardData?.totalEmissions || 0)}</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-red-500/25 group-hover:scale-110 transition-all duration-300">
-              <TrendingUp className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />
+            <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-red-500/25 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+              <TrendingUp className="w-7 h-7 text-white" />
             </div>
           </CardHeader>
-          <CardContent className="transition-colors duration-300 ease-in-out">
-            <div className="flex items-center text-xs text-muted-foreground transition-colors duration-300 ease-in-out">
-              {isPositive ? (
-                <TrendingDown className="w-4 h-4 text-emerald-500 mr-1 transition-colors duration-300 ease-in-out" />
-              ) : (
-                <TrendingUp className="w-4 h-4 text-red-500 mr-1 transition-colors duration-300 ease-in-out" />
-              )}
-              <span className={`transition-colors duration-300 ease-in-out ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
-                {trend.toFixed(1)}% {isPositive ? "reduction" : "increase"} from last period
-              </span>
-            </div>
-          </CardContent>
         </Card>
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-blue-50/90 to-cyan-100/90 dark:from-blue-950/50 dark:to-cyan-900/40 border border-blue-200/50 dark:border-blue-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
-            <div>
-              <p className="text-sm text-blue-600 dark:text-blue-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">THIS MONTH</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">{formatEmissionValue(dashboardData?.monthlyEmissions || 0)}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">Current period</p>
+          <CardHeader className="flex flex-row items-center justify-between pb-4 pt-6 px-6">
+            <div className="flex-1">
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-bold tracking-wide mb-2">THIS MONTH</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{formatEmissionValue(dashboardData?.monthlyEmissions || 0)}</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-blue-500/25 group-hover:scale-110 transition-all duration-300">
-              <Calendar className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-blue-500/25 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+              <Calendar className="w-7 h-7 text-white" />
             </div>
           </CardHeader>
         </Card>
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-teal-50/90 to-green-100/90 dark:from-teal-950/50 dark:to-green-900/40 border border-teal-200/50 dark:border-teal-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
-            <div>
-              <p className="text-sm text-teal-600 dark:text-teal-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">ACTIVE GOALS</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">{dashboardData?.goals?.length || 0}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">Reduction targets</p>
+          <CardHeader className="flex flex-row items-center justify-between pb-4 pt-6 px-6">
+            <div className="flex-1">
+              <p className="text-sm text-teal-600 dark:text-teal-400 font-bold tracking-wide mb-2">ACTIVE GOALS</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{dashboardData?.goals?.length || 0}</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-teal-500/25 group-hover:scale-110 transition-all duration-300">
-              <Target className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />
+            <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-teal-500/25 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+              <Target className="w-7 h-7 text-white" />
             </div>
           </CardHeader>
         </Card>
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-cyan-50/90 to-emerald-100/90 dark:from-cyan-950/50 dark:to-emerald-900/40 border border-cyan-200/50 dark:border-cyan-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">
-            <div>
-              <p className="text-sm text-cyan-600 dark:text-cyan-400 font-bold tracking-wide transition-colors duration-300 ease-in-out">
+          <CardHeader className="flex flex-row items-center justify-between pb-4 pt-6 px-6">
+            <div className="flex-1">
+              <p className="text-sm text-cyan-600 dark:text-cyan-400 font-bold tracking-wide mb-2">
                 {isCompany() ? "DEPARTMENTS" : "CATEGORIES"}
               </p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300 ease-in-out">
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                 {Object.keys(dashboardData?.categories || {}).length}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium transition-colors duration-300 ease-in-out">Data sources</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-cyan-500/25 group-hover:scale-110 transition-all duration-300">
-              {isCompany() ? <Building className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" /> : <BarChart3 className="w-7 h-7 text-white transition-transform duration-300 ease-in-out" />}
+            <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-cyan-500/25 group-hover:scale-110 transition-all duration-300 flex-shrink-0">
+              {isCompany() ? <Building className="w-7 h-7 text-white" /> : <BarChart3 className="w-7 h-7 text-white" />}
             </div>
           </CardHeader>
         </Card>
@@ -243,15 +227,36 @@ export default function Dashboard() {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
+                    innerRadius={60}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percentage }) => `${name}: ${percentage}%`}
+                    paddingAngle={2}
                   >
                     {preparePieData().map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => formatEmissionValue(Number(value))} />
+                  <Tooltip 
+                    formatter={(value, name, props: any) => [
+                      formatEmissionValue(Number(value)),
+                      `${props.payload.name} (${props.payload.percentage}%)`
+                    ]}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '8px 12px'
+                    }}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry: any) => (
+                      <span className="text-sm">
+                        {entry.payload.name} ({entry.payload.percentage}%)
+                      </span>
+                    )}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -307,20 +312,25 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-6">
-            {dashboardData?.goals?.map((goal) => (
-              <div key={goal.id} className="space-y-2 transition-all duration-300 ease-in-out">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">{goal.name}</h4>
-                  <Badge variant={goal.progress >= 100 ? "default" : "secondary"} className="bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 transition-all duration-300 ease-in-out">
-                    {goal.progress}%
-                  </Badge>
-                </div>
-                <Progress value={goal.progress} className="h-3 transition-all duration-300 ease-in-out" />
-                <p className="text-sm text-slate-600 dark:text-slate-400 transition-colors duration-300 ease-in-out">
-                  Progress: {goal.progress}% of {goal.target}% target
-                </p>
-              </div>
-            )) || (
+            {dashboardData?.goals && dashboardData.goals.length > 0 ? (
+              dashboardData.goals.map((goal) => {
+                const progress = typeof goal.progress === 'number' && !isNaN(goal.progress) ? goal.progress : 0;
+                return (
+                  <div key={goal.id} className="space-y-2 transition-all duration-300 ease-in-out">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">{goal.name}</h4>
+                      <Badge variant={progress >= 100 ? "default" : "secondary"} className="bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 transition-all duration-300 ease-in-out">
+                        {progress}%
+                      </Badge>
+                    </div>
+                    <Progress value={progress} className="h-3 transition-all duration-300 ease-in-out" />
+                    <p className="text-sm text-slate-600 dark:text-slate-400 transition-colors duration-300 ease-in-out">
+                      Target: Reduce emissions by {goal.target}%
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
               <div className="text-center text-slate-600 dark:text-slate-400 py-8 transition-colors duration-300 ease-in-out">
                 <Target className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-600 dark:text-emerald-400 transition-all duration-300 ease-in-out" />
                 <p className="transition-colors duration-300 ease-in-out">No active goals yet.</p>
@@ -353,7 +363,7 @@ export default function Dashboard() {
               View Reports
             </Button>
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700 transition-all duration-300 ease-in-out">
-              <h4 className="font-medium mb-2 text-sm text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">ðŸ’¡ Today's Tip</h4>
+              <h4 className="font-medium mb-2 text-sm text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">💡 Today's Tip</h4>
               <p className="text-sm text-slate-600 dark:text-slate-400 transition-colors duration-300 ease-in-out">
                 {isIndividual() 
                   ? "Try using public transportation or biking today to reduce your carbon footprint!"

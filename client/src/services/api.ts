@@ -265,12 +265,27 @@ class ApiService {
       monthlyEmissions,
       categories,
       history: emissions,
-      goals: goals.map(goal => ({
-        id: goal.id || 0,
-        name: goal.goalName,
-        progress: ((goal.currentValue || 0) / goal.targetValue) * 100,
-        target: goal.targetValue
-      }))
+      goals: goals
+        .filter((goal: any) => {
+          // Only include active goals
+          const goalStatus = goal.status || 'active';
+          return goalStatus === 'active';
+        })
+        .map((goal: any) => {
+          // Handle both camelCase and snake_case from API
+          const goalName = goal.goalName || goal.goal_name || 'Unnamed Goal';
+          const currentValue = parseFloat(goal.currentValue || goal.current_value || 0);
+          const targetValue = parseFloat(goal.targetValue || goal.target_value || 1);
+          
+          const progress = targetValue > 0 ? Math.round((currentValue / targetValue) * 100) : 0;
+          
+          return {
+            id: goal.id || 0,
+            name: goalName,
+            progress: Math.min(Math.max(progress, 0), 100), // Cap between 0-100%
+            target: targetValue
+          };
+        })
     };
   }
 
