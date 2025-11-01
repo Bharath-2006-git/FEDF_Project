@@ -6,7 +6,10 @@
   "builds": [
     {
       "src": "dist/server.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
     }
   ],
   "routes": [
@@ -25,11 +28,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "dist/server.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
   }
 }
