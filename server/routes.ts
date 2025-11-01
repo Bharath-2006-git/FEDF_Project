@@ -13,6 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/api/auth/google/callback";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Configure Google OAuth Strategy
 if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
@@ -468,16 +469,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/google/callback", (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate("google", { 
       session: false,
-      failureRedirect: process.env.NODE_ENV === 'production' 
-        ? '/auth?error=google_auth_failed'
-        : 'http://localhost:5173/auth?error=google_auth_failed'
+      failureRedirect: `${FRONTEND_URL}/auth?error=google_auth_failed`
     }, (err: any, user: any) => {
       if (err || !user) {
         console.error('Google OAuth error:', err);
-        const frontendUrl = process.env.NODE_ENV === 'production' 
-          ? '/auth?error=google_auth_failed'
-          : 'http://localhost:5173/auth?error=google_auth_failed';
-        return res.redirect(frontendUrl);
+        return res.redirect(`${FRONTEND_URL}/auth?error=google_auth_failed`);
       }
 
       try {
@@ -498,13 +494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Redirect to frontend with token and user data
         // Using URL hash to pass data to frontend (client-side only)
         const userData = encodeURIComponent(JSON.stringify(userWithoutPassword));
-        const frontendUrl = process.env.NODE_ENV === 'production' 
-          ? '/auth-callback' 
-          : 'http://localhost:5173/auth-callback';
-        res.redirect(`${frontendUrl}?token=${token}&user=${userData}`);
+        res.redirect(`${FRONTEND_URL}/auth-callback?token=${token}&user=${userData}`);
       } catch (error) {
         console.error('Token generation error:', error);
-        res.redirect('/auth?error=token_generation_failed');
+        res.redirect(`${FRONTEND_URL}/auth?error=token_generation_failed`);
       }
     })(req, res, next);
   });
