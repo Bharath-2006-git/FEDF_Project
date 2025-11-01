@@ -1,8 +1,39 @@
 {
   "name": "carbon-sense",
   "version": "1.0.0",
+  "description": "A modern carbon footprint tracking platform that empowers individuals and organizations to monitor, analyze, and reduce their environmental impact through comprehensive data visualization and actionable sustainability insights.",
   "type": "module",
   "license": "MIT",
+  "author": {
+    "name": "Bharath",
+    "url": "https://github.com/Bharath-2006-git"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bharath-2006-git/FEDF_Project.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Bharath-2006-git/FEDF_Project/issues"
+  },
+  "homepage": "https://github.com/Bharath-2006-git/FEDF_Project#readme",
+  "keywords": [
+    "carbon-footprint",
+    "sustainability",
+    "emissions-tracking",
+    "environmental-impact",
+    "carbon-tracking",
+    "climate-change",
+    "eco-friendly",
+    "green-technology",
+    "emissions-calculator",
+    "react",
+    "typescript",
+    "vite"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "dev:client": "vite",
