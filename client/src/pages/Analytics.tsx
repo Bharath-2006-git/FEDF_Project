@@ -91,7 +91,7 @@ export default function Analytics() {
         peakAnalysis: peakRes.data
       });
     } catch (error) {
-      console.error('Failed to fetch analytics:', error);
+      // Failed to fetch analytics
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export default function Analytics() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Export failed:', error);
+      // Export failed
     }
   };
 

@@ -129,7 +129,6 @@ export default function Reports() {
         trends
       });
     } catch (error) {
-      console.error('Failed to load report data:', error);
       // Set empty data structure on error
       setReportData({
         totalEmissions: 0,
@@ -231,7 +230,6 @@ export default function Reports() {
       });
 
     } catch (error) {
-      console.error('Report generation error:', error);
       toast({
         title: "Error",
         description: "Failed to generate report",

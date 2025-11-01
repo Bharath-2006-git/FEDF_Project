@@ -37,13 +37,11 @@ export default function EmissionVisualization({
   
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
-    console.log(`Emission visualization ${isPlaying ? 'paused' : 'playing'}`);
   };
 
   const handleReset = () => {
     setAnimationPhase(0);
     setIsPlaying(false);
-    console.log("Emission visualization reset");
   };
 
   return (

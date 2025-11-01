@@ -302,30 +302,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/auth/signup
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
-      console.log('📝 Signup request received:', { ...req.body, password: '[REDACTED]' });
-      
       const userData = insertUserSchema.parse(req.body);
-      console.log('✓ Validation passed');
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
-        console.log('❌ User already exists:', userData.email);
         return res.status(400).json({ message: "User already exists" });
       }
-      console.log('✓ Email is available');
 
       // Hash password
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-      console.log('✓ Password hashed');
 
       // Create user
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
       });
-      console.log('✓ User created with ID:', user.id);
 
       // Generate JWT token
       const token = jwt.sign(
@@ -337,7 +330,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JWT_SECRET,
         { expiresIn: '24h' }
       );
-      console.log('✓ JWT token generated');
 
       // Return user data (without password) and token
       const { password, ...userWithoutPassword } = user;
@@ -346,10 +338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
         message: "User created successfully"
       });
-      console.log('✅ Signup successful for:', userData.email);
     } catch (error: any) {
-      console.error('❌ Signup error:', error.message || error);
-      console.error('Stack trace:', error.stack);
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
           message: "Validation failed", 
@@ -366,14 +355,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/auth/login  
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
-      console.log('🔐 Login request received:', { ...req.body, password: '[REDACTED]' });
-      
       const { email, password } = loginSchema.parse(req.body);
-      console.log('✓ Validation passed');
 
       // Special handling for demo account
       if (email === 'demo@carbonsense.com' && password === 'demo123') {
-        console.log('👤 Demo account login');
         const demoUser = {
           id: 999,
           email: 'demo@carbonsense.com',
@@ -403,18 +388,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find user by email
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        console.log('❌ User not found:', email);
         return res.status(401).json({ message: "Invalid email or password" });
       }
-      console.log('✓ User found');
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        console.log('❌ Invalid password for:', email);
         return res.status(401).json({ message: "Invalid email or password" });
       }
-      console.log('✓ Password verified');
 
       // Generate JWT token
       const token = jwt.sign(
@@ -426,7 +407,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JWT_SECRET,
         { expiresIn: '24h' }
       );
-      console.log('✓ JWT token generated');
 
       // Return user data (without password) and token
       const { password: _, ...userWithoutPassword } = user;
@@ -435,10 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
         message: "Login successful"
       });
-      console.log('✅ Login successful for:', email);
     } catch (error: any) {
-      console.error('❌ Login error:', error.message || error);
-      console.error('Stack trace:', error.stack);
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
           message: "Validation failed", 
@@ -472,11 +449,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       failureRedirect: `${FRONTEND_URL}/auth?error=google_auth_failed`
     }, (err: any, user: any) => {
       if (err || !user) {
-        console.error('Google OAuth error:', err);
         return res.redirect(`${FRONTEND_URL}/auth?error=google_auth_failed`);
       }
 
-      try {
+      try{
         // Generate JWT token
         const token = jwt.sign(
           { 
@@ -496,7 +472,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userData = encodeURIComponent(JSON.stringify(userWithoutPassword));
         res.redirect(`${FRONTEND_URL}/auth-callback?token=${token}&user=${userData}`);
       } catch (error) {
-        console.error('Token generation error:', error);
         res.redirect(`${FRONTEND_URL}/auth?error=token_generation_failed`);
       }
     })(req, res, next);
@@ -505,7 +480,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/emissions/add
   app.post("/api/emissions/add", authenticateToken, async (req: Request, res: Response) => {
     try {
-      console.log('📊 Add emission request received');
       
       const user = (req as AuthenticatedRequest).user;
       if (!user) {
@@ -531,8 +505,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate CO2 emissions with subcategory support
       const co2Emissions = calculateCO2Emissions(category, quantityNum, unit, subcategory);
       
-      console.log(`✓ Calculated CO2: ${co2Emissions}kg for ${quantityNum}${unit} of ${category}${subcategory ? `/${subcategory}` : ''}`);
-      
       // Convert camelCase to snake_case for database
       const emissionData = {
         user_id: user.userId,
@@ -547,8 +519,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const emission = await storage.addEmission(emissionData as any);
-      
-      console.log(`✅ Emission logged successfully with ID: ${emission.id}`);
       
       res.status(201).json({
         message: "Emission logged successfully",
@@ -566,7 +536,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         co2Emissions
       });
     } catch (error: any) {
-      console.error('❌ Add emission error:', error);
       res.status(500).json({ 
         message: "Failed to log emission",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -577,8 +546,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/emissions/calculate
   app.get("/api/emissions/calculate", async (req: Request, res: Response) => {
     try {
-      console.log('🧮 Calculate emissions request received');
-      
       const { category, subcategory, quantity, unit } = req.query;
       
       // Validation
@@ -603,8 +570,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subcategory as string
       );
 
-      console.log(`✓ Calculated: ${co2Emissions}kg CO2 for ${quantityNum}${unit} of ${category}`);
-
       res.json({
         co2Emissions,
         category,
@@ -614,7 +579,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Emissions calculated successfully"
       });
     } catch (error: any) {
-      console.error('❌ Calculate emissions error:', error);
       res.status(500).json({ 
         message: "Failed to calculate emissions",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -625,8 +589,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/emissions/categories - Return available categories and subcategories metadata
   app.get("/api/emissions/categories", authenticateToken, async (req: Request, res: Response) => {
     try {
-      console.log('📋 Categories metadata request received');
-      
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
       }
@@ -769,13 +731,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
 
-      console.log('✅ Categories metadata returned successfully');
+
       res.json({
         categories: metadata,
         message: "Categories metadata retrieved successfully"
       });
     } catch (error: any) {
-      console.error('❌ Categories metadata error:', error);
+
       res.status(500).json({ 
         message: "Failed to retrieve categories metadata",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -786,7 +748,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/emissions/history
   app.get("/api/emissions/history", authenticateToken, async (req: Request, res: Response) => {
     try {
-      console.log('📜 Emissions history request received');
+
       
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -799,8 +761,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startDate as string,
         endDate as string
       );
-
-      console.log(`✓ Found ${emissions.length} emissions for user ${(req as AuthenticatedRequest).user!.userId}`);
 
       // Group by month for history
       const history = emissions.reduce((acc, emission: any) => {
@@ -822,7 +782,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
         .sort((a, b) => a.date.localeCompare(b.date)); // Sort chronologically
 
-      console.log(`✅ Returning ${historyArray.length} months of history`);
+
 
       res.json({
         history: historyArray,
@@ -830,7 +790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         count: emissions.length
       });
     } catch (error: any) {
-      console.error('❌ Emissions history error:', error);
+
       res.status(500).json({ 
         message: "Failed to get emissions history",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -841,7 +801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/emissions/list
   app.get("/api/emissions/list", authenticateToken, async (req: Request, res: Response) => {
     try {
-      console.log('📋 Emissions list request received');
+
       
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -880,7 +840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? formattedEmissions.slice(0, parseInt(limit as string))
         : formattedEmissions;
 
-      console.log(`✅ Returning ${limitedEmissions.length} emissions`);
+
 
       res.json({
         emissions: limitedEmissions,
@@ -889,7 +849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalEmissions: formattedEmissions.reduce((sum, e) => sum + e.co2Emissions, 0)
       });
     } catch (error: any) {
-      console.error('❌ Emissions list error:', error);
+
       res.status(500).json({ 
         message: "Failed to get emissions list",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -900,7 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/emissions/summary - Get emission statistics and summary
   app.get("/api/emissions/summary", authenticateToken, async (req: Request, res: Response) => {
     try {
-      console.log('📊 Emissions summary request received');
+
       
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -960,8 +920,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lowestDay = Object.entries(dailyEmissions)
         .sort(([, a], [, b]) => a - b)[0];
 
-      console.log(`✅ Summary: ${totalEmissions.toFixed(2)}kg CO2 from ${emissions.length} entries`);
-
       res.json({
         totalEmissions: Math.round(totalEmissions * 1000) / 1000,
         totalEntries: emissions.length,
@@ -977,7 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error: any) {
-      console.error('❌ Emissions summary error:', error);
+
       res.status(500).json({ 
         message: "Failed to get emissions summary",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -988,7 +946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PUT /api/emissions/:id - Update an emission entry
   app.put("/api/emissions/:id", authenticateToken, async (req: Request, res: Response) => {
     try {
-      console.log('✏️ Update emission request received');
+
       
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -1027,7 +985,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.updateEmission(emissionId, (req as AuthenticatedRequest).user!.userId, updateData);
       
-      console.log(`✅ Emission ${emissionId} updated successfully`);
+
       
       res.json({
         message: "Emission updated successfully",
@@ -1044,7 +1002,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error: any) {
-      console.error('❌ Update emission error:', error);
+
       res.status(500).json({ 
         message: "Failed to update emission",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -1055,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // DELETE /api/emissions/:id - Delete an emission entry
   app.delete("/api/emissions/:id", authenticateToken, async (req: Request, res: Response) => {
     try {
-      console.log('🗑️ Delete emission request received');
+
       
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -1065,14 +1023,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.deleteEmission(emissionId, (req as AuthenticatedRequest).user!.userId);
       
-      console.log(`✅ Emission ${emissionId} deleted successfully`);
+
       
       res.json({
         message: "Emission deleted successfully",
         id: emissionId
       });
     } catch (error: any) {
-      console.error('❌ Delete emission error:', error);
+
       res.status(500).json({ 
         message: "Failed to delete emission",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -1096,7 +1054,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(goal);
     } catch (error) {
-      console.error('Create goal error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1111,7 +1069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const goals = await storage.getUserGoals((req as AuthenticatedRequest).user!.userId);
       res.json(goals);
     } catch (error) {
-      console.error('Goals list error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1130,7 +1088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: 'Goal updated successfully' });
     } catch (error) {
-      console.error('Update goal error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1149,7 +1107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: 'Goal deleted successfully' });
     } catch (error) {
-      console.error('Delete goal error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1168,7 +1126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(progress);
     } catch (error) {
-      console.error('Calculate goal progress error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1192,7 +1150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(tips);
     } catch (error) {
-      console.error('Tips error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1244,7 +1202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Report generated successfully"
       });
     } catch (error) {
-      console.error('Generate report error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1264,7 +1222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
-      console.error('Get profile error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1309,7 +1267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "Profile updated successfully" });
     } catch (error) {
-      console.error('Update profile error:', error);
+
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1344,7 +1302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ data: categoryBreakdown });
     } catch (error) {
-      console.error('Category breakdown error:', error);
+
       res.status(500).json({ message: 'Failed to get category breakdown' });
     }
   });
@@ -1383,7 +1341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ data: comparison });
     } catch (error) {
-      console.error('Monthly comparison error:', error);
+
       res.status(500).json({ message: 'Failed to get monthly comparison' });
     }
   });
@@ -1423,7 +1381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ data: yearlyTrends });
     } catch (error) {
-      console.error('Yearly trends error:', error);
+
       res.status(500).json({ message: 'Failed to get yearly trends' });
     }
   });
@@ -1475,7 +1433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error('Peak analysis error:', error);
+
       res.status(500).json({ message: 'Failed to get peak analysis' });
     }
   });
@@ -1505,7 +1463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ data: emissions });
       }
     } catch (error) {
-      console.error('Export error:', error);
+
       res.status(500).json({ message: 'Failed to export data' });
     }
   });

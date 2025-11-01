@@ -53,7 +53,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isLoading: false,
         });
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
         localStorage.removeItem('carbonSense_token');
         localStorage.removeItem('carbonSense_user');
         setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -87,7 +86,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, error: data.message || 'Login failed' };
       }
     } catch (error) {
-      console.error('Login error:', error);
       return { success: false, error: 'Network error. Please try again.' };
     }
   };
@@ -116,7 +114,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, error: data.message || 'Signup failed' };
       }
     } catch (error) {
-      console.error('Signup error:', error);
       return { success: false, error: 'Network error. Please try again.' };
     }
   };
@@ -127,7 +124,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       window.location.href = '/api/auth/google';
       return { success: true };
     } catch (error) {
-      console.error('Google login error:', error);
       return { success: false, error: 'Failed to initiate Google login' };
     }
   };

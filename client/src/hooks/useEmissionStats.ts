@@ -47,7 +47,6 @@ export function useEmissionStats() {
         weekDays: weekData.uniqueDays || 0
       });
     } catch (err) {
-      console.error('Error loading stats:', err);
       setError('Failed to load statistics');
     } finally {
       setLoading(false);

@@ -62,7 +62,7 @@ export default function Dashboard() {
       const data = await dashboardAPI.getData();
       setDashboardData(data);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      // Error loading dashboard data
     } finally {
       setLoading(false);
     }

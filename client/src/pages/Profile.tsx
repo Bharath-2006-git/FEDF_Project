@@ -81,7 +81,7 @@ export default function Profile() {
         }) : 'N/A'
       });
     } catch (error) {
-      console.error('Failed to load profile stats:', error);
+      // Failed to load profile stats
     } finally {
       setLoading(false);
     }

@@ -115,7 +115,6 @@ export default function LogEmissions() {
       });
 
     } catch (err: any) {
-      console.error('Error logging emission:', err);
       setError(err.response?.data?.message || "Failed to log emission. Please try again.");
       toast({
         title: "❌ Error",

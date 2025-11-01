@@ -14,7 +14,6 @@ export default function AuthCallback() {
     const error = params.get('error');
 
     if (error) {
-      console.error('OAuth error:', error);
       setLocation('/auth?error=' + error);
       return;
     }
@@ -33,7 +32,6 @@ export default function AuthCallback() {
         // Redirect to dashboard
         window.location.href = '/dashboard';
       } catch (err) {
-        console.error('Failed to parse user data:', err);
         setLocation('/auth?error=invalid_data');
       }
     } else {
