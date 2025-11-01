@@ -167,128 +167,191 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="p-6 space-y-8 max-w-7xl mx-auto">
-        <PageHeader
-          title="Advanced Analytics"
-          description="Deep dive into your carbon emission patterns and trends"
-          actions={
-            <>
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-40 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="3months">Last 3 Months</SelectItem>
-                  <SelectItem value="6months">Last 6 Months</SelectItem>
-                  <SelectItem value="year">Last Year</SelectItem>
-                  <SelectItem value="2years">Last 2 Years</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleExport} className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800">
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
-              </Button>
-            </>
-          }
-        />
+      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        {/* Enhanced Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Analytics</h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
+              Deep insights into your carbon emission patterns and trends
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-40 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-slate-300 dark:border-slate-600">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3months">📅 Last 3 Months</SelectItem>
+                <SelectItem value="6months">📅 Last 6 Months</SelectItem>
+                <SelectItem value="year">📅 Last Year</SelectItem>
+                <SelectItem value="2years">📅 Last 2 Years</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-        {/* Key Metrics */}
+        {/* Key Metrics - Enhanced */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Peak Day</CardTitle>
-              <Activity className="h-4 w-4 text-red-500" />
+              <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Peak Day</CardTitle>
+              <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <Activity className="h-5 w-5 text-red-500" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data?.peakAnalysis.highestDay.value.toFixed(1)} kg</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                {data?.peakAnalysis.highestDay.value.toFixed(1)} kg
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                 {data?.peakAnalysis.highestDay.date}
               </p>
+              <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs text-red-600 dark:text-red-400">Highest emissions recorded</p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Best Day</CardTitle>
-              <Activity className="h-4 w-4 text-emerald-500" />
+              <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Best Day</CardTitle>
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                <Activity className="h-5 w-5 text-emerald-500" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data?.peakAnalysis.lowestDay.value.toFixed(1)} kg</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                {data?.peakAnalysis.lowestDay.value.toFixed(1)} kg
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                 {data?.peakAnalysis.lowestDay.date}
               </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Daily Average</CardTitle>
-              <BarChart3 className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{data?.peakAnalysis.averageDaily.toFixed(1)} kg</div>
-              <p className="text-xs text-muted-foreground">
-                Across selected period
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Goals Met</CardTitle>
-              <Target className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {data?.yearlyTrends.filter(year => year.achieved).length || 0}
+              <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs text-emerald-600 dark:text-emerald-400">Lowest emissions recorded</p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Out of {data?.yearlyTrends.length || 0} years
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Daily Average</CardTitle>
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <BarChart3 className="h-5 w-5 text-blue-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                {data?.peakAnalysis.averageDaily.toFixed(1)} kg
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                CO₂e per day
               </p>
+              <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs text-blue-600 dark:text-blue-400">Across selected period</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Goals Met</CardTitle>
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                <Target className="h-5 w-5 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                {data?.yearlyTrends.filter(year => year.achieved).length || 0}/{data?.yearlyTrends.length || 0}
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                {Math.round(((data?.yearlyTrends.filter(year => year.achieved).length || 0) / (data?.yearlyTrends.length || 1)) * 100)}% success rate
+              </p>
+              <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs text-emerald-600 dark:text-emerald-400">Goals achieved</p>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Monthly Comparison Chart */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
-          <CardHeader>
+        {/* Monthly Comparison Chart - Enhanced */}
+        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
+          <CardHeader className="border-b border-slate-200 dark:border-slate-700">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
               Month-over-Month Comparison
             </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Compare current and previous period emissions
+            </p>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={320}>
               <ComposedChart data={data?.monthlyComparison || []}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#64748b"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  stroke="#64748b"
+                  style={{ fontSize: '12px' }}
+                />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid rgba(0, 0, 0, 0.1)',
-                    borderRadius: '8px'
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '8px 12px'
                   }}
                 />
-                <Legend />
-                <Bar dataKey="current" fill="#10b981" name="Current Period" />
-                <Bar dataKey="previous" fill="#94a3b8" name="Previous Period" />
-                <Line type="monotone" dataKey="change" stroke="#ef4444" name="% Change" />
+                <Legend 
+                  wrapperStyle={{ fontSize: '13px' }}
+                  iconType="circle"
+                />
+                <Bar 
+                  dataKey="current" 
+                  fill="#10b981" 
+                  name="Current Period"
+                  radius={[6, 6, 0, 0]}
+                />
+                <Bar 
+                  dataKey="previous" 
+                  fill="#94a3b8" 
+                  name="Previous Period"
+                  radius={[6, 6, 0, 0]}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="change" 
+                  stroke="#ef4444" 
+                  name="% Change"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
               </ComposedChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Category Analysis */}
+        {/* Category Analysis - Enhanced */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
-            <CardHeader>
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
+            <CardHeader className="border-b border-slate-200 dark:border-slate-700">
               <CardTitle className="flex items-center gap-2">
-                <PieChartIcon className="w-5 h-5" />
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <PieChartIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
                 Category Breakdown
               </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Emissions distribution by category
+              </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -296,8 +359,8 @@ export default function Analytics() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ category, percentage }) => `${category}: ${percentage}%`}
-                    outerRadius={80}
+                    label={({ category, percentage }) => `${category}: ${percentage.toFixed(0)}%`}
+                    outerRadius={90}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -305,34 +368,55 @@ export default function Analytics() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    formatter={(value: number) => [`${value.toFixed(1)} kg CO₂e`, 'Emissions']}
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '8px 12px'
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
-            <CardHeader>
-              <CardTitle>Category Trends</CardTitle>
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
+            <CardHeader className="border-b border-slate-200 dark:border-slate-700">
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                  <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                Category Trends
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Track changes over time
+              </p>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="pt-6">
+              <div className="space-y-3">
                 {data?.categoryBreakdown.map((category, index) => (
-                  <div key={category.category} className="flex items-center justify-between">
+                  <div 
+                    key={category.category} 
+                    className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
                     <div className="flex items-center gap-3">
                       <div 
-                        className="w-3 h-3 rounded-full"
+                        className="w-4 h-4 rounded-full shadow-sm"
                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                       />
-                      <span className="font-medium">{category.category}</span>
+                      <span className="font-medium text-slate-900 dark:text-white">
+                        {category.category}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-slate-600 dark:text-slate-400 font-mono">
                         {category.value.toFixed(1)} kg
                       </span>
                       <Badge 
                         variant={category.trend > 0 ? "destructive" : "default"}
-                        className="text-xs"
+                        className="text-xs min-w-[70px] justify-center"
                       >
                         {category.trend > 0 ? (
                           <TrendingUp className="w-3 h-3 mr-1" />
@@ -349,44 +433,68 @@ export default function Analytics() {
           </Card>
         </div>
 
-        {/* Yearly Trends */}
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/30 dark:border-slate-700/30">
-          <CardHeader>
+        {/* Yearly Trends - Enhanced */}
+        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
+          <CardHeader className="border-b border-slate-200 dark:border-slate-700">
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
+              <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              </div>
               Yearly Performance vs Goals
             </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              Compare actual emissions against your targets
+            </p>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={320}>
               <AreaChart data={data?.yearlyTrends || []}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="year" />
-                <YAxis />
+                <defs>
+                  <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="colorGoals" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis 
+                  dataKey="year" 
+                  stroke="#64748b"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  stroke="#64748b"
+                  style={{ fontSize: '12px' }}
+                />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid rgba(0, 0, 0, 0.1)',
-                    borderRadius: '8px'
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '8px 12px'
                   }}
                 />
-                <Legend />
+                <Legend 
+                  wrapperStyle={{ fontSize: '13px' }}
+                  iconType="circle"
+                />
                 <Area 
                   type="monotone" 
                   dataKey="emissions" 
-                  stackId="1" 
                   stroke="#ef4444" 
-                  fill="#ef4444"
-                  fillOpacity={0.6}
+                  fill="url(#colorEmissions)"
+                  strokeWidth={2}
                   name="Actual Emissions"
                 />
                 <Area 
                   type="monotone" 
                   dataKey="goals" 
-                  stackId="2" 
                   stroke="#10b981" 
-                  fill="#10b981"
-                  fillOpacity={0.6}
+                  fill="url(#colorGoals)"
+                  strokeWidth={2}
                   name="Target Goals"
                 />
               </AreaChart>

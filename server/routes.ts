@@ -895,14 +895,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const goalData = {
         userId: (req as AuthenticatedRequest).user!.userId,
-        ...req.body
+        goalName: req.body.goalName,
+        goalType: req.body.goalType,
+        targetValue: req.body.targetValue,
+        targetDate: req.body.targetDate,
+        category: req.body.category || 'all'
       };
 
       const goal = await storage.createGoal(goalData);
       
       res.status(201).json(goal);
     } catch (error) {
-
+      console.error('Error creating goal:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

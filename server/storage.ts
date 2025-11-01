@@ -144,7 +144,16 @@ export class DatabaseStorage {
   }
 
   async createGoal(goal: InsertGoal): Promise<Goal> {
-    const { data, error } = await supabase.from("goals").insert(goal).select().single();
+    // Convert camelCase to snake_case for Supabase
+    const dbGoal = {
+      user_id: goal.userId,
+      goal_name: goal.goalName,
+      goal_type: goal.goalType,
+      target_value: goal.targetValue,
+      target_date: goal.targetDate,
+      category: goal.category || 'all'
+    };
+    const { data, error } = await supabase.from("goals").insert(dbGoal).select().single();
     if (error) throw error;
     return data as Goal;
   }
