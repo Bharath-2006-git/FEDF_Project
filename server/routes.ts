@@ -1123,6 +1123,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PUT /api/goals/:id - Update goal
+  app.put("/api/goals/:id", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const goalId = parseInt(req.params.id);
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      
+      await storage.updateGoal(goalId, userId, req.body);
+      
+      res.json({ message: 'Goal updated successfully' });
+    } catch (error) {
+      console.error('Update goal error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // DELETE /api/goals/:id - Delete goal
+  app.delete("/api/goals/:id", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const goalId = parseInt(req.params.id);
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      
+      await storage.deleteGoal(goalId, userId);
+      
+      res.json({ message: 'Goal deleted successfully' });
+    } catch (error) {
+      console.error('Delete goal error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // GET /api/goals/:id/progress - Calculate goal progress
+  app.get("/api/goals/:id/progress", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const goalId = parseInt(req.params.id);
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      
+      const progress = await storage.calculateGoalProgress(goalId, userId);
+      
+      res.json(progress);
+    } catch (error) {
+      console.error('Calculate goal progress error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // GET /api/tips
   app.get("/api/tips", authenticateToken, async (req: Request, res: Response) => {
     try {
@@ -1213,7 +1270,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
-      // For now, just return success message since updateUser doesn't exist yet
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      const { firstName, lastName, companyName, companyDepartment, currentPassword, newPassword } = req.body;
+      
+      // If changing password, verify current password first
+      if (currentPassword && newPassword) {
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+          return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+        
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await storage.updateUser(userId, { password: hashedPassword });
+      }
+      
+      // Update other profile fields
+      const updateData: any = {};
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (companyName !== undefined) updateData.companyName = companyName;
+      if (companyDepartment !== undefined) updateData.companyDepartment = companyDepartment;
+      
+      if (Object.keys(updateData).length > 0) {
+        await storage.updateUser(userId, updateData);
+      }
+      
       res.json({ message: "Profile updated successfully" });
     } catch (error) {
       console.error('Update profile error:', error);

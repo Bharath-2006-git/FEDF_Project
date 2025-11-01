@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth, useRoleAccess } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
 import { 
   User, 
   Shield, 
@@ -13,12 +17,13 @@ import {
   Target,
   Leaf,
   Clock,
-  Info
+  Edit,
+  Lock
 } from "lucide-react";
-import { apiService } from "@/services/api";
+import { apiService, userAPI } from "@/services/api";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { isIndividual, isCompany } = useRoleAccess();
   
   const [stats, setStats] = useState({
@@ -28,10 +33,31 @@ export default function Profile() {
     memberSince: ""
   });
   const [loading, setLoading] = useState(true);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    firstName: "",
+    lastName: "",
+    companyName: "",
+    companyDepartment: ""
+  });
+  const [passwordFormData, setPasswordFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
 
   useEffect(() => {
     loadProfileStats();
-  }, []);
+    if (user) {
+      setEditFormData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        companyName: user.companyName || "",
+        companyDepartment: user.companyDepartment || ""
+      });
+    }
+  }, [user]);
 
   const loadProfileStats = async () => {
     try {
@@ -61,6 +87,79 @@ export default function Profile() {
     }
   };
 
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await userAPI.updateProfile(editFormData);
+      
+      // Update local user state
+      updateUser({
+        firstName: editFormData.firstName,
+        lastName: editFormData.lastName,
+        companyName: editFormData.companyName,
+        companyDepartment: editFormData.companyDepartment
+      });
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been updated successfully.",
+      });
+      setIsEditDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordFormData.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await userAPI.updateProfile({
+        currentPassword: passwordFormData.currentPassword,
+        newPassword: passwordFormData.newPassword
+      });
+      
+      toast({
+        title: "Password Changed",
+        description: "Your password has been changed successfully.",
+      });
+      setIsPasswordDialogOpen(false);
+      setPasswordFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to change password",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -76,20 +175,131 @@ export default function Profile() {
                   Profile
                 </h1>
                 <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                  View your account information and statistics
+                  Manage your account information and settings
                 </p>
+              </div>
+              <div className="flex gap-3">
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-emerald-600 hover:bg-emerald-700">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Edit Profile Information</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateProfile} className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          value={editFormData.firstName}
+                          onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
+                          placeholder="Enter your first name"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          value={editFormData.lastName}
+                          onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                          placeholder="Enter your last name"
+                        />
+                      </div>
+                      {isCompany() && (
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="companyName">Company Name</Label>
+                            <Input
+                              id="companyName"
+                              value={editFormData.companyName}
+                              onChange={(e) => setEditFormData({...editFormData, companyName: e.target.value})}
+                              placeholder="Enter company name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="companyDepartment">Department</Label>
+                            <Input
+                              id="companyDepartment"
+                              value={editFormData.companyDepartment}
+                              onChange={(e) => setEditFormData({...editFormData, companyDepartment: e.target.value})}
+                              placeholder="Enter department"
+                            />
+                          </div>
+                        </>
+                      )}
+                      <div className="flex gap-3">
+                        <Button type="submit" className="flex-1">Save Changes</Button>
+                        <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Lock className="w-4 h-4 mr-2" />
+                      Change Password
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Change Password</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleChangePassword} className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <Input
+                          id="currentPassword"
+                          type="password"
+                          value={passwordFormData.currentPassword}
+                          onChange={(e) => setPasswordFormData({...passwordFormData, currentPassword: e.target.value})}
+                          placeholder="Enter current password"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          value={passwordFormData.newPassword}
+                          onChange={(e) => setPasswordFormData({...passwordFormData, newPassword: e.target.value})}
+                          placeholder="Enter new password (min. 6 characters)"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={passwordFormData.confirmPassword}
+                          onChange={(e) => setPasswordFormData({...passwordFormData, confirmPassword: e.target.value})}
+                          placeholder="Confirm new password"
+                          required
+                        />
+                      </div>
+                      <div className="flex gap-3">
+                        <Button type="submit" className="flex-1">Change Password</Button>
+                        <Button type="button" variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Note about read-only profile */}
-        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <AlertDescription className="text-blue-800 dark:text-blue-200">
-            Profile information is currently read-only. Profile editing features will be available in a future update.
-          </AlertDescription>
-        </Alert>
 
         {/* Profile Information */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
@@ -143,6 +353,34 @@ export default function Profile() {
                 </p>
               </div>
             </div>
+
+            {isCompany() && (user?.companyName || user?.companyDepartment) && (
+              <>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {user?.companyName && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                        Company Name
+                      </p>
+                      <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                        {user.companyName}
+                      </p>
+                    </div>
+                  )}
+                  {user?.companyDepartment && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                        Department
+                      </p>
+                      <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                        {user.companyDepartment}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -174,7 +412,7 @@ export default function Profile() {
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                    <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     <p className="text-sm font-medium">Total Entries</p>
                   </div>
                   <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
@@ -193,43 +431,6 @@ export default function Profile() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Future Features Info */}
-        <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
-              <Clock className="w-5 h-5" />
-              Coming Soon
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
-              The following features will be available in future updates:
-            </p>
-            <ul className="space-y-2 text-sm text-amber-700 dark:text-amber-300">
-              <li className="flex items-center gap-2">
-                <span className="text-amber-500">•</span>
-                Edit profile information (name, email)
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-amber-500">•</span>
-                Change password
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-amber-500">•</span>
-                Upload profile picture
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-amber-500">•</span>
-                Notification preferences
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-amber-500">•</span>
-                Privacy settings
-              </li>
-            </ul>
           </CardContent>
         </Card>
       </div>

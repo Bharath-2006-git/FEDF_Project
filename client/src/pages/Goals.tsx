@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+import { goalsAPI } from "@/services/api";
 import { 
   Target, 
   Plus, 
@@ -19,7 +21,8 @@ import {
   Clock,
   AlertCircle,
   Edit,
-  Trash2
+  Trash2,
+  RefreshCw
 } from "lucide-react";
 interface Goal {
   id: number;
@@ -46,6 +49,9 @@ export default function Goals() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingGoalId, setEditingGoalId] = useState<number | null>(null);
+  const [deleteGoalId, setDeleteGoalId] = useState<number | null>(null);
   const [formData, setFormData] = useState<GoalFormData>({
     goalName: "",
     goalType: "reduction_percentage",
@@ -61,16 +67,22 @@ export default function Goals() {
   const fetchGoals = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/goals', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('carbonSense_token')}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch goals');
-      }
-      const data = await response.json();
-      setGoals(data);
+      const data = await goalsAPI.list();
+      // Convert API response to match local interface
+      const mappedGoals = data.map((goal: any) => ({
+        id: goal.id,
+        goalName: goal.goalName || goal.goal_name,
+        goalType: goal.goalType || goal.goal_type,
+        targetValue: String(goal.targetValue || goal.target_value || 0),
+        currentValue: String(goal.currentValue || goal.current_value || 0),
+        targetDate: goal.targetDate || goal.target_date,
+        status: goal.status,
+        category: goal.category,
+        createdAt: goal.createdAt || goal.created_at || new Date().toISOString(),
+        completedAt: goal.completedAt || goal.completed_at || null
+      }));
+      setGoals(mappedGoals);
+      setError("");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -80,26 +92,28 @@ export default function Goals() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/goals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('carbonSense_token')}`
-        },
-        body: JSON.stringify({
-          ...formData,
-          userId: user?.id,
-          targetValue: parseFloat(formData.targetValue)
-        })
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create goal');
+      const goalData = {
+        ...formData,
+        targetValue: parseFloat(formData.targetValue)
+      };
+
+      if (isEditMode && editingGoalId) {
+        await goalsAPI.update(editingGoalId, goalData);
+        toast({
+          title: "Goal Updated",
+          description: "Your emission reduction goal has been updated successfully.",
+        });
+      } else {
+        await goalsAPI.create(goalData);
+        toast({
+          title: "Goal Created",
+          description: "Your emission reduction goal has been set successfully.",
+        });
       }
-      toast({
-        title: "Goal Created",
-        description: "Your emission reduction goal has been set successfully.",
-      });
+      
       setIsDialogOpen(false);
+      setIsEditMode(false);
+      setEditingGoalId(null);
       setFormData({
         goalName: "",
         goalType: "reduction_percentage", 
@@ -115,6 +129,69 @@ export default function Goals() {
         variant: "destructive"
       });
     }
+  };
+
+  const handleEdit = (goal: Goal) => {
+    setIsEditMode(true);
+    setEditingGoalId(goal.id);
+    setFormData({
+      goalName: goal.goalName,
+      goalType: goal.goalType,
+      targetValue: goal.targetValue,
+      targetDate: new Date(goal.targetDate).toISOString().split('T')[0],
+      category: goal.category || "all"
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteGoalId) return;
+    
+    try {
+      await goalsAPI.delete(deleteGoalId);
+      toast({
+        title: "Goal Deleted",
+        description: "Your goal has been deleted successfully.",
+      });
+      setDeleteGoalId(null);
+      fetchGoals();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRefreshProgress = async (goalId: number) => {
+    try {
+      await goalsAPI.getProgress(goalId);
+      toast({
+        title: "Progress Updated",
+        description: "Goal progress has been recalculated.",
+      });
+      fetchGoals();
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const openNewGoalDialog = () => {
+    setIsEditMode(false);
+    setEditingGoalId(null);
+    setFormData({
+      goalName: "",
+      goalType: "reduction_percentage",
+      targetValue: "",
+      targetDate: "",
+      category: "all"
+    });
+    setIsDialogOpen(true);
   };
   const getStatusIcon = (status: string | null) => {
     switch (status) {
@@ -160,14 +237,14 @@ export default function Goals() {
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-emerald-600 hover:bg-emerald-700">
+                  <Button onClick={openNewGoalDialog} className="bg-emerald-600 hover:bg-emerald-700">
                     <Plus className="w-4 h-4 mr-2" />
                     New Goal
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px]">
                   <DialogHeader>
-                    <DialogTitle>Create New Goal</DialogTitle>
+                    <DialogTitle>{isEditMode ? 'Edit Goal' : 'Create New Goal'}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
@@ -233,7 +310,9 @@ export default function Goals() {
                       />
                     </div>
                     <div className="flex gap-3">
-                      <Button type="submit" className="flex-1">Create Goal</Button>
+                      <Button type="submit" className="flex-1">
+                        {isEditMode ? 'Update Goal' : 'Create Goal'}
+                      </Button>
                       <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                         Cancel
                       </Button>
@@ -265,7 +344,7 @@ export default function Goals() {
                 >
                   <CardHeader className="space-y-4">
                     <div className="flex items-start justify-between">
-                      <div>
+                      <div className="flex-1">
                         <CardTitle className="text-lg flex items-center gap-2">
                           <TrendingDown className="w-5 h-5 text-emerald-600" />
                           {goal.goalName}
@@ -276,6 +355,33 @@ export default function Goals() {
                             {goal.status || 'active'}
                           </Badge>
                         </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleRefreshProgress(goal.id)}
+                          title="Refresh progress"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleEdit(goal)}
+                          title="Edit goal"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setDeleteGoalId(goal.id)}
+                          title="Delete goal"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -331,13 +437,31 @@ export default function Goals() {
               <p className="text-slate-500 dark:text-slate-400 mb-6">
                 Create your first emission reduction goal to start tracking your progress.
               </p>
-              <Button onClick={() => setIsDialogOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={openNewGoalDialog} className="bg-emerald-600 hover:bg-emerald-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Goal
               </Button>
             </CardContent>
           </Card>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteGoalId} onOpenChange={() => setDeleteGoalId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your goal and remove all associated progress data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
