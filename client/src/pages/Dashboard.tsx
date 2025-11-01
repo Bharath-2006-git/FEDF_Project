@@ -5,7 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useAuth, useRoleAccess } from "@/context/AuthContext";
-import { Logo } from "@/components/Logo";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { StatCard } from "@/components/shared/StatCard";
+import { formatEmissionValue, getTrend } from "@/lib/formatting";
 import { 
   TrendingUp, 
   TrendingDown,
@@ -13,12 +16,9 @@ import {
   Plus,
   Lightbulb,
   BarChart3,
-  Zap,
-  Hand,
+  Calendar,
   CheckCircle,
   Award,
-  Calendar,
-  Users,
   Building
 } from "lucide-react";
 import {
@@ -67,12 +67,7 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-  const formatEmissionValue = (value: number) => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}t`;
-    }
-    return `${value.toFixed(1)}kg`;
-  };
+
   const calculateTrend = () => {
     if (!dashboardData?.history || dashboardData.history.length < 2) return { trend: 0, isPositive: false };
     const current = dashboardData.history[dashboardData.history.length - 1]?.emissions || 0;
@@ -97,49 +92,31 @@ export default function Dashboard() {
   };
   const { trend, isPositive } = calculateTrend();
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen transition-colors duration-300 ease-in-out">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto transition-colors duration-300 ease-in-out"></div>
-          <p className="mt-2 text-muted-foreground transition-colors duration-300 ease-in-out">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading dashboard..." />;
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="p-6 space-y-8 max-w-7xl mx-auto">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/5 dark:to-emerald-600/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
-          <div className="relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                Welcome back, {user?.firstName || 'User'}!
-              </h1>
-              <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                {isIndividual() 
-                  ? "Track your carbon footprint and make a positive impact on the environment."
-                  : "Monitor your company's environmental impact and drive sustainable practices."
-                }
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Select value={timeFilter} onValueChange={setTimeFilter}>
-                <SelectTrigger className="w-32 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200 dark:border-slate-700">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700">
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="quarter">This Quarter</SelectItem>
-                  <SelectItem value="year">This Year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-      </div>
+        <PageHeader
+          title={`Welcome back, ${user?.firstName || 'User'}!`}
+          description={isIndividual() 
+            ? "Track your carbon footprint and make a positive impact on the environment."
+            : "Monitor your company's environmental impact and drive sustainable practices."
+          }
+          actions={
+            <Select value={timeFilter} onValueChange={setTimeFilter}>
+              <SelectTrigger className="w-32 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200 dark:border-slate-700">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700">
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="quarter">This Quarter</SelectItem>
+                <SelectItem value="year">This Year</SelectItem>
+              </SelectContent>
+            </Select>
+          }
+        />
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="group bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl bg-gradient-to-br from-red-50/90 to-red-100/90 dark:from-red-950/50 dark:to-red-900/40 border border-red-200/50 dark:border-red-800/50 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2 transition-colors duration-300 ease-in-out">

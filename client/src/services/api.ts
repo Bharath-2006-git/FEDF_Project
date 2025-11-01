@@ -173,13 +173,6 @@ class ApiService {
     return response.data;
   }
 
-  async calculateEmission(category: string, quantity: number, unit: string, subcategory?: string): Promise<any> {
-    const response = await this.api.get('/emissions/calculate', {
-      params: { category, quantity, unit, subcategory }
-    });
-    return response.data;
-  }
-
   async getEmissionHistory(startDate?: string, endDate?: string): Promise<EmissionHistory[]> {
     const response = await this.api.get('/emissions/history', {
       params: { startDate, endDate }
@@ -209,10 +202,6 @@ class ApiService {
   async getGoals(): Promise<Goal[]> {
     const response = await this.api.get<Goal[]>('/goals');
     return response.data;
-  }
-
-  async updateGoalProgress(goalId: number, currentValue: number): Promise<void> {
-    await this.api.put(`/goals/${goalId}/progress`, { currentValue });
   }
 
   async updateGoal(goalId: number, goalData: Partial<Goal>): Promise<void> {
@@ -313,42 +302,6 @@ class ApiService {
     return response.data;
   }
 
-  async getUserAchievements(): Promise<any> {
-    const response = await this.api.get('/achievements/user');
-    return response.data;
-  }
-
-  async getAchievementStats(): Promise<any> {
-    const response = await this.api.get('/achievements/stats');
-    return response.data;
-  }
-
-  async getNotifications(): Promise<any> {
-    const response = await this.api.get('/notifications');
-    return response.data;
-  }
-
-  async getNotificationSettings(): Promise<any> {
-    const response = await this.api.get('/notifications/settings');
-    return response.data;
-  }
-
-  async markNotificationRead(notificationId: number): Promise<void> {
-    await this.api.put(`/notifications/${notificationId}/read`);
-  }
-
-  async markAllNotificationsRead(): Promise<void> {
-    await this.api.put('/notifications/read-all');
-  }
-
-  async deleteNotification(notificationId: number): Promise<void> {
-    await this.api.delete(`/notifications/${notificationId}`);
-  }
-
-  async updateNotificationSettings(settings: any): Promise<void> {
-    await this.api.put('/notifications/settings', settings);
-  }
-
   exportToCSV(data: any[], filename: string): void {
     const csvContent = this.convertToCSV(data);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -393,8 +346,6 @@ export const emissionsAPI = {
   add: (emission: EmissionRequest) => apiService.addEmission(emission),
   update: (emissionId: number, emission: EmissionRequest) => apiService.updateEmission(emissionId, emission),
   delete: (emissionId: number) => apiService.deleteEmission(emissionId),
-  calculate: (category: string, quantity: number, unit: string, subcategory?: string) => 
-    apiService.calculateEmission(category, quantity, unit, subcategory),
   history: (startDate?: string, endDate?: string) => 
     apiService.getEmissionHistory(startDate, endDate),
   list: (startDate?: string, endDate?: string, category?: string, limit?: number) => 
@@ -406,8 +357,6 @@ export const emissionsAPI = {
 export const goalsAPI = {
   create: (goal: Goal) => apiService.createGoal(goal),
   list: () => apiService.getGoals(),
-  updateProgress: (goalId: number, currentValue: number) => 
-    apiService.updateGoalProgress(goalId, currentValue),
   update: (goalId: number, goalData: Partial<Goal>) => apiService.updateGoal(goalId, goalData),
   delete: (goalId: number) => apiService.deleteGoal(goalId),
   getProgress: (goalId: number) => apiService.getGoalProgress(goalId),
@@ -433,14 +382,6 @@ export const dashboardAPI = {
   getYearlyTrends: () => apiService.getYearlyTrends(),
   getPeakAnalysis: (timeRange: string) => apiService.getPeakAnalysis(timeRange),
   exportReport: (format: string, timeRange: string) => apiService.exportReport(format, timeRange),
-  getUserAchievements: () => apiService.getUserAchievements(),
-  getAchievementStats: () => apiService.getAchievementStats(),
-  getNotifications: () => apiService.getNotifications(),
-  getNotificationSettings: () => apiService.getNotificationSettings(),
-  markNotificationRead: (notificationId: number) => apiService.markNotificationRead(notificationId),
-  markAllNotificationsRead: () => apiService.markAllNotificationsRead(),
-  deleteNotification: (notificationId: number) => apiService.deleteNotification(notificationId),
-  updateNotificationSettings: (settings: any) => apiService.updateNotificationSettings(settings),
 };
 
 export default apiService;

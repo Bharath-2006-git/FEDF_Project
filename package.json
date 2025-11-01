@@ -9,19 +9,11 @@
     "dev:server": "tsx watch server/index.ts",
     "dev:backend": "tsx watch server/index.ts",
     "dev:full": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "open:edge": "node scripts/open-edge.js",
     "build": "vite build",
-    "build:client": "vite build",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --outfile=dist/server.js --external:express --external:@supabase/supabase-js",
     "preview": "vite preview",
     "check": "tsc",
-    "db:push": "drizzle-kit push",
-    "verify:db": "node scripts/verify-database.js",
-    "setup": "npm install",
-    "docker:up": "docker-compose up",
-    "docker:down": "docker-compose down",
-    "docker:build": "docker-compose up --build",
-    "start": "npm run preview",
-    "validate-deployment": "node validate-deployment.js"
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
