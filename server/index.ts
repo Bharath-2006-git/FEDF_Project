@@ -2,7 +2,18 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "net";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { validateEnvironment, logValidationResults } from "./validateEnv";
 import passport from "passport";
+
+// Validate environment variables
+const envValidation = validateEnvironment();
+logValidationResults(envValidation);
+
+if (!envValidation.isValid) {
+  console.error('\n❌ Cannot start server due to missing required environment variables.');
+  console.error('Please check your .env file and ensure all required variables are set.\n');
+  process.exit(1);
+}
 
 const app = express();
 app.use(express.json());

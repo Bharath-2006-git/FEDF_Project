@@ -282,6 +282,16 @@ export class DatabaseStorage {
     const { error } = await supabase.from("reports").insert(payload);
     if (error) throw error;
   }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      // Simple query to check database connectivity
+      const { error } = await supabase.from("users").select("id").limit(1);
+      return !error;
+    } catch (error) {
+      return false;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

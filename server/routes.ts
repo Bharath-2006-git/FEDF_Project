@@ -299,6 +299,31 @@ const calculateCO2Emissions = (category: string, quantity: number, unit: string,
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // GET /api/health - Health check endpoint
+  app.get("/api/health", async (_req: Request, res: Response) => {
+    try {
+      // Check database connection
+      const dbHealthy = await storage.healthCheck();
+      
+      const healthStatus = {
+        status: dbHealthy ? 'healthy' : 'degraded',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        database: dbHealthy ? 'connected' : 'disconnected',
+      };
+
+      const statusCode = dbHealthy ? 200 : 503;
+      res.status(statusCode).json(healthStatus);
+    } catch (error) {
+      res.status(503).json({
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        error: 'Health check failed',
+      });
+    }
+  });
+
   // POST /api/auth/signup
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
