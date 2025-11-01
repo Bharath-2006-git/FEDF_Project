@@ -14,27 +14,11 @@ import {
   FileText, 
   Download, 
   Calendar,
-  BarChart3,
-  TrendingUp,
-  Filter,
   RefreshCw,
   Eye,
   Trash2,
   Plus
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell
-} from "recharts";
 interface Report {
   id: number;
   reportType: string;
@@ -102,21 +86,33 @@ export default function Reports() {
 
       const totalEmissions = emissionHistory.reduce((sum: number, item: any) => sum + item.emissions, 0);
       
-      // Create breakdown data with colors
+      // Create breakdown data with colors - comprehensive color map
       const colorMap: Record<string, string> = {
         'electricity': '#059669',
         'travel': '#0ea5e9', 
         'fuel': '#f59e0b',
         'waste': '#ef4444',
         'water': '#8b5cf6',
-        'food': '#ec4899'
+        'food': '#ec4899',
+        'transport': '#06b6d4',
+        'heating': '#f97316',
+        'cooling': '#3b82f6',
+        'manufacturing': '#a855f7',
+        'agriculture': '#84cc16',
+        'construction': '#78716c',
+        'shipping': '#0891b2',
+        'aviation': '#6366f1',
+        'other': '#6b7280'
       };
 
-      const breakdown = categoryBreakdown.data?.map((item: any) => ({
+      // Default colors if category not in map
+      const defaultColors = ['#059669', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
+      const breakdown = categoryBreakdown.data?.map((item: any, index: number) => ({
         category: item.category,
         value: item.value,
         percentage: item.percentage,
-        color: colorMap[item.category.toLowerCase()] || '#6b7280'
+        color: colorMap[item.category.toLowerCase()] || defaultColors[index % defaultColors.length]
       })) || [];
 
       // Create trends data from emission history
@@ -200,6 +196,21 @@ export default function Reports() {
       // Generate and download PDF
       generatePDFReport(filteredEmissions, totalEmissions, breakdown, averageDaily);
 
+      // Add the report to the reports list
+      const newReport: Report = {
+        id: Date.now(),
+        reportType: reportForm.reportType,
+        startDate: reportForm.startDate,
+        endDate: reportForm.endDate,
+        filePath: `CarbonSense-Report-${reportForm.reportType}-${new Date().toISOString().split('T')[0]}.pdf`,
+        fileFormat: 'pdf',
+        createdAt: new Date().toISOString(),
+        totalEmissions: totalEmissions,
+        status: 'completed'
+      };
+      
+      setReports(prev => [newReport, ...prev]);
+
       toast({
         title: "Success",
         description: "Report generated and downloaded as PDF",
@@ -228,142 +239,329 @@ export default function Reports() {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     
-    // Header
+    // Modern gradient-style header with decorative elements
     doc.setFillColor(16, 185, 129); // Emerald color
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.rect(0, 0, pageWidth, 50, 'F');
+    
+    // Add decorative accent bar
+    doc.setFillColor(5, 150, 105); // Darker emerald
+    doc.rect(0, 45, pageWidth, 5, 'F');
+    
+    // Logo/Icon circle
+    doc.setFillColor(255, 255, 255, 0.2);
+    doc.circle(20, 25, 8, 'F');
     
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
+    doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
-    doc.text('CarbonSense', 20, 20);
+    doc.text('CarbonSense', 35, 23);
     
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text('Carbon Emissions Report', 20, 30);
+    doc.text('Carbon Emissions Report', 35, 32);
     
-    // Report Info
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
+    // Report Info box in header
+    doc.setFontSize(9);
     const reportDate = new Date().toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     });
-    doc.text(`Generated: ${reportDate}`, pageWidth - 20, 20, { align: 'right' });
-    doc.text(`Period: ${reportForm.startDate} to ${reportForm.endDate}`, pageWidth - 20, 27, { align: 'right' });
-    doc.text(`User: ${user?.firstName || 'User'}`, pageWidth - 20, 34, { align: 'right' });
+    doc.text(`Generated: ${reportDate}`, pageWidth - 15, 18, { align: 'right' });
+    doc.text(`Period: ${reportForm.startDate} to ${reportForm.endDate}`, pageWidth - 15, 25, { align: 'right' });
+    doc.text(`User: ${user?.firstName || 'User'}`, pageWidth - 15, 32, { align: 'right' });
     
-    // Summary Section
-    let yPos = 55;
+    // Key Metrics Highlight Boxes
+    let yPos = 65;
+    const boxWidth = (pageWidth - 50) / 3;
+    const boxHeight = 25;
+    const boxY = yPos;
+    
+    // Total Emissions Box
+    doc.setFillColor(239, 246, 255); // Light blue bg
+    doc.roundedRect(15, boxY, boxWidth, boxHeight, 3, 3, 'F');
+    doc.setDrawColor(59, 130, 246); // Blue border
+    doc.setLineWidth(0.5);
+    doc.roundedRect(15, boxY, boxWidth, boxHeight, 3, 3, 'S');
+    doc.setTextColor(30, 64, 175);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total Emissions', 15 + boxWidth / 2, boxY + 8, { align: 'center' });
     doc.setFontSize(16);
+    doc.text(`${totalEmissions.toFixed(1)} kg`, 15 + boxWidth / 2, boxY + 17, { align: 'center' });
+    
+    // Daily Average Box
+    doc.setFillColor(236, 253, 245); // Light green bg
+    doc.roundedRect(20 + boxWidth, boxY, boxWidth, boxHeight, 3, 3, 'F');
+    doc.setDrawColor(16, 185, 129); // Green border
+    doc.roundedRect(20 + boxWidth, boxY, boxWidth, boxHeight, 3, 3, 'S');
+    doc.setTextColor(6, 95, 70);
+    doc.setFontSize(10);
+    doc.text('Daily Average', 20 + boxWidth + boxWidth / 2, boxY + 8, { align: 'center' });
+    doc.setFontSize(16);
+    doc.text(`${averageDaily.toFixed(1)} kg`, 20 + boxWidth + boxWidth / 2, boxY + 17, { align: 'center' });
+    
+    // Total Entries Box
+    doc.setFillColor(254, 243, 199); // Light yellow bg
+    doc.roundedRect(25 + boxWidth * 2, boxY, boxWidth, boxHeight, 3, 3, 'F');
+    doc.setDrawColor(245, 158, 11); // Orange border
+    doc.roundedRect(25 + boxWidth * 2, boxY, boxWidth, boxHeight, 3, 3, 'S');
+    doc.setTextColor(146, 64, 14);
+    doc.setFontSize(10);
+    doc.text('Total Entries', 25 + boxWidth * 2 + boxWidth / 2, boxY + 8, { align: 'center' });
+    doc.setFontSize(16);
+    doc.text(`${emissions.length}`, 25 + boxWidth * 2 + boxWidth / 2, boxY + 17, { align: 'center' });
+    
+    // Summary Section with better styling
+    yPos = boxY + boxHeight + 20;
+    
+    // Section divider
+    doc.setDrawColor(16, 185, 129);
+    doc.setLineWidth(2);
+    doc.line(15, yPos - 5, 25, yPos - 5);
+    
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(16, 185, 129);
-    doc.text('Summary', 20, yPos);
+    doc.text('📊 Report Summary', 30, yPos);
     
-    yPos += 10;
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
+    yPos += 5;
     
     const summaryData = [
-      ['Total Emissions', `${totalEmissions.toFixed(2)} kg CO2e`],
-      ['Total Entries', `${emissions.length}`],
-      ['Average Daily', `${averageDaily.toFixed(2)} kg CO2e/day`],
-      ['Report Type', reportForm.reportType.charAt(0).toUpperCase() + reportForm.reportType.slice(1)]
+      ['Report Type', reportForm.reportType.charAt(0).toUpperCase() + reportForm.reportType.slice(1)],
+      ['Analysis Period', `${Math.ceil((new Date(reportForm.endDate).getTime() - new Date(reportForm.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`],
+      ['Emissions per Entry', `${(totalEmissions / emissions.length).toFixed(2)} kg CO₂e`],
+      ['Status', totalEmissions < averageDaily * 30 ? '✓ Below Target' : '⚠ Above Target']
     ];
     
     autoTable(doc, {
       startY: yPos,
       head: [['Metric', 'Value']],
       body: summaryData,
-      theme: 'striped',
-      headStyles: { fillColor: [16, 185, 129], textColor: 255 },
-      margin: { left: 20, right: 20 }
+      theme: 'grid',
+      headStyles: { 
+        fillColor: [16, 185, 129], 
+        textColor: 255,
+        fontSize: 11,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 10,
+        textColor: [50, 50, 50]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      margin: { left: 15, right: 15 },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 60 },
+        1: { halign: 'right' }
+      }
     });
     
-    // Category Breakdown
-    yPos = (doc as any).lastAutoTable.finalY + 15;
-    doc.setFontSize(16);
+    // Category Breakdown with visual bars
+    yPos = (doc as any).lastAutoTable.finalY + 20;
+    
+    // Section divider
+    doc.setDrawColor(16, 185, 129);
+    doc.setLineWidth(2);
+    doc.line(15, yPos - 5, 25, yPos - 5);
+    
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(16, 185, 129);
-    doc.text('Emissions by Category', 20, yPos);
+    doc.text('🏭 Emissions by Category', 30, yPos);
     
     yPos += 5;
+    
     const categoryData = breakdown.map(item => [
       item.category,
       `${item.value.toFixed(2)} kg`,
-      `${item.percentage.toFixed(1)}%`
+      `${item.percentage.toFixed(1)}%`,
+      '█'.repeat(Math.round(item.percentage / 5)) // Visual bar
     ]);
     
     autoTable(doc, {
       startY: yPos,
-      head: [['Category', 'Emissions (kg CO2e)', 'Percentage']],
+      head: [['Category', 'Emissions (kg CO₂e)', '%', 'Distribution']],
       body: categoryData,
-      theme: 'striped',
-      headStyles: { fillColor: [16, 185, 129], textColor: 255 },
-      margin: { left: 20, right: 20 }
+      theme: 'grid',
+      headStyles: { 
+        fillColor: [16, 185, 129], 
+        textColor: 255,
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 9,
+        textColor: [50, 50, 50]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      margin: { left: 15, right: 15 },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 50 },
+        1: { halign: 'right', cellWidth: 40 },
+        2: { halign: 'right', cellWidth: 30 },
+        3: { textColor: [16, 185, 129], cellWidth: 'auto' }
+      }
     });
     
     // Detailed Emissions Log
     if (emissions.length > 0) {
       doc.addPage();
-      yPos = 20;
+      
+      // Page header for second page
+      doc.setFillColor(16, 185, 129);
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(16, 185, 129);
-      doc.text('Detailed Emissions Log', 20, yPos);
+      doc.text('CarbonSense Report (Continued)', pageWidth / 2, 16, { align: 'center' });
       
-      yPos += 5;
+      yPos = 35;
+      
+      // Section divider
+      doc.setDrawColor(16, 185, 129);
+      doc.setLineWidth(2);
+      doc.line(15, yPos, 25, yPos);
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 185, 129);
+      doc.text('📋 Detailed Emissions Log', 30, yPos + 5);
+      
+      yPos += 10;
+      
       const emissionData = emissions.slice(0, 50).map((item: any) => [
-        new Date(item.date).toLocaleDateString(),
+        new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         item.category,
-        item.subcategory || 'N/A',
+        item.subcategory || '-',
         `${item.quantity} ${item.unit}`,
         `${item.co2Emissions.toFixed(2)} kg`
       ]);
       
       autoTable(doc, {
         startY: yPos,
-        head: [['Date', 'Category', 'Subcategory', 'Quantity', 'CO2 Emissions']],
+        head: [['Date', 'Category', 'Subcategory', 'Quantity', 'CO₂ Emissions']],
         body: emissionData,
-        theme: 'striped',
-        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontSize: 9 },
-        bodyStyles: { fontSize: 8 },
-        margin: { left: 20, right: 20 },
-        styles: { cellPadding: 2 }
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [16, 185, 129], 
+          textColor: 255, 
+          fontSize: 9,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        bodyStyles: { 
+          fontSize: 8,
+          textColor: [50, 50, 50]
+        },
+        alternateRowStyles: {
+          fillColor: [249, 250, 251]
+        },
+        margin: { left: 15, right: 15 },
+        columnStyles: {
+          0: { cellWidth: 28, halign: 'center' },
+          1: { cellWidth: 35, fontStyle: 'bold' },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 35, halign: 'right' },
+          4: { cellWidth: 35, halign: 'right', textColor: [16, 185, 129], fontStyle: 'bold' }
+        }
       });
       
       if (emissions.length > 50) {
-        const remainingYPos = (doc as any).lastAutoTable.finalY + 10;
+        const remainingYPos = (doc as any).lastAutoTable.finalY + 8;
+        
+        // Info box for remaining entries
+        doc.setFillColor(254, 243, 199);
+        doc.roundedRect(15, remainingYPos, pageWidth - 30, 12, 2, 2, 'F');
+        doc.setDrawColor(245, 158, 11);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(15, remainingYPos, pageWidth - 30, 12, 2, 2, 'S');
+        
         doc.setFontSize(9);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Note: Showing first 50 of ${emissions.length} entries`, 20, remainingYPos);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(146, 64, 14);
+        doc.text(
+          `ℹ Note: Showing first 50 of ${emissions.length} total entries (${emissions.length - 50} more entries not displayed)`,
+          pageWidth / 2,
+          remainingYPos + 7,
+          { align: 'center' }
+        );
+      }
+      
+      // Recommendations section at bottom
+      const recommendationsY = (doc as any).lastAutoTable.finalY + 25;
+      if (recommendationsY < pageHeight - 50) {
+        doc.setDrawColor(16, 185, 129);
+        doc.setLineWidth(2);
+        doc.line(15, recommendationsY, 25, recommendationsY);
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(16, 185, 129);
+        doc.text('💡 Sustainability Tips', 30, recommendationsY + 5);
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(70, 70, 70);
+        const tips = [
+          '• Consider using public transport or carpooling to reduce travel emissions',
+          '• Switch to LED bulbs and unplug devices when not in use',
+          '• Reduce, reuse, and recycle to minimize waste emissions',
+          '• Set up a goal to track your progress toward lower emissions'
+        ];
+        
+        tips.forEach((tip, index) => {
+          doc.text(tip, 20, recommendationsY + 15 + (index * 6));
+        });
       }
     }
     
-    // Footer on last page
+    // Professional footer on all pages
     const totalPages = doc.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
+      
+      // Footer background
+      doc.setFillColor(248, 250, 252);
+      doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
+      
+      // Footer line
+      doc.setDrawColor(16, 185, 129);
+      doc.setLineWidth(0.5);
+      doc.line(15, pageHeight - 18, pageWidth - 15, pageHeight - 18);
+      
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
+      doc.setTextColor(100, 116, 139);
+      doc.setFont('helvetica', 'normal');
       doc.text(
         `Page ${i} of ${totalPages}`,
         pageWidth / 2,
-        pageHeight - 10,
+        pageHeight - 12,
         { align: 'center' }
       );
+      
+      doc.setFontSize(7);
       doc.text(
-        'Generated by CarbonSense - Carbon Footprint Tracking',
+        'Generated by CarbonSense - Your Carbon Footprint Tracking Partner',
         pageWidth / 2,
-        pageHeight - 5,
+        pageHeight - 6,
         { align: 'center' }
       );
+      
+      // Small leaf icon in footer
+      doc.setTextColor(16, 185, 129);
+      doc.text('🌱', 15, pageHeight - 9);
+      doc.text('🌱', pageWidth - 20, pageHeight - 9);
     }
     
-    // Save PDF
-    const fileName = `carbon-report-${reportForm.reportType}-${new Date().getTime()}.pdf`;
+    // Save PDF with better filename
+    const fileName = `CarbonSense-Report-${reportForm.reportType}-${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
   };
 
@@ -437,8 +635,6 @@ export default function Reports() {
     }
   };
 
-  const COLORS = ['#059669', '#0ea5e9', '#f59e0b', '#ef4444'];
-
   // Quick date presets
   const setDatePreset = (preset: string) => {
     const today = new Date();
@@ -471,12 +667,12 @@ export default function Reports() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="space-y-6 p-6">
+      <div className="space-y-8 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Reports</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">Generate and download comprehensive emission reports</p>
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-white">Reports</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2 text-base">Generate and download comprehensive emission reports</p>
         </div>
         <Button onClick={loadReports} variant="outline" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -487,128 +683,130 @@ export default function Reports() {
       {/* Generate New Report */}
       <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Plus className="w-5 h-5 text-emerald-600" />
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Plus className="w-6 h-6 text-emerald-600" />
             Generate New Report
           </CardTitle>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-base text-slate-600 dark:text-slate-400 mt-2">
             Select a date range and generate a comprehensive PDF report
           </p>
         </CardHeader>
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-6">
           {/* Quick Date Presets */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Quick Select</Label>
+          <div className="space-y-3">
+            <Label className="text-base font-medium text-slate-700 dark:text-slate-300">Quick Select</Label>
             <div className="flex flex-wrap gap-2">
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="default" 
                 onClick={() => setDatePreset('7days')}
-                className="text-xs"
+                className="text-sm"
               >
-                <Calendar className="w-3 h-3 mr-1" />
+                <Calendar className="w-4 h-4 mr-2" />
                 Last 7 Days
               </Button>
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="default" 
                 onClick={() => setDatePreset('30days')}
-                className="text-xs"
+                className="text-sm"
               >
-                <Calendar className="w-3 h-3 mr-1" />
+                <Calendar className="w-4 h-4 mr-2" />
                 Last 30 Days
               </Button>
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="default" 
                 onClick={() => setDatePreset('thisMonth')}
-                className="text-xs"
+                className="text-sm"
               >
-                <Calendar className="w-3 h-3 mr-1" />
+                <Calendar className="w-4 h-4 mr-2" />
                 This Month
               </Button>
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="default" 
                 onClick={() => setDatePreset('lastMonth')}
-                className="text-xs"
+                className="text-sm"
               >
-                <Calendar className="w-3 h-3 mr-1" />
+                <Calendar className="w-4 h-4 mr-2" />
                 Last Month
               </Button>
               <Button 
                 variant="outline" 
-                size="sm" 
+                size="default" 
                 onClick={() => setDatePreset('thisYear')}
-                className="text-xs"
+                className="text-sm"
               >
-                <Calendar className="w-3 h-3 mr-1" />
+                <Calendar className="w-4 h-4 mr-2" />
                 This Year
               </Button>
             </div>
           </div>
 
           {/* Custom Date Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="reportType">Report Type</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="space-y-3">
+              <Label htmlFor="reportType" className="text-base">Report Type</Label>
               <Select 
                 value={reportForm.reportType} 
                 onValueChange={(value) => setReportForm(prev => ({...prev, reportType: value}))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-base h-11">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                  <SelectItem value="annual">Annual</SelectItem>
-                  <SelectItem value="custom">Custom Range</SelectItem>
+                  <SelectItem value="monthly" className="text-base">Monthly</SelectItem>
+                  <SelectItem value="quarterly" className="text-base">Quarterly</SelectItem>
+                  <SelectItem value="annual" className="text-base">Annual</SelectItem>
+                  <SelectItem value="custom" className="text-base">Custom Range</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
+            <div className="space-y-3">
+              <Label htmlFor="startDate" className="text-base">Start Date</Label>
               <Input
                 type="date"
                 value={reportForm.startDate}
                 onChange={(e) => setReportForm(prev => ({...prev, startDate: e.target.value}))}
+                className="text-base h-11"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
+            <div className="space-y-3">
+              <Label htmlFor="endDate" className="text-base">End Date</Label>
               <Input
                 type="date"
                 value={reportForm.endDate}
                 onChange={(e) => setReportForm(prev => ({...prev, endDate: e.target.value}))}
+                className="text-base h-11"
               />
             </div>
           </div>
 
           {/* Generate Button with Duration Badge */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-3">
             <Button 
               onClick={generateReport} 
               disabled={generating || !reportForm.startDate || !reportForm.endDate} 
-              className="bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all"
+              className="bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all text-base"
               size="lg"
             >
               {generating ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
                   Generating PDF...
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-5 h-5 mr-2" />
                   Generate & Download PDF Report
                 </>
               )}
             </Button>
             {reportForm.startDate && reportForm.endDate && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-sm px-3 py-1">
                 {Math.ceil((new Date(reportForm.endDate).getTime() - new Date(reportForm.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
               </Badge>
             )}
@@ -616,200 +814,73 @@ export default function Reports() {
         </CardContent>
       </Card>
 
-      {/* Report Visualization */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Emissions Breakdown */}
-        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-emerald-600" />
-              Current Period Breakdown
-            </CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Distribution of emissions by category
-            </p>
-          </CardHeader>
-          <CardContent>
-            {error || reportData.breakdown.length === 0 ? (
-              <div className="h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 dark:text-slate-400 font-medium">No data available</p>
-                  <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-                    Log emissions to see breakdown
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={reportData.breakdown}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ category, percentage }) => `${category} ${percentage.toFixed(0)}%`}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {reportData.breakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => [`${value.toFixed(1)} kg CO₂e`, 'Emissions']}
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
-                        padding: '8px 12px'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Trends Chart */}
-        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
-              Emission Trends
-            </CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Monthly emissions vs target goals
-            </p>
-          </CardHeader>
-          <CardContent>
-            {error || reportData.trends.length === 0 ? (
-              <div className="h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <TrendingUp className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 dark:text-slate-400 font-medium">No trend data available</p>
-                  <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-                    Track emissions over time to see trends
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={reportData.trends}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis 
-                      dataKey="month" 
-                      stroke="#64748b"
-                      style={{ fontSize: '12px' }}
-                    />
-                    <YAxis 
-                      stroke="#64748b"
-                      style={{ fontSize: '12px' }}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => [`${value} kg CO₂e`, '']}
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
-                        padding: '8px 12px'
-                      }}
-                    />
-                    <Legend 
-                      wrapperStyle={{ fontSize: '13px' }}
-                      iconType="circle"
-                    />
-                    <Bar 
-                      dataKey="emissions" 
-                      fill="#059669" 
-                      name="Actual Emissions"
-                      radius={[6, 6, 0, 0]}
-                    />
-                    <Bar 
-                      dataKey="target" 
-                      fill="#0ea5e9" 
-                      name="Target"
-                      radius={[6, 6, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Reports List */}
       <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-emerald-600" />
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <FileText className="w-6 h-6 text-emerald-600" />
             Generated Reports
           </CardTitle>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-base text-slate-600 dark:text-slate-400 mt-2">
             View and download your previously generated reports
           </p>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-16">
               <div className="text-center">
-                <RefreshCw className="w-8 h-8 animate-spin text-emerald-600 mx-auto mb-3" />
-                <p className="text-sm text-slate-600 dark:text-slate-400">Loading reports...</p>
+                <RefreshCw className="w-10 h-10 animate-spin text-emerald-600 mx-auto mb-4" />
+                <p className="text-base text-slate-600 dark:text-slate-400">Loading reports...</p>
               </div>
             </div>
           ) : reports.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-                <FileText className="w-8 h-8 text-slate-400" />
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-5">
+                <FileText className="w-10 h-10 text-slate-400" />
               </div>
-              <p className="text-slate-600 dark:text-slate-400 font-medium">No reports generated yet</p>
-              <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+              <p className="text-slate-600 dark:text-slate-400 font-medium text-lg">No reports generated yet</p>
+              <p className="text-base text-slate-500 dark:text-slate-500 mt-2">
                 Generate your first report using the form above
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {reports.map((report) => (
-                <div key={report.id} className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                      <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <div key={report.id} className="flex items-center justify-between p-5 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all">
+                  <div className="flex items-center gap-5">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                      <FileText className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-white capitalize">
+                      <h3 className="font-semibold text-slate-900 dark:text-white capitalize text-lg">
                         {report.reportType} Report
                       </h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <p className="text-base text-slate-600 dark:text-slate-400 mt-1">
                         {new Date(report.startDate).toLocaleDateString()} - {new Date(report.endDate).toLocaleDateString()}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className="text-xs">
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="text-sm px-2 py-1">
                           {report.fileFormat.toUpperCase()}
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-sm px-2 py-1">
                           {report.totalEmissions.toFixed(1)} kg CO₂
                         </Badge>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-sm text-slate-500">
                           {new Date(report.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedReport(report)} className="hover:bg-slate-100 dark:hover:bg-slate-800">
-                      <Eye className="w-4 h-4" />
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="default" onClick={() => setSelectedReport(report)} className="hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <Eye className="w-5 h-5" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => downloadReport(report)} className="hover:bg-slate-100 dark:hover:bg-slate-800">
-                      <Download className="w-4 h-4" />
+                    <Button variant="ghost" size="default" onClick={() => downloadReport(report)} className="hover:bg-slate-100 dark:hover:bg-slate-800">
+                      <Download className="w-5 h-5" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => deleteReport(report.id)} className="hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600">
-                      <Trash2 className="w-4 h-4" />
+                    <Button variant="ghost" size="default" onClick={() => deleteReport(report.id)} className="hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600">
+                      <Trash2 className="w-5 h-5" />
                     </Button>
                   </div>
                 </div>
