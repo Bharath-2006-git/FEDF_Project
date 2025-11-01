@@ -51,6 +51,7 @@ export default function Dashboard() {
   const { isIndividual, isCompany } = useRoleAccess();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState("month");
   const pieColors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
   useEffect(() => {
@@ -59,10 +60,12 @@ export default function Dashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await dashboardAPI.getData();
       setDashboardData(data);
-    } catch (error) {
-      // Error loading dashboard data
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to load dashboard data. Please try again.");
+      console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
     }
@@ -93,6 +96,46 @@ export default function Dashboard() {
   const { trend, isPositive } = calculateTrend();
   if (loading) {
     return <LoadingSpinner message="Loading dashboard..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-6 text-center space-y-4">
+            <div className="text-red-500 dark:text-red-400 text-5xl">⚠️</div>
+            <h3 className="text-lg font-semibold">Failed to Load Dashboard</h3>
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button onClick={loadDashboardData} className="w-full">Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!dashboardData || dashboardData.totalEmissions === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="p-6 space-y-8 max-w-7xl mx-auto">
+          <PageHeader
+            title="Dashboard"
+            description="Track and monitor your carbon footprint"
+          />
+          <Card className="border-dashed">
+            <CardContent className="p-12 text-center space-y-4">
+              <div className="text-6xl">🌱</div>
+              <h3 className="text-xl font-semibold">No Emissions Logged Yet</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Start tracking your carbon footprint by logging your first emission.
+              </p>
+              <Button asChild className="mt-4">
+                <a href="/log-emissions">Log Your First Emission</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">

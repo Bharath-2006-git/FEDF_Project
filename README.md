@@ -23,13 +23,17 @@ Access the application at http://localhost:5173
 
 ## Features
 
-- **Comprehensive Tracking**: Monitor emissions from electricity usage, transportation, fuel consumption, and waste generation
-- **Interactive Dashboard**: Clean visualization of your carbon footprint with charts and trends
-- **Analytics & Insights**: Advanced analytics with category breakdowns, monthly comparisons, and yearly trends
-- **Goal Management**: Set personalized reduction targets and track progress
-- **Sustainability Tips**: Curated recommendations to help reduce your environmental impact
-- **Detailed Reports**: Generate comprehensive emission reports for personal records (CSV/PDF export)
-- **Multi-User Support**: Individual and company access levels
+- **🎯 Accurate Emission Calculations**: Scientifically-backed carbon emission formulas based on DEFRA, EPA, IPCC, and IEA standards
+  - 7 main categories with 200+ specific subcategories
+  - Multiple unit support (metric and imperial)
+  - High-confidence calculations with detailed transparency
+- **📊 Comprehensive Tracking**: Monitor emissions from electricity usage, transportation, fuel consumption, waste, production, and logistics
+- **📈 Interactive Dashboard**: Clean visualization of your carbon footprint with charts and trends
+- **🔍 Analytics & Insights**: Advanced analytics with category breakdowns, monthly comparisons, and yearly trends
+- **🎯 Goal Management**: Set personalized reduction targets and track progress
+- **💡 Sustainability Tips**: Curated recommendations to help reduce your environmental impact
+- **📄 Detailed Reports**: Generate comprehensive emission reports for personal records (CSV/PDF export)
+- **👥 Multi-User Support**: Individual and company access levels with role-based features
 
 ## Technology Stack
 
@@ -124,6 +128,59 @@ The application will automatically find available ports and start:
 - Backend API: Usually on `http://localhost:3000` (or next available port)
 
 **Note**: The application now intelligently finds available ports, so you don't need to worry about port conflicts!
+
+## 🧮 Emission Calculation System
+
+CarbonSense features a sophisticated, scientifically-backed carbon emission calculation engine that is the **core strength** of the application.
+
+### Structured Formula
+
+All emissions are calculated using the fundamental formula:
+
+```
+CO2 Emissions (kg) = Activity Quantity × Emission Factor
+```
+
+### Key Features
+
+- **📚 Comprehensive Coverage**: 7 main categories, 200+ specific subcategories
+- **🔬 Scientific Basis**: Factors from DEFRA, EPA, IPCC, and IEA (2024)
+- **🎯 High Accuracy**: Subcategory-specific factors for precise calculations
+- **🌍 Multiple Units**: Support for both metric and imperial units
+- **✅ Validation**: Input validation and error handling with detailed messages
+- **📊 Transparency**: Returns calculation method and confidence level
+
+### Supported Categories
+
+1. **Electricity** (kWh, MWh) - Grid, Coal, Natural Gas, Renewables, Nuclear
+2. **Transportation** (km, miles) - Cars, Buses, Trains, Planes, Motorcycles
+3. **Fuel** (liters, gallons) - Gasoline, Diesel, Natural Gas, Coal
+4. **Waste** (kg, bags) - Household, Commercial, Recyclables, E-waste
+5. **Production** (kg, units) - Materials, Food products, Manufacturing
+6. **Logistics** (km, ton-km) - Trucks, Ships, Air freight, Rail
+7. **Water** (liters, m³) - Treatment and distribution
+
+### Example Calculation
+
+```typescript
+// 100 km driven in an electric car
+Input: category="travel", quantity=100, unit="km", subcategory="car_electric"
+
+Calculation: 100 km × 0.053 kg CO₂/km = 5.3 kg CO₂
+
+Output: {
+  co2Emissions: 5.3,
+  emissionFactor: 0.053,
+  calculationMethod: "travel.car_electric.km",
+  confidence: "high"
+}
+```
+
+### Documentation
+
+- **Detailed Formula Documentation**: See [`EMISSION_CALCULATIONS.md`](./EMISSION_CALCULATIONS.md)
+- **Technical Implementation**: See [`server/README.md`](./server/README.md)
+- **API Documentation**: See API Endpoints section below
 
 ## Available Scripts
 

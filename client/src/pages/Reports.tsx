@@ -49,6 +49,7 @@ export default function Reports() {
   const { user } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const { toast } = useToast();
@@ -91,6 +92,7 @@ export default function Reports() {
 
   const loadReportData = async () => {
     try {
+      setError(null);
       // Get actual emission data from API
       const [emissionHistory, categoryBreakdown] = await Promise.all([
         apiService.getEmissionHistory(),
@@ -128,7 +130,9 @@ export default function Reports() {
         breakdown,
         trends
       });
-    } catch (error) {
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to load report data");
+      console.error("Report data error:", err);
       // Set empty data structure on error
       setReportData({
         totalEmissions: 0,

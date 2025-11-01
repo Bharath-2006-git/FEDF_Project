@@ -95,9 +95,21 @@ export default function LogEmissions() {
 
       const result = await emissionsAPI.add(emissionData);
       
+      // Create detailed calculation description
+      const calculationDetails = [
+        `Formula: ${quantity} ${formData.unit} × ${result.emissionFactor?.toFixed(4) || 'N/A'} kg CO₂/${formData.unit} = ${result.co2Emissions.toFixed(2)} kg CO₂`,
+        result.confidence ? `Confidence: ${result.confidence}` : '',
+        result.calculationMethod ? `Method: ${result.calculationMethod}` : ''
+      ].filter(Boolean).join(' | ');
+      
       toast({
         title: "✅ Emission Logged Successfully",
-        description: `Added ${quantity} ${formData.unit} of ${formData.category}${formData.subcategory ? ` (${formData.subcategory})` : ''} - ${result.co2Emissions.toFixed(2)} kg CO₂`,
+        description: (
+          <div className="space-y-1">
+            <p className="font-medium">{formData.category}{formData.subcategory ? ` → ${formData.subcategory}` : ''}</p>
+            <p className="text-xs text-muted-foreground">{calculationDetails}</p>
+          </div>
+        ),
       });
 
       // Reload stats to reflect new entry

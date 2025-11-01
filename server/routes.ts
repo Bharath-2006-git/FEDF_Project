@@ -8,6 +8,15 @@ import { z } from "zod";
 import { loginSchema, insertUserSchema, insertEmissionSchema, insertGoalSchema } from "@shared/schema";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { 
+  calculateCO2Emissions, 
+  calculateCO2EmissionsSafe,
+  getAvailableCategories,
+  getAvailableSubcategories,
+  getFactorMetadata,
+  isValidCombination,
+  type EmissionCalculationResult 
+} from "./emissionCalculator";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
@@ -85,216 +94,6 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
     (req as AuthenticatedRequest).user = user as JWTUser;
     next();
   });
-};
-
-// Helper function to calculate CO2 emissions with comprehensive emission factors
-const calculateCO2Emissions = (category: string, quantity: number, unit: string, subcategory?: string): number => {
-  // Comprehensive emission factors (kg CO2 per unit) - Based on DEFRA, EPA, and IPCC data
-  const emissionFactors: Record<string, Record<string, number>> = {
-    electricity: { 
-      kWh: 0.5,      // Grid average (varies by country, US average ~0.45-0.5)
-      MWh: 500,
-      GWh: 500000
-    },
-    travel: { 
-      km: 0.15,      // Average vehicle (mixed transport)
-      mile: 0.24,
-      miles: 0.24,
-      hours: 5.0     // Generic, overridden by subcategory
-    },
-    fuel: { 
-      liter: 2.31,        // Gasoline default
-      liters: 2.31,
-      gallon: 8.74,       // Gasoline default
-      gallons: 8.74,
-      cubic_meter: 2.0,
-      cubic_meters: 2.0,
-      m3: 2.0,
-      kg: 3.0,           // For solid fuels
-      ton: 3000,
-      tons: 3000
-    },
-    production: { 
-      unit: 1.5,
-      units: 1.5,
-      kg: 0.5,
-      ton: 500,
-      tons: 500,
-      hours: 10.0,
-      pieces: 0.8
-    },
-    logistics: { 
-      km: 0.8,           // Heavy truck
-      mile: 1.29,
-      miles: 1.29,
-      package: 2.5,
-      packages: 2.5,
-      ton_km: 0.062,     // Ton-kilometer
-      'ton-km': 0.062
-    },
-    waste: { 
-      kg: 0.5,           // Landfill waste
-      lbs: 0.23,
-      pound: 0.23,
-      pounds: 0.23,
-      bag: 3.0,
-      bags: 3.0,
-      ton: 500,
-      tons: 500,
-      cubic_meter: 50,
-      cubic_meters: 50,
-      m3: 50
-    },
-    water: {
-      liter: 0.0003,     // Water treatment emissions
-      liters: 0.0003,
-      gallon: 0.001,
-      gallons: 0.001,
-      m3: 0.3,
-      cubic_meter: 0.3,
-      cubic_meters: 0.3
-    }
-  };
-
-  // Subcategory-specific factors (more accurate, override category defaults)
-  const subcategoryFactors: Record<string, Record<string, Record<string, number>>> = {
-    electricity: {
-      grid: { kWh: 0.5, MWh: 500 },                    // Grid average
-      coal: { kWh: 0.95, MWh: 950 },                   // Coal-powered
-      natural_gas: { kWh: 0.45, MWh: 450 },            // Natural gas
-      renewable: { kWh: 0.01, MWh: 10 },               // Solar/Wind
-      nuclear: { kWh: 0.012, MWh: 12 },                // Nuclear
-      hydro: { kWh: 0.024, MWh: 24 }                   // Hydroelectric
-    },
-    travel: {
-      // Cars
-      car: { km: 0.21, mile: 0.34, miles: 0.34 },                  // Average car
-      car_small: { km: 0.15, mile: 0.24, miles: 0.24 },            // Small car
-      car_medium: { km: 0.19, mile: 0.31, miles: 0.31 },           // Medium car
-      car_large: { km: 0.28, mile: 0.45, miles: 0.45 },            // Large car/SUV
-      car_electric: { km: 0.05, mile: 0.08, miles: 0.08 },         // Electric car
-      car_hybrid: { km: 0.11, mile: 0.18, miles: 0.18 },           // Hybrid car
-      
-      // Public transport
-      bus: { km: 0.05, mile: 0.08, miles: 0.08 },                  // Local bus
-      coach: { km: 0.03, mile: 0.048, miles: 0.048 },              // Long-distance coach
-      train: { km: 0.04, mile: 0.06, miles: 0.06 },                // Average train
-      train_electric: { km: 0.035, mile: 0.056, miles: 0.056 },    // Electric train
-      train_diesel: { km: 0.06, mile: 0.096, miles: 0.096 },       // Diesel train
-      subway: { km: 0.03, mile: 0.048, miles: 0.048 },             // Metro/Underground
-      tram: { km: 0.03, mile: 0.048, miles: 0.048 },               // Tram/Light rail
-      
-      // Air travel
-      plane: { km: 0.25, mile: 0.40, miles: 0.40, hours: 90.0 },           // Average flight
-      plane_short: { km: 0.15, mile: 0.24, miles: 0.24, hours: 70.0 },     // Short-haul (<500km)
-      plane_medium: { km: 0.14, mile: 0.23, miles: 0.23, hours: 85.0 },    // Medium-haul (500-3500km)
-      plane_long: { km: 0.19, mile: 0.31, miles: 0.31, hours: 100.0 },     // Long-haul (>3500km)
-      plane_economy: { km: 0.14, mile: 0.23, miles: 0.23, hours: 85.0 },   // Economy class
-      plane_business: { km: 0.28, mile: 0.45, miles: 0.45, hours: 170.0 }, // Business class
-      plane_first: { km: 0.42, mile: 0.68, miles: 0.68, hours: 255.0 },    // First class
-      
-      // Other
-      motorcycle: { km: 0.11, mile: 0.18, miles: 0.18 },           // Motorcycle
-      scooter: { km: 0.07, mile: 0.11, miles: 0.11 },              // Motor scooter
-      bike: { km: 0, mile: 0, miles: 0 },                          // Bicycle (zero emissions)
-      ebike: { km: 0.003, mile: 0.005, miles: 0.005 },             // E-bike
-      walk: { km: 0, mile: 0, miles: 0 },                          // Walking (zero emissions)
-      
-      // Taxis/Rideshare
-      taxi: { km: 0.21, mile: 0.34, miles: 0.34 },                 // Regular taxi
-      taxi_electric: { km: 0.05, mile: 0.08, miles: 0.08 },        // Electric taxi
-      rideshare: { km: 0.19, mile: 0.31, miles: 0.31 }             // Rideshare (shared)
-    },
-    fuel: {
-      // Liquid fuels
-      gasoline: { liter: 2.31, liters: 2.31, gallon: 8.74, gallons: 8.74 },           // Petrol
-      diesel: { liter: 2.68, liters: 2.68, gallon: 10.15, gallons: 10.15 },           // Diesel
-      jet_fuel: { liter: 2.52, liters: 2.52, gallon: 9.54, gallons: 9.54 },           // Aviation fuel
-      heating_oil: { liter: 2.96, liters: 2.96, gallon: 11.21, gallons: 11.21 },      // Heating oil
-      lpg: { liter: 1.51, liters: 1.51, gallon: 5.72, gallons: 5.72, kg: 2.98 },      // LPG
-      
-      // Gaseous fuels
-      natural_gas: { cubic_meter: 2.0, cubic_meters: 2.0, m3: 2.0, kg: 2.75 },        // Natural gas
-      propane: { cubic_meter: 2.35, cubic_meters: 2.35, m3: 2.35, kg: 2.98 },         // Propane
-      butane: { kg: 3.03 },                                                            // Butane
-      
-      // Solid fuels
-      coal: { kg: 2.86, ton: 2860, tons: 2860 },                                      // Coal
-      charcoal: { kg: 2.5, ton: 2500, tons: 2500 },                                   // Charcoal
-      wood: { kg: 1.5, ton: 1500, tons: 1500 },                                       // Wood
-      peat: { kg: 1.0, ton: 1000, tons: 1000 }                                        // Peat
-    },
-    waste: {
-      // General waste
-      household: { kg: 0.5, lbs: 0.23, bag: 3.0, bags: 3.0 },                         // Mixed household
-      commercial: { kg: 0.45, lbs: 0.20, bag: 2.7, bags: 2.7 },                       // Commercial
-      industrial: { kg: 0.8, lbs: 0.36, ton: 800, tons: 800 },                        // Industrial
-      
-      // Specific waste types
-      recyclable: { kg: 0.1, lbs: 0.05, bag: 0.6, bags: 0.6 },                        // Recyclables
-      paper: { kg: 0.9, lbs: 0.41, ton: 900, tons: 900 },                             // Paper/Cardboard
-      plastic: { kg: 2.1, lbs: 0.95, ton: 2100, tons: 2100 },                         // Plastic
-      glass: { kg: 0.5, lbs: 0.23, ton: 500, tons: 500 },                             // Glass
-      metal: { kg: 0.7, lbs: 0.32, ton: 700, tons: 700 },                             // Metal
-      organic: { kg: 0.3, lbs: 0.14, bag: 1.8, bags: 1.8 },                           // Food/Organic
-      electronic: { kg: 1.5, lbs: 0.68, unit: 10.0 },                                 // E-waste
-      hazardous: { kg: 2.0, lbs: 0.91, ton: 2000, tons: 2000 },                       // Hazardous
-      medical: { kg: 1.8, lbs: 0.82 },                                                // Medical waste
-      construction: { kg: 0.4, lbs: 0.18, ton: 400, tons: 400 }                       // Construction debris
-    },
-    production: {
-      // Manufacturing
-      steel: { kg: 1.85, ton: 1850, tons: 1850 },                                     // Steel production
-      aluminum: { kg: 11.5, ton: 11500, tons: 11500 },                                // Aluminum
-      cement: { kg: 0.93, ton: 930, tons: 930 },                                      // Cement
-      concrete: { kg: 0.13, ton: 130, tons: 130 },                                    // Concrete
-      plastic: { kg: 3.5, ton: 3500, tons: 3500 },                                    // Plastic
-      paper: { kg: 1.3, ton: 1300, tons: 1300 },                                      // Paper
-      glass: { kg: 0.85, ton: 850, tons: 850 },                                       // Glass
-      
-      // Food production
-      beef: { kg: 27.0 },                                                              // Beef
-      lamb: { kg: 24.0 },                                                              // Lamb
-      pork: { kg: 7.0 },                                                               // Pork
-      chicken: { kg: 6.9 },                                                            // Chicken
-      fish: { kg: 5.5 },                                                               // Fish
-      dairy: { kg: 3.2, liter: 1.3, liters: 1.3 },                                    // Dairy products
-      vegetables: { kg: 0.4 },                                                         // Vegetables
-      grains: { kg: 0.5 }                                                              // Grains
-    },
-    logistics: {
-      // Road freight
-      truck_small: { km: 0.3, mile: 0.48, miles: 0.48 },                              // Small truck
-      truck_medium: { km: 0.5, mile: 0.80, miles: 0.80 },                             // Medium truck
-      truck_heavy: { km: 0.8, mile: 1.29, miles: 1.29 },                              // Heavy truck/HGV
-      van: { km: 0.25, mile: 0.40, miles: 0.40 },                                     // Delivery van
-      
-      // Sea freight
-      ship: { ton_km: 0.011, 'ton-km': 0.011 },                                       // Container ship
-      cargo_ship: { ton_km: 0.011, 'ton-km': 0.011 },                                 // Cargo ship
-      
-      // Air freight
-      air_freight: { ton_km: 0.602, 'ton-km': 0.602 },                                // Air cargo
-      
-      // Rail freight
-      rail_freight: { ton_km: 0.027, 'ton-km': 0.027 }                                // Rail cargo
-    }
-  };
-
-  // Normalize unit name (replace spaces with underscores for consistent lookup)
-  const normalizedUnit = unit.toLowerCase().replace(/\s+/g, '_');
-  
-  // Try subcategory-specific factor first, then category default, then fallback
-  let factor = 1.0; // Default fallback
-  
-  if (subcategory && subcategoryFactors[category]?.[subcategory]?.[normalizedUnit]) {
-    factor = subcategoryFactors[category][subcategory][normalizedUnit];
-  } else if (emissionFactors[category]?.[normalizedUnit]) {
-    factor = emissionFactors[category][normalizedUnit];
-  }
-
-  const result = quantity * factor;
-  return Math.round(result * 1000) / 1000; // Round to 3 decimal places
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -505,7 +304,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/emissions/add
   app.post("/api/emissions/add", authenticateToken, async (req: Request, res: Response) => {
     try {
-      
       const user = (req as AuthenticatedRequest).user;
       if (!user) {
         return res.status(401).json({ message: 'User not authenticated' });
@@ -527,8 +325,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate CO2 emissions with subcategory support
-      const co2Emissions = calculateCO2Emissions(category, quantityNum, unit, subcategory);
+      // Calculate CO2 emissions using the new structured calculation engine
+      const calculationResult = calculateCO2Emissions(category, quantityNum, unit, subcategory);
       
       // Convert camelCase to snake_case for database
       const emissionData = {
@@ -537,7 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subcategory: subcategory || null,
         quantity: quantityNum.toString(),
         unit,
-        co2_emissions: co2Emissions.toString(),
+        co2_emissions: calculationResult.co2Emissions.toString(),
         date: new Date(date),
         description: description || null,
         department: department || null
@@ -553,14 +351,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           subcategory,
           quantity: quantityNum,
           unit,
-          co2Emissions,
+          co2Emissions: calculationResult.co2Emissions,
+          emissionFactor: calculationResult.emissionFactor,
+          calculationMethod: calculationResult.calculationMethod,
+          confidence: calculationResult.confidence,
           date,
           description,
           department
         },
-        co2Emissions
+        co2Emissions: calculationResult.co2Emissions
       });
     } catch (error: any) {
+      // Handle calculation errors specifically
+      if (error.name === 'EmissionCalculationError') {
+        return res.status(400).json({ 
+          message: error.message,
+          code: error.code,
+          details: error.details
+        });
+      }
+      
       res.status(500).json({ 
         message: "Failed to log emission",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -587,23 +397,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Calculate emissions for given parameters
-      const co2Emissions = calculateCO2Emissions(
+      // Calculate emissions using the structured calculation engine
+      const calculationResult = calculateCO2Emissions(
         category as string,
         quantityNum,
         unit as string,
-        subcategory as string
+        subcategory as string | undefined
       );
 
       res.json({
-        co2Emissions,
-        category,
-        subcategory: subcategory || null,
-        quantity: quantityNum,
-        unit,
-        message: "Emissions calculated successfully"
+        co2Emissions: calculationResult.co2Emissions,
+        category: calculationResult.category,
+        subcategory: calculationResult.subcategory || null,
+        quantity: calculationResult.quantity,
+        unit: calculationResult.unit,
+        emissionFactor: calculationResult.emissionFactor,
+        calculationMethod: calculationResult.calculationMethod,
+        confidence: calculationResult.confidence,
+        message: "Emissions calculated successfully",
+        formula: `${calculationResult.quantity} ${calculationResult.unit} × ${calculationResult.emissionFactor} kg CO₂/${calculationResult.unit} = ${calculationResult.co2Emissions} kg CO₂`
       });
     } catch (error: any) {
+      // Handle calculation errors specifically
+      if (error.name === 'EmissionCalculationError') {
+        return res.status(400).json({ 
+          message: error.message,
+          code: error.code,
+          details: error.details
+        });
+      }
+      
       res.status(500).json({ 
         message: "Failed to calculate emissions",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined

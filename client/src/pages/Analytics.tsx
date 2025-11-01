@@ -67,6 +67,7 @@ const COLORS = ['#10b981', '#059669', '#047857', '#065F46', '#064E3B', '#022C22'
 export default function Analytics() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [timeRange, setTimeRange] = useState('6months');
 
@@ -77,6 +78,7 @@ export default function Analytics() {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [monthlyRes, categoryRes, yearlyRes, peakRes] = await Promise.all([
         dashboardAPI.getMonthlyComparison(timeRange),
         dashboardAPI.getCategoryBreakdown(timeRange),
@@ -90,8 +92,9 @@ export default function Analytics() {
         yearlyTrends: yearlyRes.data,
         peakAnalysis: peakRes.data
       });
-    } catch (error) {
-      // Failed to fetch analytics
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to load analytics data. Please try again.");
+      console.error("Analytics error:", err);
     } finally {
       setLoading(false);
     }
@@ -120,6 +123,46 @@ export default function Analytics() {
 
   if (loading) {
     return <LoadingSpinner message="Loading analytics..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-6 text-center space-y-4">
+            <div className="text-red-500 dark:text-red-400 text-5xl">📊</div>
+            <h3 className="text-lg font-semibold">Failed to Load Analytics</h3>
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button onClick={fetchAnalyticsData} className="w-full">Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!data || (data.categoryBreakdown && data.categoryBreakdown.length === 0)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="p-6 space-y-8 max-w-7xl mx-auto">
+          <PageHeader
+            title="Advanced Analytics"
+            description="Deep dive into your carbon emission patterns and trends"
+          />
+          <Card className="border-dashed">
+            <CardContent className="p-12 text-center space-y-4">
+              <div className="text-6xl">📈</div>
+              <h3 className="text-xl font-semibold">Not Enough Data</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Start logging emissions to see detailed analytics and insights about your carbon footprint.
+              </p>
+              <Button asChild className="mt-4">
+                <a href="/log-emissions">Log Emissions</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (

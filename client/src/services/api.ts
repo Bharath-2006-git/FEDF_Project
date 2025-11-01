@@ -48,11 +48,17 @@ export interface EmissionResponse {
     quantity: number;
     unit: string;
     co2Emissions: number;
+    emissionFactor?: number;
+    calculationMethod?: string;
+    confidence?: string;
     date: string;
     description?: string;
     department?: string;
   };
   co2Emissions: number;
+  emissionFactor?: number;
+  calculationMethod?: string;
+  confidence?: string;
 }
 
 export interface EmissionCalculation {
