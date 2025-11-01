@@ -8,18 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { StatCard } from "@/components/shared/StatCard";
+import { useEmissionStats } from "@/hooks/useEmissionStats";
+import { INDIVIDUAL_CATEGORIES, COMPANY_CATEGORIES } from "@/constants/categories";
 import { 
   Plus, 
-  Car, 
-  Home, 
-  Zap, 
-  Trash2, 
-  Factory, 
-  Truck, 
   CalendarDays,
-  Loader2
+  Loader2,
+  TrendingUp,
+  Calendar,
+  CheckCircle,
+  Factory
 } from "lucide-react";
-import { emissionsAPI, apiService } from "@/services/api";
+import { emissionsAPI } from "@/services/api";
 
 interface EmissionFormData {
   category: string;
@@ -47,117 +49,12 @@ export default function LogEmissions() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [stats, setStats] = useState({
-    todayEntries: 0,
-    weekEntries: 0,
-    monthEmissions: 0,
-    todayChange: 0,
-    weekDays: 0
-  });
-  const [statsLoading, setStatsLoading] = useState(true);
+  const { stats, loading: statsLoading, reload: reloadStats } = useEmissionStats();
 
-  // Individual categories
-  const individualCategories = [
-    {
-      value: "electricity",
-      label: "Electricity",
-      icon: Zap,
-      subcategories: ["home", "apartment", "office"],
-      units: ["kWh"]
-    },
-    {
-      value: "travel",
-      label: "Transportation",
-      icon: Car,
-      subcategories: ["car", "bus", "train", "plane", "bike", "walk"],
-      units: ["miles", "km", "hours"]
-    },
-    {
-      value: "fuel",
-      label: "Fuel",
-      icon: Home,
-      subcategories: ["gasoline", "diesel", "natural_gas", "heating_oil"],
-      units: ["liters", "gallons", "cubic_meters"]
-    },
-    {
-      value: "waste",
-      label: "Waste",
-      icon: Trash2,
-      subcategories: ["household", "recyclable", "organic", "electronic"],
-      units: ["kg", "lbs", "bags"]
-    }
-  ];
-
-  // Company categories
-  const companyCategories = [
-    {
-      value: "production",
-      label: "Production",
-      icon: Factory,
-      subcategories: ["manufacturing", "assembly", "processing", "packaging"],
-      units: ["units", "kg", "tons", "hours"]
-    },
-    {
-      value: "logistics",
-      label: "Logistics",
-      icon: Truck,
-      subcategories: ["shipping", "delivery", "warehouse", "distribution"],
-      units: ["km", "miles", "packages", "tons"]
-    },
-    {
-      value: "electricity",
-      label: "Electricity",
-      icon: Zap,
-      subcategories: ["office", "factory", "warehouse", "retail"],
-      units: ["kWh", "MWh"]
-    },
-    {
-      value: "waste",
-      label: "Waste",
-      icon: Trash2,
-      subcategories: ["industrial", "office", "recyclable", "hazardous"],
-      units: ["kg", "tons", "cubic_meters"]
-    }
-  ];
-
-  const categories = isIndividual() ? individualCategories : companyCategories;
+  const categories = isIndividual() ? INDIVIDUAL_CATEGORIES : COMPANY_CATEGORIES;
   const selectedCategory = categories.find(cat => cat.value === formData.category);
 
-  useEffect(() => {
-    loadStats();
-  }, []);
 
-  const loadStats = async () => {
-    try {
-      setStatsLoading(true);
-      const today = new Date();
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - 7);
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-
-      // Fetch data for different periods
-      const [todayData, weekData, monthData, yesterdayData] = await Promise.all([
-        apiService.getEmissionsSummary(today.toISOString().split('T')[0], today.toISOString().split('T')[0]),
-        apiService.getEmissionsSummary(startOfWeek.toISOString().split('T')[0], today.toISOString().split('T')[0]),
-        apiService.getEmissionsSummary(startOfMonth.toISOString().split('T')[0], today.toISOString().split('T')[0]),
-        apiService.getEmissionsSummary(yesterday.toISOString().split('T')[0], yesterday.toISOString().split('T')[0])
-      ]);
-
-      setStats({
-        todayEntries: todayData.totalEntries || 0,
-        weekEntries: weekData.totalEntries || 0,
-        monthEmissions: Math.round((monthData.totalEmissions || 0) * 10) / 10,
-        todayChange: (todayData.totalEntries || 0) - (yesterdayData.totalEntries || 0),
-        weekDays: weekData.uniqueDays || 0
-      });
-    } catch (err) {
-      console.error('Error loading stats:', err);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
 
   const handleInputChange = (field: keyof EmissionFormData, value: string) => {
     setFormData(prev => ({
@@ -204,7 +101,7 @@ export default function LogEmissions() {
       });
 
       // Reload stats to reflect new entry
-      loadStats();
+      reloadStats();
 
       // Reset form
       setFormData({

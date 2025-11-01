@@ -25,11 +25,11 @@ Access the application at http://localhost:5173
 
 - **Comprehensive Tracking**: Monitor emissions from electricity usage, transportation, fuel consumption, and waste generation
 - **Interactive Dashboard**: Clean visualization of your carbon footprint with charts and trends
-- **Goal Management**: Set personalized reduction targets and track progress with milestone achievements
+- **Analytics & Insights**: Advanced analytics with category breakdowns, monthly comparisons, and yearly trends
+- **Goal Management**: Set personalized reduction targets and track progress
 - **Sustainability Tips**: Curated recommendations to help reduce your environmental impact
-- **Detailed Reports**: Generate comprehensive emission reports for personal records
+- **Detailed Reports**: Generate comprehensive emission reports for personal records (CSV/PDF export)
 - **Multi-User Support**: Individual and company access levels
-- **Achievement System**: Track your sustainability milestones and progress
 
 ## Technology Stack
 

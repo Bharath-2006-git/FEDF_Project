@@ -71,28 +71,6 @@ export const tips = pgTable("tips", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Achievements table for gamification
-export const achievements = pgTable("achievements", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  achievementType: varchar("achievement_type", { length: 50 }).notNull(), // goal_completed, streak, reduction
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  badgeIcon: varchar("badge_icon", { length: 100 }),
-  unlockedAt: timestamp("unlocked_at").defaultNow(),
-});
-
-// Notification preferences
-export const notifications = pgTable("notifications", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  type: varchar("type", { length: 50 }).notNull(), // reminder, milestone, tip
-  message: text("message").notNull(),
-  isRead: boolean("is_read").default(false),
-  scheduledFor: timestamp("scheduled_for"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 // Zod schemas for validation
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
@@ -147,5 +125,3 @@ export type InsertGoal = z.infer<typeof insertGoalSchema>;
 export type Goal = typeof goals.$inferSelect;
 export type Report = typeof reports.$inferSelect;
 export type Tip = typeof tips.$inferSelect;
-export type Achievement = typeof achievements.$inferSelect;
-export type Notification = typeof notifications.$inferSelect;

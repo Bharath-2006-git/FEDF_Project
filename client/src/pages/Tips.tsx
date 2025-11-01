@@ -5,17 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { 
   Lightbulb, 
-  Leaf, 
   Zap, 
   Car, 
   Factory, 
   Trash2,
   Filter,
-  TrendingUp,
+  RefreshCw,
+  Leaf,
   Star,
-  RefreshCw
+  TrendingUp
 } from "lucide-react";
 
 interface Tip {
@@ -103,39 +104,26 @@ export default function Tips() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header Section */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/5 dark:to-emerald-600/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
-          <div className="relative bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-3">
-                  <Lightbulb className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-                  Eco Tips
-                </h1>
-                <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                  {isIndividual() 
-                    ? "Discover actionable tips to reduce your carbon footprint"
-                    : "Implement sustainable practices in your organization"
-                  }
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={fetchTips}
-                  variant="outline"
-                  size="sm"
-                  disabled={loading}
-                  className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                  {loading ? 'Loading...' : 'Refresh'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          icon={<Lightbulb className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />}
+          title="Eco Tips"
+          description={isIndividual() 
+            ? "Discover actionable tips to reduce your carbon footprint"
+            : "Implement sustainable practices in your organization"
+          }
+          actions={
+            <Button
+              onClick={fetchTips}
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Loading...' : 'Refresh'}
+            </Button>
+          }
+        />
 
         {/* Filter Section */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">

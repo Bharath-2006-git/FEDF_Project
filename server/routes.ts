@@ -1212,22 +1212,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { reportType, startDate, endDate } = req.body;
+      const userId = (req as AuthenticatedRequest).user!.userId;
       
-      // For now, return dummy data since getReportData doesn't exist yet
+      // Get actual emissions data for the report
+      const emissions = await storage.getUserEmissions(userId, startDate, endDate);
+      
+      // Calculate breakdown by category
+      const breakdown: Record<string, number> = {};
+      let totalEmissions = 0;
+      
+      emissions.forEach((emission: any) => {
+        const category = emission.category;
+        const co2Amount = Number(emission.co2_emissions ?? emission.co2Emissions ?? 0);
+        breakdown[category] = (breakdown[category] || 0) + co2Amount;
+        totalEmissions += co2Amount;
+      });
+      
       const data = {
-        totalEmissions: 1000,
-        breakdown: { electricity: 400, travel: 300, fuel: 200, waste: 100 },
+        totalEmissions,
+        breakdown,
         period: { startDate, endDate }
       };
 
-      // For now, return dummy report since createReport doesn't exist yet  
       const report = {
         id: Date.now(),
-        userId: (req as AuthenticatedRequest).user!.userId,
+        userId,
         reportType,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        filePath: `/reports/${(req as AuthenticatedRequest).user!.userId}_${reportType}_${Date.now()}.json`,
+        filePath: `/reports/${userId}_${reportType}_${Date.now()}.json`,
         status: 'completed',
         createdAt: new Date()
       };
@@ -1308,7 +1321,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // GET /api/dummy/dashboard - for testing
   // Analytics endpoints
   app.get("/api/analytics/category-breakdown", authenticateToken, async (req: Request, res: Response) => {
     try {
@@ -1334,7 +1346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         category: category.charAt(0).toUpperCase() + category.slice(1),
         value: parseFloat(value.toFixed(2)),
         percentage: totalEmissions > 0 ? parseFloat(((value / totalEmissions) * 100).toFixed(1)) : 0,
-        trend: parseFloat((Math.random() * 20 - 10).toFixed(1)) // Mock trend for now
+        trend: 0 // Trend calculation would require historical comparison
       }));
 
       res.json({ data: categoryBreakdown });
@@ -1503,33 +1515,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Export error:', error);
       res.status(500).json({ message: 'Failed to export data' });
     }
-  });
-
-  app.get("/api/dummy/dashboard", (req: Request, res: Response) => {
-    const dummyData = {
-      totalEmissions: 1234.5,
-      monthlyEmissions: 234.7,
-      categories: {
-        electricity: 450.2,
-        travel: 320.8,
-        fuel: 123.5,
-        waste: 67.3
-      },
-      history: [
-        { date: '2024-01', emissions: 400 },
-        { date: '2024-02', emissions: 380 },
-        { date: '2024-03', emissions: 420 },
-        { date: '2024-04', emissions: 350 },
-        { date: '2024-05', emissions: 320 },
-        { date: '2024-06', emissions: 234.7 }
-      ],
-      goals: [
-        { id: 1, name: 'Reduce electricity by 20%', progress: 65, target: 20 },
-        { id: 2, name: 'Cut travel emissions by 30%', progress: 45, target: 30 }
-      ]
-    };
-    
-    res.json(dummyData);
   });
 
   const httpServer = createServer(app);

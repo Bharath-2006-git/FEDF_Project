@@ -3,17 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { useAuth } from "@/context/AuthContext";
 import { 
-  TrendingUp, 
-  TrendingDown,
   Download,
-  Calendar,
   BarChart3,
-  PieChart as PieChartIcon,
   Activity,
   Target,
-  Zap
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  PieChart as PieChartIcon
 } from "lucide-react";
 import {
   PieChart,
@@ -118,52 +119,35 @@ export default function Analytics() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading analytics...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading analytics..." />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="p-6 space-y-8 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 dark:from-emerald-500/5 dark:to-emerald-600/5 rounded-3xl blur-3xl opacity-75 dark:opacity-100"></div>
-          <div className="relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/30">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  Advanced Analytics
-                </h1>
-                <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                  Deep dive into your carbon emission patterns and trends
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="w-40 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="3months">Last 3 Months</SelectItem>
-                    <SelectItem value="6months">Last 6 Months</SelectItem>
-                    <SelectItem value="year">Last Year</SelectItem>
-                    <SelectItem value="2years">Last 2 Years</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleExport} className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export CSV
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Advanced Analytics"
+          description="Deep dive into your carbon emission patterns and trends"
+          actions={
+            <>
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="w-40 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3months">Last 3 Months</SelectItem>
+                  <SelectItem value="6months">Last 6 Months</SelectItem>
+                  <SelectItem value="year">Last Year</SelectItem>
+                  <SelectItem value="2years">Last 2 Years</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={handleExport} className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800">
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+            </>
+          }
+        />
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
