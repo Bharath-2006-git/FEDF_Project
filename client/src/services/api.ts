@@ -215,6 +215,23 @@ class ApiService {
     await this.api.put(`/goals/${goalId}/progress`, { currentValue });
   }
 
+  async updateGoal(goalId: number, goalData: Partial<Goal>): Promise<void> {
+    await this.api.put(`/goals/${goalId}`, goalData);
+  }
+
+  async deleteGoal(goalId: number): Promise<void> {
+    await this.api.delete(`/goals/${goalId}`);
+  }
+
+  async getGoalProgress(goalId: number): Promise<any> {
+    const response = await this.api.get(`/goals/${goalId}/progress`);
+    return response.data;
+  }
+
+  async updateProfile(profileData: any): Promise<void> {
+    await this.api.put('/profile', profileData);
+  }
+
   async getTips(category?: string): Promise<Tip[]> {
     const response = await this.api.get<Tip[]>('/tips', { params: { category } });
     return response.data;
@@ -391,6 +408,9 @@ export const goalsAPI = {
   list: () => apiService.getGoals(),
   updateProgress: (goalId: number, currentValue: number) => 
     apiService.updateGoalProgress(goalId, currentValue),
+  update: (goalId: number, goalData: Partial<Goal>) => apiService.updateGoal(goalId, goalData),
+  delete: (goalId: number) => apiService.deleteGoal(goalId),
+  getProgress: (goalId: number) => apiService.getGoalProgress(goalId),
 };
 
 export const tipsAPI = {
@@ -403,6 +423,7 @@ export const reportsAPI = {
 
 export const userAPI = {
   profile: () => apiService.getUserProfile(),
+  updateProfile: (profileData: any) => apiService.updateProfile(profileData),
 };
 
 export const dashboardAPI = {

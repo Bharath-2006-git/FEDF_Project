@@ -1,24 +1,25 @@
 # CarbonSense
 
-> **✅ PROJECT STATUS: FULLY FUNCTIONAL & READY TO USE**
-> 
-> All systems are working! Login, Registration, Database, and Backend are fully operational.
-> See [QUICK_START.md](QUICK_START.md) for immediate setup or [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed documentation.
+A modern carbon footprint tracking platform that empowers individuals and organizations to monitor, analyze, and reduce their environmental impact through comprehensive data visualization and actionable sustainability insights.
 
-A modern React-based carbon footprint tracking platform that empowers individuals and organizations to monitor, analyze, and reduce their environmental impact through data visualization and sustainable practices.
+## Quick Start
 
-## 🚀 Quick Start
+```bash
+# Install dependencies
+npm install
 
-```powershell
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Initialize database
+npm run db:push
+
 # Start the full application (backend + frontend)
 npm run dev:full
 ```
 
-Then open http://localhost:5174 and login with:
-- **Demo Account**: demo@carbonsense.com / demo123
-- **Or create your own account** via signup page
-
-For detailed setup instructions, see [QUICK_START.md](QUICK_START.md)
+Access the application at http://localhost:5173
 
 ## Features
 
@@ -165,71 +166,34 @@ If you need to specify custom ports, you can:
 └── scripts/             # Development and build utilities
 ```
 
-## Current Status
+## Features
 
-This is a **complete, production-ready** application with all features fully implemented:
+### Core Functionality
+- User Authentication & Authorization (JWT-based)
+- Emission Logging for Individual & Company workflows
+- Interactive Dashboard with advanced data visualization
+- Goal Management & Progress Tracking
+- Sustainability Tips & Recommendations (80+ actionable tips)
+- User Profile Management
+- Responsive UI with dark/light theme support
 
-### ✅ **Core Features** (100% Complete)
-- ✅ User Authentication & Authorization (JWT-based)
-- ✅ Emission Logging (Individual & Company workflows)
-- ✅ Interactive Dashboard with advanced data visualization
-- ✅ Goal Management & Progress Tracking
-- ✅ Tips & Recommendations System
-- ✅ User Profile Management
-- ✅ Responsive UI with dark/light theme support
+### Advanced Features
+- **Analytics Dashboard**: Comprehensive analytics with month-over-month comparison, category breakdown, yearly trends, and data export
+- **Achievement System**: Gamification with progress tracking, rank progression, achievement badges, and leaderboards
+- **Notification Management**: Real-time notifications with customizable settings and filtering
+- **Reports & Export**: Generate monthly, quarterly, and annual reports in multiple formats (PDF, CSV, Excel)
+- **Comparison Dashboard**: Industry benchmarking with regional comparisons and performance rankings
+- **What-If Analysis**: Scenario modeling tool with real-time impact calculations and optimization recommendations
 
-### ✅ **Advanced Features** (100% Complete)
-- ✅ **Analytics Dashboard** - Comprehensive analytics with:
-  - Month-over-month comparison charts
-  - Category breakdown with trend analysis
-  - Yearly trends visualization
-  - Peak analysis and insights
-  - Data export functionality (CSV/PDF)
-  
-- ✅ **Achievement System** - Full gamification with:
-  - Progress tracking and rank progression
-  - Achievement badges and rewards
-  - Leaderboards and statistics
-  - Milestone celebrations
-  
-- ✅ **Notification Management** - Complete notification system:
-  - Real-time notifications
-  - Customizable notification settings
-  - Mark as read/unread functionality
-  - Notification filtering and management
-
-- ✅ **Reports & Export** - Advanced reporting system:
-  - Generate monthly, quarterly, and annual reports
-  - Custom date range reports
-  - Multiple export formats (PDF, CSV, Excel)
-  - Visual report previews
-  - Historical report management
-
-- ✅ **Comparison Dashboard** - Industry benchmarking:
-  - Compare against industry averages
-  - Regional and global comparisons
-  - Performance percentile rankings
-  - Category-specific benchmarks
-  - Trends analysis vs competitors
-
-- ✅ **What-If Analysis** - Scenario modeling tool:
-  - Interactive scenario parameters
-  - Real-time impact calculations
-  - Predefined optimization scenarios
-  - Visual impact comparisons
-  - Actionable recommendations with difficulty ratings
-
-### 🎯 **Technical Achievements**
-- ✅ Full TypeScript implementation with type safety
-- ✅ 30+ API endpoints with dummy data backend
-- ✅ Modern React 18 with hooks and context
-- ✅ Advanced data visualization with Recharts
-- ✅ Responsive design with Tailwind CSS
-- ✅ Component library with Radix UI primitives
-- ✅ Database schema with 7 tables via Drizzle ORM
-- ✅ JWT authentication with role-based access
-- ✅ Error handling and loading states
-- ✅ Hot module replacement for development
+### Technical Highlights
+- Full TypeScript implementation with type safety
+- 30+ RESTful API endpoints
+- Modern React 18 with hooks and context
+- Advanced data visualization with Recharts
+- Responsive design with Tailwind CSS
+- Component library with Radix UI primitives
+- Database schema with Drizzle ORM
+- JWT authentication with role-based access control
 
 ## Development Workflow
 
@@ -239,35 +203,56 @@ This is a **complete, production-ready** application with all features fully imp
 4. **Documentation**: Update relevant documentation for new features
 5. **Pull Requests**: Submit changes through pull request process
 
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Database
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Authentication
+JWT_SECRET=your_random_jwt_secret
+
+# Frontend (for production builds)
+VITE_API_URL=your_backend_api_url
+```
+
 ## Production Deployment
 
-### Deploy to Render (Recommended)
+### Build for Production
 
-1. **Validate deployment readiness**:
 ```bash
-npm run validate-deployment
+# Build frontend
+npm run build
+
+# Build backend
+npm run build:server
 ```
 
-2. **Push code to GitHub**:
-```bash
-git add .
-git commit -m "Ready for deployment"
-git push
-```
+### Deployment Options
 
-3. **Follow the deployment guide**:
-See `RENDER_DEPLOYMENT.md` for detailed instructions on deploying to Render.com
+**Docker**: Use the included `Dockerfile.backend` and `Dockerfile.frontend` for containerized deployment.
 
-**Required Environment Variables:**
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
-- `JWT_SECRET` - Random secret for JWT signing
-- `VITE_API_URL` - Backend API URL (frontend)
+**Cloud Platforms**: Compatible with Render, Heroku, Vercel, AWS, or any Node.js hosting platform.
 
-### Alternative Deployment Options
+**Manual Deployment**: 
+1. Build the application using the commands above
+2. Configure environment variables on your hosting platform
+3. Deploy the `dist` folder (frontend) and server build
 
-- **Docker**: Use included `Dockerfile.backend` and `Dockerfile.frontend`
-- **Manual**: Follow build steps and deploy to any Node.js hosting platform
+## Contributing
 
-For detailed deployment instructions, see `RENDER_DEPLOYMENT.md`.
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch
+3. Follow TypeScript best practices and ESLint rules
+4. Test your changes thoroughly
+5. Submit a pull request with a clear description
+
+## License
+
+MIT License - see LICENSE file for details
 

@@ -50,6 +50,8 @@ export default function Tips() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [visibleTips, setVisibleTips] = useState<number>(12);
+  const [impactFilter, setImpactFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchTips();
@@ -80,9 +82,22 @@ export default function Tips() {
     }
   };
 
-  const filteredTips = tips.filter(tip => 
-    categoryFilter === 'all' || tip.category === categoryFilter
-  );
+  const filteredTips = tips.filter(tip => {
+    const categoryMatch = categoryFilter === 'all' || tip.category === categoryFilter;
+    const impactMatch = impactFilter === 'all' || tip.impactLevel === impactFilter;
+    return categoryMatch && impactMatch;
+  });
+
+  const displayedTips = filteredTips.slice(0, visibleTips);
+  const hasMoreTips = filteredTips.length > visibleTips;
+
+  const loadMoreTips = () => {
+    setVisibleTips(prev => prev + 12);
+  };
+
+  const showAllTips = () => {
+    setVisibleTips(filteredTips.length);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
@@ -125,24 +140,50 @@ export default function Tips() {
         {/* Filter Section */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filter Tips
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Filter Tips
+              </div>
+              <Badge variant="outline" className="text-base">
+                {filteredTips.length} {filteredTips.length === 1 ? 'tip' : 'tips'} available
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Category</label>
+                <Select value={categoryFilter} onValueChange={(value) => {
+                  setCategoryFilter(value);
+                  setVisibleTips(12);
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="energy">Energy</SelectItem>
-                    <SelectItem value="transport">Transport</SelectItem>
-                    <SelectItem value="industrial">Industrial</SelectItem>
-                    <SelectItem value="waste">Waste</SelectItem>
+                    <SelectItem value="energy">⚡ Energy</SelectItem>
+                    <SelectItem value="transport">🚗 Transport</SelectItem>
+                    <SelectItem value="industrial">🏭 Industrial</SelectItem>
+                    <SelectItem value="waste">♻️ Waste</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Impact Level</label>
+                <Select value={impactFilter} onValueChange={(value) => {
+                  setImpactFilter(value);
+                  setVisibleTips(12);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select impact" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Impact Levels</SelectItem>
+                    <SelectItem value="high">🔴 High Impact</SelectItem>
+                    <SelectItem value="medium">🟡 Medium Impact</SelectItem>
+                    <SelectItem value="low">🟢 Low Impact</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -157,15 +198,54 @@ export default function Tips() {
           </Alert>
         )}
 
+        {/* Stats Section */}
+        {!loading && filteredTips.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{filteredTips.length}</p>
+                  <p className="text-sm text-emerald-600 dark:text-emerald-300 mt-1">Total Tips</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-chart-1/10 to-chart-1/5 dark:from-chart-1/20 dark:to-chart-1/10 border-chart-1/30">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-chart-1">{filteredTips.filter(t => t.impactLevel === 'high').length}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">High Impact</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 border-primary/30">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-primary">{filteredTips.filter(t => t.impactLevel === 'medium').length}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Medium Impact</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-chart-2/10 to-chart-2/5 dark:from-chart-2/20 dark:to-chart-2/10 border-chart-2/30">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-chart-2">{filteredTips.filter(t => t.impactLevel === 'low').length}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Low Impact</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Tips Grid */}
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTips.map((tip) => {
-              const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedTips.map((tip) => {
+                const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
               
               return (
                 <Card 
@@ -207,6 +287,42 @@ export default function Tips() {
               );
             })}
           </div>
+
+          {/* Load More Button */}
+          {hasMoreTips && (
+            <div className="flex flex-col items-center gap-4 mt-8">
+              <p className="text-slate-600 dark:text-slate-400">
+                Showing {displayedTips.length} of {filteredTips.length} tips
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  onClick={loadMoreTips}
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800"
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Load More Tips
+                </Button>
+                <Button
+                  onClick={showAllTips}
+                  variant="outline"
+                  size="lg"
+                >
+                  Show All {filteredTips.length} Tips
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* All Loaded Message */}
+          {!hasMoreTips && filteredTips.length > 12 && (
+            <div className="text-center mt-8">
+              <Badge variant="outline" className="text-base py-2 px-4">
+                ✨ All {filteredTips.length} tips loaded!
+              </Badge>
+            </div>
+          )}
+        </>
         )}
 
         {/* Empty State */}

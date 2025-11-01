@@ -68,7 +68,6 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [timeRange, setTimeRange] = useState('6months');
-  const [exportFormat, setExportFormat] = useState('csv');
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -99,16 +98,16 @@ export default function Analytics() {
 
   const handleExport = async () => {
     try {
-      const response = await dashboardAPI.exportReport(exportFormat, timeRange);
+      const response = await dashboardAPI.exportReport('csv', timeRange);
       
       // Create download link
       const blob = new Blob([response.data], { 
-        type: exportFormat === 'pdf' ? 'application/pdf' : 'text/csv' 
+        type: 'text/csv' 
       });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `carbon-analytics-${new Date().toISOString().split('T')[0]}.${exportFormat}`;
+      link.download = `carbon-analytics-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -157,18 +156,9 @@ export default function Analytics() {
                     <SelectItem value="2years">Last 2 Years</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={exportFormat} onValueChange={setExportFormat}>
-                  <SelectTrigger className="w-32 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="csv">CSV</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                  </SelectContent>
-                </Select>
                 <Button onClick={handleExport} className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800">
                   <Download className="w-4 h-4 mr-2" />
-                  Export
+                  Export CSV
                 </Button>
               </div>
             </div>
