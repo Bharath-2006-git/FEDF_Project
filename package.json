@@ -31,7 +31,7 @@
     "vite"
   ],
   "engines": {
-    "node": ">=18.0.0",
+    "node": "18.x || 20.x",
     "npm": ">=9.0.0"
   },
   "scripts": {
@@ -136,6 +136,7 @@
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "8.12.2",
     "@typescript-eslint/parser": "8.12.2",
+    "@vercel/node": "^3.2.29",
     "@vitejs/plugin-react": "4.3.3",
     "autoprefixer": "^10.4.20",
     "concurrently": "9.0.1",

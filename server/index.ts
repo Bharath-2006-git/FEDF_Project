@@ -72,39 +72,49 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Dynamic port allocation with conflict resolution
-  const findAvailablePort = async (startPort: number): Promise<number> => {
-    return new Promise((resolve, reject) => {
-      const testServer = createServer();
-      
-      testServer.on('error', (err: any) => {
-        if (err.code === 'EADDRINUSE') {
-          // Port is in use, try the next one
-          findAvailablePort(startPort + 1).then(resolve).catch(reject);
-        } else {
-          reject(err);
-        }
+  // Check if running in Vercel serverless environment
+  if (process.env.VERCEL) {
+    // In Vercel, just export the app, don't start a server
+    log('✓ Running in Vercel serverless environment');
+  } else {
+    // Local development - start the server
+    // Dynamic port allocation with conflict resolution
+    const findAvailablePort = async (startPort: number): Promise<number> => {
+      return new Promise((resolve, reject) => {
+        const testServer = createServer();
+        
+        testServer.on('error', (err: any) => {
+          if (err.code === 'EADDRINUSE') {
+            // Port is in use, try the next one
+            findAvailablePort(startPort + 1).then(resolve).catch(reject);
+          } else {
+            reject(err);
+          }
+        });
+        
+        testServer.on('listening', () => {
+          const address = testServer.address();
+          const port = typeof address === 'string' ? startPort : address?.port || startPort;
+          testServer.close();
+          resolve(port);
+        });
+        
+        testServer.listen(startPort);
       });
-      
-      testServer.on('listening', () => {
-        const address = testServer.address();
-        const port = typeof address === 'string' ? startPort : address?.port || startPort;
-        testServer.close();
-        resolve(port);
-      });
-      
-      testServer.listen(startPort);
-    });
-  };
+    };
 
-  const preferredPort = parseInt(process.env.PORT || '3000', 10);
-  const port = await findAvailablePort(preferredPort);
-  
-  server.listen(port, '0.0.0.0', () => {
-    log(`✓ Server running at http://localhost:${port}`);
-    if (port !== preferredPort) {
-      log(`  Note: Preferred port ${preferredPort} was in use, using port ${port} instead`);
-    }
-    log(`  API endpoint: http://localhost:${port}/api`);
-  });
+    const preferredPort = parseInt(process.env.PORT || '3000', 10);
+    const port = await findAvailablePort(preferredPort);
+    
+    server.listen(port, '0.0.0.0', () => {
+      log(`✓ Server running at http://localhost:${port}`);
+      if (port !== preferredPort) {
+        log(`  Note: Preferred port ${preferredPort} was in use, using port ${port} instead`);
+      }
+      log(`  API endpoint: http://localhost:${port}/api`);
+    });
+  }
 })();
+
+// Export the Express app for Vercel serverless
+export default app;
