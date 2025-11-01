@@ -370,7 +370,7 @@ export default function Auth() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="your.email@example.com"
+                    placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleInputChange}
                     required

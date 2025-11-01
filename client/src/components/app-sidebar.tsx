@@ -2,15 +2,10 @@ import {
   BarChart3, 
   Plus, 
   Target, 
-  TrendingUp, 
   FileText, 
   User, 
   Lightbulb,
-  Home,
-  FlaskConical,
-  Trophy,
-  Bell,
-  Clock
+  Home
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
@@ -30,24 +25,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 
-// Core features menu items
+// Navigation menu items
 const coreMenuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Log Emissions", url: "/emissions", icon: Plus },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Reports", url: "/reports", icon: FileText },
   { title: "Goals", url: "/goals", icon: Target },
+  { title: "Reports", url: "/reports", icon: FileText },
   { title: "Tips", url: "/tips", icon: Lightbulb },
   { title: "Profile", url: "/profile", icon: User },
 ];
 
-// Future features - coming soon
-const futureMenuItems = [
-  { title: "Achievements", url: "/achievements", icon: Trophy, badge: "Soon" },
-  { title: "Notifications", url: "/notifications", icon: Bell, badge: "Soon" },
-  { title: "Compare", url: "/compare", icon: TrendingUp, badge: "Soon" },
-  { title: "What-If Analysis", url: "/what-if", icon: FlaskConical, badge: "Soon" },
-];
+// Future features removed - all core features are now available
 
 export function AppSidebar() {
   const [location] = useLocation();
@@ -63,21 +52,21 @@ export function AppSidebar() {
         <Logo size="md" />
       </SidebarHeader>
       
-      <SidebarContent className="bg-white dark:bg-slate-900">
-        {/* Core Features */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-2 px-3">
-            CORE FEATURES
+      <SidebarContent className="bg-white dark:bg-slate-900 flex flex-col h-full">
+        {/* Navigation Menu */}
+        <SidebarGroup className="flex-1 py-4">
+          <SidebarGroupLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-3 px-3">
+            NAVIGATION
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1 px-2">
+            <SidebarMenu className="space-y-2 px-2">
               {coreMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
                     className={`
                       font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 
-                      hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200
+                      hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 py-3
                       ${location === item.url ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 shadow-sm" : ""}
                     `}
                     data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
@@ -92,37 +81,18 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Future Features */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mb-2 px-3 flex items-center gap-2">
-            COMING SOON
-            <Clock className="w-3 h-3" />
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1 px-2">
-              {futureMenuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    className="font-semibold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200 opacity-60"
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="w-5 h-5" />
-                      <span className="text-sm font-medium flex items-center gap-2">
-                        {item.title}
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-bold">
-                          {item.badge}
-                        </span>
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        
+        {/* Quick Stats Section to fill space */}
+        <div className="px-4 pb-4 mt-auto">
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-lg p-4 border border-emerald-100 dark:border-emerald-800/30">
+            <h3 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2">
+              Quick Tip
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Track your daily emissions to identify patterns and reduce your carbon footprint effectively.
+            </p>
+          </div>
+        </div>
       </SidebarContent>
       
       <SidebarFooter className="p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
