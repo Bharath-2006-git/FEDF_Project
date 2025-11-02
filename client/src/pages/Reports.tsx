@@ -216,7 +216,15 @@ export default function Reports() {
       });
 
       // Generate and download PDF
-      generatePDFReport(filteredEmissions, totalEmissions, breakdown, averageDaily);
+      generatePDFReport(
+        filteredEmissions, 
+        totalEmissions, 
+        breakdown, 
+        averageDaily,
+        reportForm.reportType,
+        reportForm.startDate,
+        reportForm.endDate
+      );
 
       // Add the report to the reports list
       const newReport: Report = {
@@ -282,7 +290,15 @@ export default function Reports() {
     }
   };
 
-  const generatePDFReport = (emissions: any[], totalEmissions: number, breakdown: any[], averageDaily: number) => {
+  const generatePDFReport = (
+    emissions: any[], 
+    totalEmissions: number, 
+    breakdown: any[], 
+    averageDaily: number,
+    reportType: string,
+    startDate: string,
+    endDate: string
+  ) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -358,7 +374,7 @@ export default function Reports() {
     });
     const userName = user?.firstName || 'User';
     doc.text(`Date: ${reportDate}`, pageWidth - 15, 13, { align: 'right' });
-    doc.text(`Period: ${reportForm.startDate} to ${reportForm.endDate}`, pageWidth - 15, 19, { align: 'right' });
+    doc.text(`Period: ${startDate} to ${endDate}`, pageWidth - 15, 19, { align: 'right' });
     doc.text(`User: ${userName}`, pageWidth - 15, 25, { align: 'right' });
     
     // Executive Summary Cards with modern card design
@@ -469,9 +485,9 @@ export default function Reports() {
     yPos += 13;
     
     // Calculate metrics with safe defaults
-    const daysCount = Math.max(1, Math.ceil((new Date(reportForm.endDate).getTime() - new Date(reportForm.startDate).getTime()) / (1000 * 60 * 60 * 24)));
+    const daysCount = Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)));
     const emissionsPerEntry = emissions.length > 0 ? (totalEmissions / emissions.length) : 0;
-    const reportTypeText = reportForm.reportType.charAt(0).toUpperCase() + reportForm.reportType.slice(1);
+    const reportTypeText = reportType.charAt(0).toUpperCase() + reportType.slice(1);
     const performanceStatus = totalEmissions < (averageDaily * 30) ? 'On Track' : 'Needs Attention';
     
     const summaryData = [
@@ -926,24 +942,21 @@ export default function Reports() {
       const daysInPeriod = Math.max(1, Math.ceil((new Date(report.endDate).getTime() - new Date(report.startDate).getTime()) / (1000 * 60 * 60 * 24)));
       const averageDaily = totalEmissions / daysInPeriod;
       
-      // Temporarily set report form to match this report
-      const originalForm = { ...reportForm };
-      setReportForm({
-        reportType: report.reportType,
-        startDate: report.startDate,
-        endDate: report.endDate
-      });
+      // Generate the PDF using the existing function with the report's actual data
+      generatePDFReport(
+        filteredData, 
+        totalEmissions, 
+        breakdown, 
+        averageDaily,
+        report.reportType,
+        report.startDate,
+        report.endDate
+      );
       
-      // Generate the PDF using the existing function
-      setTimeout(() => {
-        generatePDFReport(filteredData, totalEmissions, breakdown, averageDaily);
-        setReportForm(originalForm); // Restore original form
-        
-        toast({
-          title: "Success",
-          description: "Report downloaded successfully",
-        });
-      }, 100);
+      toast({
+        title: "Success",
+        description: "Report downloaded successfully",
+      });
       
     } catch (error) {
       console.error('Download error:', error);
