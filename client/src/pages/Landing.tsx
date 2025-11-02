@@ -63,13 +63,13 @@ export default function Landing() {
                 </div>
               </Button>
 
-              <Link href="/auth?mode=login">
+              <Link href="/auth">
                 <Button variant="ghost" className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-50 dark:hover:bg-slate-800">
                   Login
                 </Button>
               </Link>
               
-              <Link href="/auth?mode=register">
+              <Link href="/auth">
                 <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg">
                   Get Started
                 </Button>
@@ -84,15 +84,15 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              Smart Carbon Tracking Platform
+              🌍 Personal Carbon Tracking Made Simple
             </Badge>
             
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 bg-clip-text text-transparent mb-6 leading-tight">
               CarbonSense
             </h1>
             
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-800 dark:text-gray-200 mb-8">
-              Monitor Your Environmental Impact
+              Track Your Carbon Footprint
             </h2>
             
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
@@ -101,14 +101,14 @@ export default function Landing() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/auth?mode=register">
+              <Link href="/auth">
                 <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                   Get Started Today
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               
-              <Link href="/auth?mode=login">
+              <Link href="/auth">
                 <Button variant="outline" size="lg" className="px-8 py-4 text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300">
                   Sign In
                   <ChevronRight className="ml-2 h-5 w-5" />
@@ -124,7 +124,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Why CarbonSense?
+              Why Track Your Carbon Footprint?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Every action matters. Start your journey toward a more sustainable future today.
@@ -287,20 +287,20 @@ export default function Landing() {
             <Leaf className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            Start Your Sustainability Journey with CarbonSense
+            Start Your Sustainability Journey Today
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Take the first step toward reducing your environmental impact. Monitor emissions, 
+            Take the first step toward reducing your environmental impact. Track your carbon footprint, 
             set meaningful goals, and discover how small changes can make a big difference.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth?mode=register">
+            <Link href="/auth">
               <Button size="lg" variant="secondary" className="px-8 py-4 text-lg font-semibold bg-white text-emerald-600 hover:bg-gray-50 hover:scale-105 transition-all duration-300 shadow-xl">
                 Get Started Now
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/auth?mode=login">
+            <Link href="/auth">
               <Button size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 hover:scale-105 transition-all duration-300 backdrop-blur-sm">
                 Sign In
               </Button>
@@ -310,34 +310,34 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-slate-100 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-gray-800 dark:text-white py-16">
+      <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 dark:from-black dark:via-slate-950 dark:to-black text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl flex items-center justify-center">
                 <Leaf className="h-7 w-7 text-white" />
               </div>
-              <span className="text-3xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 dark:from-emerald-400 dark:via-teal-400 dark:to-blue-400 bg-clip-text text-transparent">CarbonSense</span>
+              <span className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">CarbonSense</span>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 mb-6 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-300 mb-6 text-lg max-w-2xl mx-auto">
               Empowering individuals and organizations to track their carbon footprint and make a positive impact on our planet's future
             </p>
-            <div className="flex justify-center space-x-8 text-sm text-gray-500 dark:text-gray-400 mb-8">
-              <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300 flex items-center space-x-1">
+            <div className="flex justify-center space-x-8 text-sm text-gray-400 mb-8">
+              <a href="#" className="hover:text-emerald-400 transition-colors duration-300 flex items-center space-x-1">
                 <Shield className="h-4 w-4" />
                 <span>Privacy Policy</span>
               </a>
-              <a href="#" className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300 flex items-center space-x-1">
+              <a href="#" className="hover:text-teal-400 transition-colors duration-300 flex items-center space-x-1">
                 <FileText className="h-4 w-4" />
                 <span>Terms of Service</span>
               </a>
-              <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300 flex items-center space-x-1">
+              <a href="#" className="hover:text-blue-400 transition-colors duration-300 flex items-center space-x-1">
                 <Mail className="h-4 w-4" />
                 <span>Contact Us</span>
               </a>
             </div>
-            <div className="border-t border-gray-300 dark:border-gray-700/50 pt-6">
-              <p className="text-gray-500 dark:text-gray-500 text-sm">
+            <div className="border-t border-gray-700/50 pt-6">
+              <p className="text-gray-500 text-sm">
                 © 2024 CarbonSense. Building a sustainable future, one step at a time.
               </p>
             </div>
