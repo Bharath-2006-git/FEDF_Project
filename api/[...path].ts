@@ -75,10 +75,10 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
             return done(new Error("No email found in Google profile"), undefined);
           }
 
-          // Check if user exists
+          // Check if user exists - only select needed fields for faster query
           const { data: existingUser } = await supabase
             .from("users")
-            .select("*")
+            .select("id, email, role, first_name, last_name, company_name, company_department, created_at")
             .eq("email", email)
             .limit(1)
             .maybeSingle();
@@ -87,7 +87,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
             return done(null, existingUser);
           }
 
-          // Create new user
+          // Create new user with faster password (Google users don't need strong bcrypt hash)
           const names = profile.displayName?.split(" ") || ["", ""];
           const firstName = profile.name?.givenName || names[0] || "User";
           const lastName = profile.name?.familyName || names[names.length - 1] || "";
@@ -96,17 +96,21 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
             .from("users")
             .insert({
               email,
-              password: await bcrypt.hash(Math.random().toString(36), 10),
+              password: 'google-oauth-' + Date.now(), // Simple placeholder, not used for OAuth users
               first_name: firstName,
               last_name: lastName,
               role: "individual",
             })
-            .select()
+            .select("id, email, role, first_name, last_name, company_name, company_department, created_at")
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ OAuth user creation error:', JSON.stringify(error, null, 2));
+            throw error;
+          }
           return done(null, newUser);
         } catch (error) {
+          console.error('❌ OAuth error:', error);
           return done(error as Error, undefined);
         }
       }
@@ -153,18 +157,16 @@ app.get("/api/auth/google/callback", (req, res, next) => {
         { expiresIn: '24h' }
       );
 
-      // Map database fields to frontend expected format
-      const { password, first_name, last_name, company_name, company_department, created_at, updated_at, ...rest } = user;
-      const userForFrontend = {
-        ...rest,
-        firstName: first_name || 'User',
-        lastName: last_name || '',
-        companyName: company_name,
-        companyDepartment: company_department,
-        createdAt: created_at,
+      // Only send minimal user data in URL to reduce size and speed up redirect
+      const minimalUser = {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name || 'User',
+        lastName: user.last_name || '',
+        role: user.role
       };
       
-      const userData = encodeURIComponent(JSON.stringify(userForFrontend));
+      const userData = encodeURIComponent(JSON.stringify(minimalUser));
       res.redirect(`${FRONTEND_URL}/auth-callback?token=${token}&user=${userData}`);
     } catch (error) {
       console.error('[OAuth] Token generation error:', error);
