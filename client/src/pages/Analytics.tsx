@@ -227,7 +227,7 @@ export default function Analytics() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl">
+              <div className="p-2 bg-emerald-600 rounded-xl">
                 <BarChart3 className="w-7 h-7 text-white" />
               </div>
               Advanced Analytics
@@ -261,7 +261,7 @@ export default function Analytics() {
 
         {/* AI Performance Score Card */}
         {insights && (
-          <Alert className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 border-emerald-300 dark:border-emerald-700">
+          <Alert className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-emerald-300 dark:border-emerald-700">
             <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             <AlertDescription className="text-slate-900 dark:text-slate-100">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -296,24 +296,24 @@ export default function Analytics() {
           </Alert>
         )}
 
-        {/* Key Metrics - Enhanced with Better Visuals */}
+        {/* Key Metrics - Clean Design Matching Emerald Theme */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200 dark:border-red-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Peak Day</CardTitle>
-              <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-lg">
-                <Flame className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <Flame className="h-5 w-5 text-red-500 dark:text-red-400" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-600 dark:text-red-400">
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">
                 {data?.peakAnalysis.highestDay.value.toFixed(1)}
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                 kg CO₂ on {new Date(data?.peakAnalysis.highestDay.date || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </p>
               <div className="mt-3">
-                <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                   <AlertTriangle className="w-3 h-3" />
                   Highest emissions recorded
                 </div>
@@ -321,11 +321,11 @@ export default function Analytics() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Best Day</CardTitle>
-              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg">
-                <Droplet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
             </CardHeader>
             <CardContent>
@@ -336,7 +336,7 @@ export default function Analytics() {
                 kg CO₂ on {new Date(data?.peakAnalysis.lowestDay.date || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </p>
               <div className="mt-3">
-                <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                   <CheckCircle2 className="w-3 h-3" />
                   Lowest emissions recorded
                 </div>
@@ -344,15 +344,15 @@ export default function Analytics() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Daily Average</CardTitle>
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <Activity className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">
                 {data?.peakAnalysis.averageDaily.toFixed(1)}
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -363,22 +363,22 @@ export default function Analytics() {
                   value={Math.min((data?.peakAnalysis.averageDaily || 0) / (data?.peakAnalysis.highestDay.value || 1) * 100, 100)} 
                   className="h-2"
                 />
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   {((data?.peakAnalysis.averageDaily || 0) / (data?.peakAnalysis.highestDay.value || 1) * 100).toFixed(0)}% of peak
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Goals Achievement</CardTitle>
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
-                <Award className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                <Target className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">
                 {data?.yearlyTrends.filter(year => year.achieved).length || 0}/{data?.yearlyTrends.length || 0}
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -389,8 +389,8 @@ export default function Analytics() {
                   value={Math.round(((data?.yearlyTrends.filter(year => year.achieved).length || 0) / (data?.yearlyTrends.length || 1)) * 100)} 
                   className="h-2"
                 />
-                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                  Keep pushing forward! 🎯
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Keep pushing forward!
                 </p>
               </div>
             </CardContent>
@@ -404,15 +404,15 @@ export default function Analytics() {
               <BarChart3 className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="trends" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="trends" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <TrendingUp className="w-4 h-4 mr-2" />
               Trends
             </TabsTrigger>
-            <TabsTrigger value="categories" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger value="categories" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <PieChartIcon className="w-4 h-4 mr-2" />
               Categories
             </TabsTrigger>
-            <TabsTrigger value="insights" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+            <TabsTrigger value="insights" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
               <Sparkles className="w-4 h-4 mr-2" />
               AI Insights
             </TabsTrigger>
@@ -739,7 +739,7 @@ export default function Analytics() {
                     {data?.monthlyComparison.slice(-6).reverse().map((month, index) => (
                       <div 
                         key={month.month}
-                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+                        className="flex items-center justify-between p-4 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
                       >
                         <div className="flex items-center gap-4">
                           <div className="text-2xl font-bold text-slate-400 dark:text-slate-600">
@@ -757,10 +757,10 @@ export default function Analytics() {
                         <div className="flex items-center gap-3">
                           <Badge 
                             variant={month.change < 0 ? "default" : "destructive"}
-                            className={`text-sm px-3 py-1 ${
+                            className={`text-sm px-3 py-1 border-0 ${
                               month.change < 0 
                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
-                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                             }`}
                           >
                             {month.change < 0 ? (
@@ -844,7 +844,7 @@ export default function Analytics() {
                       .map((category, index) => (
                         <div 
                           key={category.category} 
-                          className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
+                          className="flex items-center justify-between p-4 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all"
                         >
                           <div className="flex items-center gap-3 flex-1">
                             <div 
@@ -871,10 +871,10 @@ export default function Analytics() {
                           </div>
                           <Badge 
                             variant={category.trend < 0 ? "default" : "destructive"}
-                            className={`ml-3 ${
+                            className={`ml-3 border-0 ${
                               category.trend < 0 
                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
-                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                             }`}
                           >
                             {category.trend < 0 ? (
@@ -898,10 +898,12 @@ export default function Analytics() {
               <>
                 {/* Key Insights Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800 shadow-lg">
+                  <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-                        <CheckCircle2 className="w-5 h-5" />
+                      <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
                         Improving Areas
                       </CardTitle>
                     </CardHeader>
@@ -913,7 +915,7 @@ export default function Analytics() {
                         {insights.improvingCategories.slice(0, 3).map((cat) => (
                           <div key={cat.category} className="flex items-center justify-between text-sm">
                             <span className="text-slate-700 dark:text-slate-300">{cat.category}</span>
-                            <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                            <Badge variant="default" className="border-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                               <TrendingDown className="w-3 h-3 mr-1" />
                               {Math.abs(cat.trend).toFixed(1)}%
                             </Badge>
@@ -926,22 +928,24 @@ export default function Analytics() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200 dark:border-red-800 shadow-lg">
+                  <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
-                        <AlertTriangle className="w-5 h-5" />
+                      <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                          <AlertTriangle className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                        </div>
                         Need Attention
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-4xl font-bold text-red-600 dark:text-red-400 mb-4">
+                      <div className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
                         {insights.worseningCategories.length}
                       </div>
                       <div className="space-y-2">
                         {insights.worseningCategories.slice(0, 3).map((cat) => (
                           <div key={cat.category} className="flex items-center justify-between text-sm">
                             <span className="text-slate-700 dark:text-slate-300">{cat.category}</span>
-                            <Badge variant="destructive" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                            <Badge variant="default" className="border-0 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                               <TrendingUp className="w-3 h-3 mr-1" />
                               {cat.trend.toFixed(1)}%
                             </Badge>
@@ -954,15 +958,17 @@ export default function Analytics() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 shadow-lg">
+                  <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
-                        <Target className="w-5 h-5" />
+                      <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                          <Target className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
                         Top Emitter
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                      <div className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                         {insights.highestCategory.category}
                       </div>
                       <div className="text-lg text-slate-700 dark:text-slate-300 mb-4">
@@ -975,9 +981,9 @@ export default function Analytics() {
                       <p className="text-sm text-slate-600 dark:text-slate-400">
                         {insights.highestCategory.percentage.toFixed(1)}% of total emissions
                       </p>
-                      <Alert className="mt-4 bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700">
-                        <Info className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                        <AlertDescription className="text-purple-700 dark:text-purple-300 text-xs">
+                      <Alert className="mt-4 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+                        <Info className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                        <AlertDescription className="text-slate-700 dark:text-slate-300 text-xs">
                           Focus your reduction efforts here for maximum impact
                         </AlertDescription>
                       </Alert>
@@ -986,22 +992,24 @@ export default function Analytics() {
                 </div>
 
                 {/* Recommendations */}
-                <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-800 shadow-lg">
-                  <CardHeader className="border-b border-amber-200 dark:border-amber-800">
-                    <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
-                      <Sparkles className="w-5 h-5" />
+                <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200 dark:border-slate-700 shadow-lg">
+                  <CardHeader className="border-b border-slate-200 dark:border-slate-700">
+                    <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+                      <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+                        <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
                       AI-Powered Recommendations
                     </CardTitle>
-                    <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                       Personalized action items based on your emission patterns
                     </p>
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="space-y-4">
                       {insights.recentTrend > 0 && (
-                        <Alert className="bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700">
-                          <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                          <AlertDescription className="text-red-900 dark:text-red-300">
+                        <Alert className="bg-slate-50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-700">
+                          <AlertTriangle className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                          <AlertDescription className="text-slate-900 dark:text-slate-100">
                             <strong>Priority Action:</strong> Your emissions increased by {insights.recentTrend.toFixed(1)} kg CO₂ recently. 
                             Focus on reducing <strong>{insights.highestCategory.category}</strong> emissions first - it accounts for {insights.highestCategory.percentage.toFixed(1)}% of your footprint.
                           </AlertDescription>
@@ -1019,9 +1027,9 @@ export default function Analytics() {
                       )}
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                           <div className="flex items-center gap-2 mb-2">
-                            <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                            <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                             <h4 className="font-semibold text-slate-900 dark:text-white">Quick Win</h4>
                           </div>
                           <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -1029,9 +1037,9 @@ export default function Analytics() {
                           </p>
                         </div>
 
-                        <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                           <div className="flex items-center gap-2 mb-2">
-                            <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                            <Target className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                             <h4 className="font-semibold text-slate-900 dark:text-white">Set a Goal</h4>
                           </div>
                           <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -1040,14 +1048,14 @@ export default function Analytics() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
                         <div>
-                          <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-1">Performance Score</h4>
-                          <p className="text-sm text-blue-700 dark:text-blue-400">
+                          <h4 className="font-semibold text-slate-900 dark:text-white mb-1">Performance Score</h4>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
                             You're in the <strong>{insights.performanceScore >= 75 ? 'Excellent' : insights.performanceScore >= 50 ? 'Good' : 'Getting Started'}</strong> range
                           </p>
                         </div>
-                        <div className="text-5xl font-bold text-blue-600 dark:text-blue-400">
+                        <div className="text-5xl font-bold text-emerald-600 dark:text-emerald-400">
                           {insights.performanceScore}
                         </div>
                       </div>
