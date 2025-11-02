@@ -33,7 +33,12 @@ import {
   Sparkles,
   Clock,
   Trophy,
-  Share2
+  Share2,
+  Home,
+  Utensils,
+  ShoppingBag,
+  Plane,
+  Recycle
 } from "lucide-react";
 
 interface Tip {
@@ -101,9 +106,10 @@ export default function Tips() {
   const [impactFilter, setImpactFilter] = useState<string>("all");
   const [userEmissions, setUserEmissions] = useState<any[]>([]);
   const [topCategories, setTopCategories] = useState<string[]>([]);
+  const [categoryEmissions, setCategoryEmissions] = useState<Record<string, number>>({});
   const [showPersonalized, setShowPersonalized] = useState(true);
   const [loadingEmissions, setLoadingEmissions] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("smart");
   const [completedTips, setCompletedTips] = useState<CompletedTip[]>([]);
   const [totalUserEmissions, setTotalUserEmissions] = useState<number>(0);
   const [potentialSavings, setPotentialSavings] = useState<number>(0);
@@ -183,7 +189,7 @@ export default function Tips() {
           const total = emissions.reduce((sum: number, e: any) => sum + (e.co2Emissions || 0), 0);
           setTotalUserEmissions(total);
 
-          // Calculate top emission categories
+          // Calculate emission totals per category with detailed analysis
           const categoryTotals: Record<string, number> = {};
           emissions.forEach((emission: any) => {
             const cat = emission.category?.toLowerCase() || 'other';
@@ -191,15 +197,15 @@ export default function Tips() {
           });
 
           console.log('📈 Category totals:', categoryTotals);
+          setCategoryEmissions(categoryTotals);
 
-          // Get top 3 categories
+          // Get ALL categories sorted by emissions (not just top 3)
           const sorted = Object.entries(categoryTotals)
             .sort(([, a], [, b]) => b - a)
-            .slice(0, 3)
             .map(([cat]) => cat);
           
-          console.log('🎯 Top categories:', sorted);
-          setTopCategories(sorted);
+          console.log('🎯 All categories sorted:', sorted);
+          setTopCategories(sorted); // Now contains all categories in order
         } else {
           console.log('⚠️ No emission data found');
         }
@@ -277,16 +283,82 @@ export default function Tips() {
     return 'This month';
   };
 
-  // Get personalized tips based on user's top emission categories
-  const personalizedTips = React.useMemo(() => {
+  // Get smart-sorted tips based on user's emission data
+  const smartSortedTips = React.useMemo(() => {
+    if (topCategories.length === 0 || Object.keys(categoryEmissions).length === 0) {
+      // No emission data, return tips sorted by impact level
+      return [...tips].sort((a, b) => {
+        const impactOrder = { high: 3, medium: 2, low: 1 };
+        return (impactOrder[b.impactLevel as keyof typeof impactOrder] || 0) - 
+               (impactOrder[a.impactLevel as keyof typeof impactOrder] || 0);
+      });
+    }
+    
+    // Score each tip based on user's emission pattern
+    const scoredTips = tips.map(tip => {
+      const tipCategory = tip.category.toLowerCase();
+      const categoryEmission = categoryEmissions[tipCategory] || 0;
+      const categoryRank = topCategories.indexOf(tipCategory);
+      
+      // Calculate relevance score
+      let score = 0;
+      
+      // Higher score for categories with more emissions
+      if (categoryEmission > 0) {
+        score += categoryEmission / totalUserEmissions * 1000; // Weight by % of total emissions
+      }
+      
+      // Bonus for top categories
+      if (categoryRank >= 0 && categoryRank < 3) {
+        score += (3 - categoryRank) * 100; // Top 3 categories get bonus
+      }
+      
+      // Impact level bonus
+      const impactBonus = { high: 50, medium: 30, low: 10 };
+      score += impactBonus[tip.impactLevel as keyof typeof impactBonus] || 0;
+      
+      // Bonus for high savings
+      score += (tip.estimatedSavings || 0) / 10;
+      
+      return { ...tip, relevanceScore: score };
+    });
+    
+    // Sort by relevance score
+    const sorted = scoredTips.sort((a, b) => b.relevanceScore - a.relevanceScore);
+    
+    console.log('🎯 Smart-sorted tips:', sorted.slice(0, 5).map(t => ({
+      title: t.title,
+      category: t.category,
+      score: t.relevanceScore,
+      emission: categoryEmissions[t.category.toLowerCase()]
+    })));
+    
+    return sorted;
+  }, [tips, topCategories, categoryEmissions, totalUserEmissions]);
+
+  // Get top priority tips for user's highest emission categories
+  const priorityTips = React.useMemo(() => {
     if (topCategories.length === 0) return [];
     
-    const matched = tips.filter(tip => 
-      topCategories.includes(tip.category.toLowerCase())
-    ).slice(0, 6);
+    // Get tips for top 3 emission categories
+    const topThreeCategories = topCategories.slice(0, 3);
     
-    console.log('💡 Personalized tips matched:', matched.length, 'from categories:', topCategories);
-    return matched;
+    const matched = tips.filter(tip => 
+      topThreeCategories.includes(tip.category.toLowerCase())
+    );
+    
+    // Sort by impact level and estimated savings
+    const sorted = matched.sort((a, b) => {
+      const impactOrder = { high: 3, medium: 2, low: 1 };
+      const impactDiff = (impactOrder[b.impactLevel as keyof typeof impactOrder] || 0) - 
+                        (impactOrder[a.impactLevel as keyof typeof impactOrder] || 0);
+      
+      if (impactDiff !== 0) return impactDiff;
+      return (b.estimatedSavings || 0) - (a.estimatedSavings || 0);
+    });
+    
+    console.log('💡 Priority tips for top categories:', topThreeCategories, 'Count:', sorted.length);
+    return sorted;
   }, [tips, topCategories]);
 
   // Calculate achieved savings from completed tips
@@ -306,10 +378,27 @@ export default function Tips() {
     return categoryMatch && impactMatch;
   });
 
-  // Show personalized tips first if enabled, otherwise show filtered tips
-  const tipsToShow = showPersonalized && personalizedTips.length > 0 && categoryFilter === 'all' 
-    ? [...personalizedTips, ...filteredTips.filter(t => !personalizedTips.find(p => p.id === t.id))]
-    : filteredTips;
+  // Smart sorting: Use emission data to show most relevant tips first
+  const tipsToShow = React.useMemo(() => {
+    if (activeTab === 'smart' && topCategories.length > 0) {
+      // In smart tab, show tips sorted by relevance to user's emissions
+      return smartSortedTips.filter(tip => {
+        const categoryMatch = categoryFilter === 'all' || tip.category === categoryFilter;
+        const impactMatch = impactFilter === 'all' || tip.impactLevel === impactFilter;
+        return categoryMatch && impactMatch;
+      });
+    } else if (activeTab === 'priority' && priorityTips.length > 0) {
+      // In priority tab, show only tips for top 3 categories
+      return priorityTips.filter(tip => {
+        const categoryMatch = categoryFilter === 'all' || tip.category === categoryFilter;
+        const impactMatch = impactFilter === 'all' || tip.impactLevel === impactFilter;
+        return categoryMatch && impactMatch;
+      });
+    } else {
+      // In other tabs, show filtered tips
+      return filteredTips;
+    }
+  }, [activeTab, smartSortedTips, priorityTips, filteredTips, categoryFilter, impactFilter, topCategories]);
 
   const displayedTips = tipsToShow.slice(0, visibleTips);
   const hasMoreTips = tipsToShow.length > visibleTips;
@@ -439,31 +528,72 @@ export default function Tips() {
           </Card>
         </div>
 
-        {/* Personalized Priority Actions */}
-        {!loadingEmissions && personalizedTips.length > 0 && topCategories.length > 0 && (
+        {/* Your Emission Breakdown - Smart Analysis */}
+        {!loadingEmissions && topCategories.length > 0 && Object.keys(categoryEmissions).length > 0 && (
           <Card className="border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-400">
                     <Flame className="w-6 h-6 fill-current" />
-                    Priority Actions for You
+                    Your Emission Hotspots
                   </CardTitle>
                   <CardDescription className="text-amber-700 dark:text-amber-300 mt-2">
-                    Your data shows high emissions in: <span className="font-bold">{topCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')}</span>
+                    We've analyzed your carbon footprint - here's where you can make the biggest impact
                   </CardDescription>
                 </div>
                 <Badge className="bg-amber-500 text-white border-0">
-                  <Star className="w-3 h-3 mr-1" />
-                  Top Priority
+                  <BarChart3 className="w-3 h-3 mr-1" />
+                  AI Analysis
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <Alert className="bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 mb-4">
-                <BarChart3 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <CardContent className="space-y-4">
+              {/* Top 3 Emission Categories with Bars */}
+              <div className="space-y-3">
+                {topCategories.slice(0, 3).map((category, index) => {
+                  const emission = categoryEmissions[category] || 0;
+                  const percentage = (emission / totalUserEmissions) * 100;
+                  const categoryTips = tips.filter(t => t.category.toLowerCase() === category).length;
+                  
+                  return (
+                    <div key={category} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <Badge className={`${
+                            index === 0 ? 'bg-red-500' : index === 1 ? 'bg-orange-500' : 'bg-amber-500'
+                          } text-white border-0`}>
+                            #{index + 1}
+                          </Badge>
+                          <span className="font-semibold capitalize">{category}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-amber-900 dark:text-amber-300">
+                            {emission.toFixed(1)} kg CO₂
+                          </span>
+                          <span className="text-amber-700 dark:text-amber-400">
+                            ({percentage.toFixed(1)}%)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Progress 
+                          value={percentage} 
+                          className="h-3 flex-1 bg-amber-200 dark:bg-amber-900/30" 
+                        />
+                        <span className="text-xs text-amber-700 dark:text-amber-400 whitespace-nowrap">
+                          {categoryTips} tips
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Alert className="bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
+                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <AlertDescription className="text-amber-900 dark:text-amber-300">
-                  <strong>Impact Analysis:</strong> Focusing on these {personalizedTips.length} priority actions could reduce up to <strong>{personalizedTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0).toFixed(0)} kg CO₂/year</strong> from your highest emission sources
+                  <strong>💡 Smart Insight:</strong> We've prioritized {priorityTips.length} actions targeting your top emission areas. Following these tips could reduce up to <strong>{priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0).toFixed(0)} kg CO₂/year</strong> - that's equivalent to <strong>{(priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0) / totalUserEmissions * 100).toFixed(1)}%</strong> of your total emissions!
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -496,16 +626,21 @@ export default function Tips() {
           <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
             <CardHeader>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <TabsList className="grid grid-cols-3 w-full sm:w-auto">
+                <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+                  <TabsTrigger value="smart" className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Smart
+                    <Badge variant="secondary" className="ml-1 bg-amber-500 text-white">AI</Badge>
+                  </TabsTrigger>
                   <TabsTrigger value="all" className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
-                    All Actions
+                    All
                     <Badge variant="secondary" className="ml-1">{tips.length}</Badge>
                   </TabsTrigger>
                   <TabsTrigger value="priority" className="flex items-center gap-2">
                     <Target className="w-4 h-4" />
                     Priority
-                    <Badge variant="secondary" className="ml-1">{personalizedTips.length}</Badge>
+                    <Badge variant="secondary" className="ml-1">{priorityTips.length}</Badge>
                   </TabsTrigger>
                   <TabsTrigger value="completed" className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
@@ -566,12 +701,160 @@ export default function Tips() {
             </div>
           ) : (
             <>
+              {/* Smart Tab - AI-Sorted Based on User Emissions */}
+              <TabsContent value="smart" className="mt-6">
+                {topCategories.length > 0 ? (
+                  <>
+                    <Alert className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-300 dark:border-amber-700">
+                      <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      <AlertDescription className="text-amber-900 dark:text-amber-300">
+                        <strong>🎯 Smart Mode Active:</strong> Tips are sorted by relevance to YOUR carbon footprint. We're showing the most impactful actions for your emission patterns first!
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {displayedTips.map((tip, index) => {
+                        const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
+                        const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
+                        const isPriority = priorityTips.find((p: Tip) => p.id === tip.id);
+                        const tipCategoryEmission = categoryEmissions[tip.category.toLowerCase()] || 0;
+                        const isHighEmissionCategory = topCategories.indexOf(tip.category.toLowerCase()) < 3;
+                        const emissionPercentage = totalUserEmissions > 0 ? (tipCategoryEmission / totalUserEmissions * 100).toFixed(1) : '0';
+                        
+                        return (
+                          <Card 
+                            key={tip.id} 
+                            className={`backdrop-blur-xl hover:shadow-xl transition-all duration-300 ${
+                              isCompleted 
+                                ? 'bg-emerald-50/50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' 
+                                : isHighEmissionCategory
+                                ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-400 dark:border-amber-600'
+                                : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-700'
+                            } ${!isCompleted && 'hover:scale-[1.02]'}`}
+                          >
+                            <CardHeader className="space-y-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <Checkbox
+                                    checked={isCompleted}
+                                    onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings || 0)}
+                                    className="mt-1"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                      <div className={`p-2 rounded-lg ${
+                                        isHighEmissionCategory 
+                                          ? 'bg-amber-100 dark:bg-amber-900/50' 
+                                          : 'bg-emerald-100 dark:bg-emerald-900/30'
+                                      }`}>
+                                        <IconComponent className={`w-4 h-4 ${
+                                          isHighEmissionCategory 
+                                            ? 'text-amber-600 dark:text-amber-400' 
+                                            : 'text-emerald-600 dark:text-emerald-400'
+                                        }`} />
+                                      </div>
+                                      {index < 5 && isHighEmissionCategory && (
+                                        <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
+                                          <Star className="w-3 h-3 mr-1 fill-current" />
+                                          Top Match
+                                        </Badge>
+                                      )}
+                                      {tipCategoryEmission > 0 && (
+                                        <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 dark:text-amber-300">
+                                          {emissionPercentage}% of your emissions
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <CardTitle className={`text-base ${isCompleted && 'line-through text-slate-400'}`}>
+                                      {tip.title}
+                                    </CardTitle>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-2">
+                                <Badge className={`${impactColors[tip.impactLevel as keyof typeof impactColors]} border-0 text-xs`}>
+                                  {tip.impactLevel} impact
+                                </Badge>
+                                <Badge className={`${difficultyColors[tip.difficulty as keyof typeof difficultyColors]} border-0 text-xs`}>
+                                  {tip.difficulty}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {tip.timeframe}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            
+                            <CardContent className="space-y-4">
+                              <p className={`text-sm leading-relaxed ${
+                                isCompleted 
+                                  ? 'text-slate-400 dark:text-slate-500' 
+                                  : 'text-slate-600 dark:text-slate-300'
+                              }`}>
+                                {tip.content}
+                              </p>
+                              
+                              <div className={`p-3 rounded-lg ${
+                                isHighEmissionCategory 
+                                  ? 'bg-amber-100 dark:bg-amber-900/30' 
+                                  : 'bg-slate-100 dark:bg-slate-800'
+                              }`}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                    {isHighEmissionCategory ? 'High-Priority Impact' : 'Potential Impact'}
+                                  </span>
+                                  <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                                  {tip.estimatedSavings} <span className="text-sm font-normal">kg CO₂/year</span>
+                                </p>
+                                {tipCategoryEmission > 0 && (
+                                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Could reduce your {tip.category} emissions by {((tip.estimatedSavings || 0) / tipCategoryEmission * 100).toFixed(1)}%
+                                  </p>
+                                )}
+                              </div>
+
+                              {isCompleted && (
+                                <Alert className="bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                  <AlertDescription className="text-emerald-700 dark:text-emerald-300 text-sm">
+                                    <strong>Completed!</strong> You're saving {tip.estimatedSavings} kg CO₂/year
+                                  </AlertDescription>
+                                </Alert>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <Card className="bg-white/70 dark:bg-slate-900/80">
+                    <CardContent className="text-center py-12">
+                      <BarChart3 className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Emission Data Yet</h3>
+                      <p className="text-slate-500 dark:text-slate-400 mb-4">
+                        Log your emissions to unlock AI-powered smart recommendations tailored to your carbon footprint
+                      </p>
+                      <Button onClick={() => window.location.href = '/log-emissions'} className="bg-emerald-600 hover:bg-emerald-700">
+                        <Zap className="w-4 h-4 mr-2" />
+                        Log Your First Emission
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
               <TabsContent value="all" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {displayedTips.map((tip) => {
                     const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
                     const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
-                    const isPriority = personalizedTips.find(p => p.id === tip.id);
+                    const isPriority = priorityTips.find((p: Tip) => p.id === tip.id);
+                    const tipCategoryEmission = categoryEmissions[tip.category.toLowerCase()] || 0;
+                    const isHighEmissionCategory = topCategories.indexOf(tip.category.toLowerCase()) < 3;
                     
                     return (
                       <Card 
@@ -678,9 +961,9 @@ export default function Tips() {
               </TabsContent>
 
               <TabsContent value="priority" className="mt-6">
-                {personalizedTips.length > 0 ? (
+                {priorityTips.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {personalizedTips.map((tip) => {
+                    {priorityTips.map((tip: Tip) => {
                       const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
                       const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
                       
