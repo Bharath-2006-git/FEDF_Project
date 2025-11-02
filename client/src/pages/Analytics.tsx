@@ -23,8 +23,7 @@ import {
   Award,
   ArrowUpRight,
   ArrowDownRight,
-  Info,
-  Sparkles
+  Info
 } from "lucide-react";
 import {
   PieChart,
@@ -90,7 +89,7 @@ export default function Analytics() {
   const [timeRange, setTimeRange] = useState('6months');
   const [activeTab, setActiveTab] = useState('overview');
 
-  // AI-Powered Insights
+  // Calculate insights from data
   const insights = React.useMemo(() => {
     if (!data || !data.categoryBreakdown || data.categoryBreakdown.length === 0) return null;
 
@@ -233,7 +232,7 @@ export default function Analytics() {
               Advanced Analytics
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
-              AI-powered insights into your carbon emission patterns and trends
+              Detailed insights into your carbon emission patterns and trends
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -259,21 +258,21 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* AI Performance Score Card */}
+        {/* Emissions Summary */}
         {insights && (
           <Alert className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-emerald-300 dark:border-emerald-700">
-            <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             <AlertDescription className="text-slate-900 dark:text-slate-100">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <strong className="text-lg">Your Carbon Performance Score: {insights.performanceScore}/100</strong>
+                  <strong className="text-lg">Emissions Summary</strong>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                     {insights.recentTrend < 0 ? (
-                      <>✨ Great job! Your emissions are trending downward by {Math.abs(insights.recentTrend).toFixed(1)} kg CO₂</>
+                      <>Great job! Your emissions are trending downward by {Math.abs(insights.recentTrend).toFixed(1)} kg CO₂</>
                     ) : insights.recentTrend > 0 ? (
-                      <>⚠️ Emissions increased by {insights.recentTrend.toFixed(1)} kg CO₂. Focus on {insights.highestCategory.category} to improve.</>
+                      <>Emissions increased by {insights.recentTrend.toFixed(1)} kg CO₂. Focus on {insights.highestCategory.category} to improve.</>
                     ) : (
-                      <>📊 Emissions are stable. Keep up the good work!</>
+                      <>Emissions are stable. Keep up the good work!</>
                     )}
                   </p>
                 </div>
@@ -285,7 +284,7 @@ export default function Analytics() {
                     <div className="text-xs text-slate-600 dark:text-slate-400">Improving</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    <div className="text-2xl font-bold text-slate-600 dark:text-slate-400">
                       {insights.worseningCategories.length}
                     </div>
                     <div className="text-xs text-slate-600 dark:text-slate-400">Need Focus</div>
@@ -413,8 +412,8 @@ export default function Analytics() {
               Categories
             </TabsTrigger>
             <TabsTrigger value="insights" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Insights
+              <Info className="w-4 h-4 mr-2" />
+              Insights
             </TabsTrigger>
           </TabsList>
 
@@ -996,12 +995,12 @@ export default function Analytics() {
                   <CardHeader className="border-b border-slate-200 dark:border-slate-700">
                     <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
                       <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
-                        <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        <Target className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                       </div>
-                      AI-Powered Recommendations
+                      Recommendations
                     </CardTitle>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      Personalized action items based on your emission patterns
+                      Action items based on your emission patterns
                     </p>
                   </CardHeader>
                   <CardContent className="pt-6">
@@ -1045,18 +1044,6 @@ export default function Analytics() {
                           <p className="text-sm text-slate-600 dark:text-slate-400">
                             Reduce <strong>{insights.highestCategory.category}</strong> emissions by 10% this month to see significant improvements
                           </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
-                        <div>
-                          <h4 className="font-semibold text-slate-900 dark:text-white mb-1">Performance Score</h4>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
-                            You're in the <strong>{insights.performanceScore >= 75 ? 'Excellent' : insights.performanceScore >= 50 ? 'Good' : 'Getting Started'}</strong> range
-                          </p>
-                        </div>
-                        <div className="text-5xl font-bold text-emerald-600 dark:text-emerald-400">
-                          {insights.performanceScore}
                         </div>
                       </div>
                     </div>

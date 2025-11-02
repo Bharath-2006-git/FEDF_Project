@@ -33,7 +33,6 @@ import {
   Flame,
   CheckCircle2,
   XCircle,
-  Sparkles,
   BarChart3,
   ArrowRight,
   Star,
@@ -431,7 +430,7 @@ export default function Goals() {
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-5 h-5 text-emerald-600" />
+                          <Plus className="w-5 h-5 text-emerald-600" />
                           Create New Goal
                         </>
                       )}

@@ -24,15 +24,15 @@ Access the application at http://localhost:5173
 ## Features
 
 - **Accurate Emission Calculations**: Scientifically-backed carbon emission formulas based on DEFRA, EPA, IPCC, and IEA standards
-  - 17 main categories (8 individual + 9 organizational)
+  - 17 main categories (8 individual and 9 organizational)
   - Multiple unit support (metric and imperial)
   - High-confidence calculations with detailed transparency
 - **Comprehensive Tracking**: Monitor emissions from electricity usage, transportation, fuel consumption, waste, production, and logistics
 - **Interactive Dashboard**: Clean visualization of your carbon footprint with charts and trends
-- **Analytics & Insights**: Advanced analytics with category breakdowns, monthly comparisons, and yearly trends
-- **Goal Management**: Set personalized reduction targets and track progress
-- **Sustainability Tips**: Curated recommendations to help reduce your environmental impact
-- **Detailed Reports**: Generate comprehensive emission reports for personal records (CSV/PDF export)
+- **Analytics and Insights**: Advanced analytics with category breakdowns, monthly comparisons, and yearly trends
+- **Goal Management**: Set personalized reduction targets and track progress over time
+- **Sustainability Tips**: Curated recommendations with actionable steps to reduce environmental impact
+- **Detailed Reports**: Generate comprehensive emission reports in multiple formats (CSV/PDF export)
 - **Multi-User Support**: Individual and company access levels with role-based features
 - **Account Types**: Differentiated features for individual users and organizations with GHG Protocol compliance
 

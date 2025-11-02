@@ -30,7 +30,7 @@ import {
   ArrowRight,
   BookOpen,
   BarChart3,
-  Sparkles,
+  Info,
   Clock,
   Trophy,
   Share2,
@@ -109,7 +109,7 @@ export default function Tips() {
   const [categoryEmissions, setCategoryEmissions] = useState<Record<string, number>>({});
   const [showPersonalized, setShowPersonalized] = useState(true);
   const [loadingEmissions, setLoadingEmissions] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("smart");
+  const [activeTab, setActiveTab] = useState<string>("all");
   const [completedTips, setCompletedTips] = useState<CompletedTip[]>([]);
   const [totalUserEmissions, setTotalUserEmissions] = useState<number>(0);
   const [potentialSavings, setPotentialSavings] = useState<number>(0);
@@ -427,7 +427,7 @@ export default function Tips() {
       <div className="max-w-7xl mx-auto space-y-6">
         
         <PageHeader
-          icon={<Sparkles className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />}
+          icon={<Lightbulb className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />}
           title="Climate Action Hub"
           description={isIndividual() 
             ? "Turn insights into action - Track, implement, and measure your impact"
@@ -591,9 +591,9 @@ export default function Tips() {
               </div>
 
               <Alert className="bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
-                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <Info className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <AlertDescription className="text-amber-900 dark:text-amber-300">
-                  <strong>💡 Smart Insight:</strong> We've prioritized {priorityTips.length} actions targeting your top emission areas. Following these tips could reduce up to <strong>{priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0).toFixed(0)} kg CO₂/year</strong> - that's equivalent to <strong>{(priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0) / totalUserEmissions * 100).toFixed(1)}%</strong> of your total emissions!
+                  <strong>Impact Insight:</strong> We've prioritized {priorityTips.length} actions targeting your top emission areas. Following these tips could reduce up to <strong>{priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0).toFixed(0)} kg CO₂/year</strong> - that's equivalent to <strong>{(priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0) / totalUserEmissions * 100).toFixed(1)}%</strong> of your total emissions!
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -611,10 +611,10 @@ export default function Tips() {
             </CardHeader>
             <CardContent>
               <Alert className="bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
-                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <AlertDescription className="text-blue-900 dark:text-blue-300">
-                  <p className="font-semibold mb-2">📊 Start tracking to get tailored advice!</p>
-                  <p className="text-sm">Log your emissions to receive AI-powered recommendations based on your actual carbon footprint. We'll identify your biggest impact areas and suggest the most effective actions for you.</p>
+                  <p className="font-semibold mb-2">Start tracking to get tailored advice!</p>
+                  <p className="text-sm">Log your emissions to receive personalized recommendations based on your actual carbon footprint. We'll identify your biggest impact areas and suggest the most effective actions for you.</p>
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -626,25 +626,20 @@ export default function Tips() {
           <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
             <CardHeader>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <TabsList className="grid grid-cols-4 w-full sm:w-auto">
-                  <TabsTrigger value="smart" className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Smart
-                    <Badge variant="secondary" className="ml-1 bg-amber-500 text-white">AI</Badge>
-                  </TabsTrigger>
+                <TabsList className="grid grid-cols-3 w-full sm:w-auto">
                   <TabsTrigger value="all" className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
-                    All
+                    All Tips
                     <Badge variant="secondary" className="ml-1">{tips.length}</Badge>
                   </TabsTrigger>
                   <TabsTrigger value="priority" className="flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    Priority
+                    High Impact
                     <Badge variant="secondary" className="ml-1">{priorityTips.length}</Badge>
                   </TabsTrigger>
                   <TabsTrigger value="completed" className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
-                    Done
+                    Completed
                     <Badge variant="secondary" className="ml-1">{completedTips.length}</Badge>
                   </TabsTrigger>
                 </TabsList>
@@ -701,16 +696,10 @@ export default function Tips() {
             </div>
           ) : (
             <>
-              {/* Smart Tab - AI-Sorted Based on User Emissions */}
-              <TabsContent value="smart" className="mt-6">
-                {topCategories.length > 0 ? (
+              {/* All Tips Tab */}
+              <TabsContent value="all" className="mt-6">
+                {tips.length > 0 ? (
                   <>
-                    <Alert className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-300 dark:border-amber-700">
-                      <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                      <AlertDescription className="text-amber-900 dark:text-amber-300">
-                        <strong>🎯 Smart Mode Active:</strong> Tips are sorted by relevance to YOUR carbon footprint. We're showing the most impactful actions for your emission patterns first!
-                      </AlertDescription>
-                    </Alert>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {displayedTips.map((tip, index) => {
@@ -833,21 +822,17 @@ export default function Tips() {
                 ) : (
                   <Card className="bg-white/70 dark:bg-slate-900/80">
                     <CardContent className="text-center py-12">
-                      <BarChart3 className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No Emission Data Yet</h3>
+                      <Lightbulb className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Tips Available</h3>
                       <p className="text-slate-500 dark:text-slate-400 mb-4">
-                        Log your emissions to unlock AI-powered smart recommendations tailored to your carbon footprint
+                        Start logging emissions to receive personalized sustainability tips
                       </p>
-                      <Button onClick={() => window.location.href = '/log-emissions'} className="bg-emerald-600 hover:bg-emerald-700">
-                        <Zap className="w-4 h-4 mr-2" />
-                        Log Your First Emission
-                      </Button>
                     </CardContent>
                   </Card>
                 )}
               </TabsContent>
 
-              <TabsContent value="all" className="mt-6">
+              <TabsContent value="priority" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {displayedTips.map((tip) => {
                     const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;

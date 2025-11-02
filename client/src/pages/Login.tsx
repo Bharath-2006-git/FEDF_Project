@@ -219,7 +219,7 @@ export default function Login() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg mb-1">Real-Time Analytics</h3>
-                      <p className="text-emerald-50">Monitor your carbon footprint with AI-powered insights and detailed breakdowns</p>
+                      <p className="text-emerald-50">Monitor your carbon footprint with comprehensive insights and detailed breakdowns</p>
                     </div>
                   </div>
 
