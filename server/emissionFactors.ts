@@ -887,6 +887,111 @@ export const WATER_FACTORS: SubcategoryFactors = {
 };
 
 /**
+ * ENERGY USAGE EMISSION FACTORS (New Category)
+ * Comprehensive energy consumption tracking
+ */
+export const ENERGY_FACTORS: SubcategoryFactors = {
+  // Electricity
+  electricity: {
+    kwh: 0.475,     // Grid electricity
+  },
+  // Cooking Fuel
+  cooking_fuel: {
+    kg: 2.983,      // LPG
+    m3: 2.034,      // PNG (Piped Natural Gas)
+  },
+  // Heating/Cooling
+  heating_cooling: {
+    kwh: 0.475,     // Electric heating/cooling
+    hours: 1.5,     // Estimated per hour usage (1.5 kWh/hour average for AC)
+  },
+};
+
+/**
+ * TRANSPORTATION EMISSION FACTORS (New Category)
+ * All travel modes in km
+ */
+export const TRANSPORTATION_FACTORS: SubcategoryFactors = {
+  // Car Travel
+  car_travel: {
+    km: 0.192,      // Average car (petrol/diesel mix)
+  },
+  // Two-Wheeler
+  two_wheeler: {
+    km: 0.084,      // Motorcycle/Scooter
+  },
+  // Public Transport
+  public_transport: {
+    km: 0.089,      // Bus/Metro/Train average
+  },
+  // Flights
+  flights: {
+    km: 0.255,      // Average flight emissions
+  },
+  // Shared Mobility
+  shared_mobility: {
+    km: 0.120,      // Cab/Carpool (shared)
+  },
+};
+
+/**
+ * HOUSEHOLD & LIFESTYLE EMISSION FACTORS (New Category)
+ */
+export const HOUSEHOLD_FACTORS: SubcategoryFactors = {
+  // Water Usage
+  water_usage: {
+    liters: 0.000344,   // Water treatment & supply
+  },
+  // Waste Generation
+  waste_generation: {
+    kg: 0.500,      // Average waste disposal
+  },
+  // Appliance Use
+  appliance_use: {
+    kwh: 0.475,     // Appliance electricity consumption
+  },
+};
+
+/**
+ * FOOD & DIET EMISSION FACTORS (New Category)
+ */
+export const FOOD_FACTORS: SubcategoryFactors = {
+  // Meat Consumption
+  meat_consumption: {
+    kg: 15.000,     // Average across beef, chicken, fish
+  },
+  // Dairy
+  dairy: {
+    liters: 1.300,  // Milk
+    kg: 13.500,     // Cheese/Butter average
+  },
+  // Plant-based Foods
+  plant_based_foods: {
+    kg: 0.500,      // Vegetables, fruits, grains
+  },
+  // Processed Food
+  processed_food: {
+    kg: 2.500,      // Packaged/processed foods
+    items: 0.500,   // Per item
+  },
+};
+
+/**
+ * SHOPPING & GOODS EMISSION FACTORS (New Category)
+ */
+export const SHOPPING_FACTORS: SubcategoryFactors = {
+  // Clothing
+  clothing: {
+    items: 10.000,  // Per clothing item (average)
+    kg: 15.000,     // Per kg textile
+  },
+  // Electronics
+  electronics: {
+    items: 200.000, // Per electronic device (average)
+  },
+};
+
+/**
  * Main emission factors object combining all categories
  */
 export const EMISSION_FACTORS: Record<string, SubcategoryFactors | CategoryFactors> = {
@@ -897,6 +1002,12 @@ export const EMISSION_FACTORS: Record<string, SubcategoryFactors | CategoryFacto
   production: PRODUCTION_FACTORS,
   logistics: LOGISTICS_FACTORS,
   water: WATER_FACTORS,
+  // New categories
+  energy: ENERGY_FACTORS,
+  transportation: TRANSPORTATION_FACTORS,
+  household: HOUSEHOLD_FACTORS,
+  food: FOOD_FACTORS,
+  shopping: SHOPPING_FACTORS,
 };
 
 /**
@@ -910,4 +1021,10 @@ export const DEFAULT_CATEGORY_FACTORS: CategoryFactors = {
   production: { kg: 1.500, unit: 1.500, units: 1.500 },
   logistics: { km: 0.800, mile: 1.287, miles: 1.287 },
   water: { liter: 0.000344, liters: 0.000344 },
+  // New categories
+  energy: { kwh: 0.475, kg: 2.983, m3: 2.034, hours: 1.5 },
+  transportation: { km: 0.192 },
+  household: { liters: 0.000344, kg: 0.500, kwh: 0.475 },
+  food: { kg: 5.000, liters: 1.300, items: 0.500 },
+  shopping: { items: 50.000, kg: 15.000 },
 };

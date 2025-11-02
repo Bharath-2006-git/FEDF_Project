@@ -19,75 +19,48 @@ import {
 // Enhanced Individual Categories with more detailed tracking
 export const INDIVIDUAL_CATEGORIES = [
   {
-    value: "electricity",
-    label: "Home Energy",
+    value: "energy",
+    label: "🌍 Energy Usage",
     icon: Zap,
-    description: "Track your household electricity consumption",
-    subcategories: ["home", "apartment", "solar_offset"],
-    units: ["kWh"],
-    scope: "Scope 2" // GHG Protocol classification
+    description: "Track your household energy consumption",
+    subcategories: ["electricity", "cooking_fuel", "heating_cooling"],
+    units: ["kWh", "kg", "m³", "hours"],
+    scope: "Scope 1 & 2"
   },
   {
-    value: "travel",
-    label: "Personal Transportation",
+    value: "transportation",
+    label: "🚗 Transportation",
     icon: Car,
-    description: "Daily commute and personal vehicle usage",
-    subcategories: ["personal_car", "carpool", "bus", "subway", "train", "bike", "e_scooter", "walk"],
-    units: ["miles", "km"],
+    description: "All your travel and commute activities",
+    subcategories: ["car_travel", "two_wheeler", "public_transport", "flights", "shared_mobility"],
+    units: ["km"],
     scope: "Scope 1 & 3"
   },
   {
-    value: "air_travel",
-    label: "Air Travel",
-    icon: Plane,
-    description: "Flights for business or leisure",
-    subcategories: ["domestic_economy", "domestic_business", "international_economy", "international_business", "international_first"],
-    units: ["miles", "km", "flights"],
-    scope: "Scope 3"
-  },
-  {
-    value: "fuel",
-    label: "Home Heating & Fuel",
-    icon: Flame,
-    description: "Natural gas, heating oil, and propane usage",
-    subcategories: ["natural_gas", "heating_oil", "propane", "wood"],
-    units: ["therms", "gallons", "cubic_meters", "kg"],
-    scope: "Scope 1"
-  },
-  {
-    value: "water",
-    label: "Water Usage",
-    icon: Droplets,
-    description: "Household water consumption",
-    subcategories: ["tap_water", "hot_water"],
-    units: ["gallons", "liters", "cubic_meters"],
+    value: "household",
+    label: "🏠 Household & Lifestyle",
+    icon: Home,
+    description: "Water, waste, and appliance usage",
+    subcategories: ["water_usage", "waste_generation", "appliance_use"],
+    units: ["liters", "kg", "kWh"],
     scope: "Scope 3"
   },
   {
     value: "food",
-    label: "Food & Diet",
+    label: "🍽️ Food & Diet",
     icon: Beef,
-    description: "Track dietary carbon footprint",
-    subcategories: ["red_meat", "poultry", "fish", "dairy", "vegetables", "processed_food"],
-    units: ["servings", "kg", "meals"],
+    description: "Track your dietary carbon footprint",
+    subcategories: ["meat_consumption", "dairy", "plant_based_foods", "processed_food"],
+    units: ["kg", "liters", "items"],
     scope: "Scope 3"
   },
   {
     value: "shopping",
-    label: "Consumer Goods",
+    label: "🛍️ Shopping & Goods",
     icon: ShoppingBag,
-    description: "Purchases and consumption",
-    subcategories: ["clothing", "electronics", "furniture", "books", "toys"],
-    units: ["items", "dollars", "kg"],
-    scope: "Scope 3"
-  },
-  {
-    value: "waste",
-    label: "Household Waste",
-    icon: Trash2,
-    description: "Waste generation and disposal",
-    subcategories: ["landfill", "recyclable", "compost", "e_waste"],
-    units: ["kg", "lbs", "bags"],
+    description: "Purchases and consumer goods",
+    subcategories: ["clothing", "electronics"],
+    units: ["items", "kg"],
     scope: "Scope 3"
   }
 ];

@@ -34,6 +34,36 @@ interface EmissionFormData {
   department?: string;
 }
 
+// Subcategory label mapping
+const SUBCATEGORY_LABELS: Record<string, string> = {
+  // Energy Usage
+  electricity: "Electricity",
+  cooking_fuel: "Cooking Fuel (LPG, PNG, Biogas)",
+  heating_cooling: "Heating/Cooling",
+  
+  // Transportation
+  car_travel: "Car Travel (Petrol, Diesel, CNG, EV)",
+  two_wheeler: "Two-Wheeler (Bike, Scooter)",
+  public_transport: "Public Transport (Bus, Metro, Train)",
+  flights: "Flights (Domestic, International)",
+  shared_mobility: "Shared Mobility (Cab, Carpool)",
+  
+  // Household & Lifestyle
+  water_usage: "Water Usage",
+  waste_generation: "Waste Generation (Plastic, Food, Paper, E-waste)",
+  appliance_use: "Appliance Use (Refrigerator, TV, Washing machine)",
+  
+  // Food & Diet
+  meat_consumption: "Meat Consumption (Beef, Chicken, Fish)",
+  dairy: "Dairy (Milk, Cheese, Butter)",
+  plant_based_foods: "Plant-based Foods (Vegetables, Fruits, Grains)",
+  processed_food: "Processed Food (Packaged snacks, Soft drinks)",
+  
+  // Shopping & Goods
+  clothing: "Clothing (Cotton, Synthetic)",
+  electronics: "Electronics (Phone, Laptop, TV)",
+};
+
 export default function LogEmissions() {
   const { user } = useAuth();
   const { isIndividual, isCompany } = useRoleAccess();
@@ -300,7 +330,7 @@ export default function LogEmissions() {
                       <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                         {selectedCategory.subcategories.map((sub) => (
                           <SelectItem key={sub} value={sub} className="hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 text-slate-900 dark:text-slate-100">
-                            {sub.charAt(0).toUpperCase() + sub.slice(1).replace('_', ' ')}
+                            {SUBCATEGORY_LABELS[sub] || sub.charAt(0).toUpperCase() + sub.slice(1).replace(/_/g, ' ')}
                           </SelectItem>
                         ))}
                       </SelectContent>
