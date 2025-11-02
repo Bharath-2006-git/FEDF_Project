@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth, useRoleAccess } from "@/context/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Lightbulb, 
@@ -15,30 +10,12 @@ import {
   Car, 
   Factory, 
   Trash2,
-  Filter,
-  RefreshCw,
-  Leaf,
-  Star,
-  TrendingUp,
   CheckCircle2,
-  Target,
-  Award,
   Flame,
-  TrendingDown,
-  Users,
-  Calendar,
-  ArrowRight,
-  BookOpen,
-  BarChart3,
-  Info,
-  Clock,
-  Trophy,
-  Share2,
-  Home,
-  Utensils,
-  ShoppingBag,
-  Plane,
-  Recycle
+  Leaf,
+  Sparkles,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 interface Tip {
@@ -422,776 +399,248 @@ export default function Tips() {
     setLoadingEmissions(false);
   };
 
+  // Group tips by category
+  const tipsByCategory = React.useMemo(() => {
+    const grouped: Record<string, Tip[]> = {};
+    tips.forEach(tip => {
+      const category = tip.category || 'other';
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(tip);
+    });
+    return grouped;
+  }, [tips]);
+
+  // Get recommended tips based on user emissions
+  const recommendedTips = React.useMemo(() => {
+    if (topCategories.length === 0 || Object.keys(categoryEmissions).length === 0) {
+      return smartSortedTips.slice(0, 6);
+    }
+    return smartSortedTips.slice(0, 6);
+  }, [smartSortedTips, topCategories, categoryEmissions]);
+
+  const categoryLabels: Record<string, string> = {
+    energy: 'Energy',
+    transport: 'Transport',
+    travel: 'Travel',
+    electricity: 'Electricity',
+    fuel: 'Fuel',
+    waste: 'Waste',
+    industrial: 'Industrial',
+    other: 'Other'
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <Lightbulb className="w-12 h-12 text-emerald-500 mx-auto mb-4 animate-pulse" />
+          <p className="text-slate-600 dark:text-slate-400">Loading tips...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        <PageHeader
-          icon={<Lightbulb className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />}
-          title="Climate Action Hub"
-          description={isIndividual() 
-            ? "Turn insights into action - Track, implement, and measure your impact"
-            : "Drive organizational sustainability with data-driven initiatives"
-          }
-          actions={
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              disabled={loading || loadingEmissions}
-              className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${(loading || loadingEmissions) ? 'animate-spin' : ''}`} />
-              {(loading || loadingEmissions) ? 'Loading...' : 'Refresh'}
-            </Button>
-          }
-        />
-
-        {/* Hero Impact Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Your Impact Card */}
-          <Card className="lg:col-span-2 bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Trophy className="w-7 h-7" />
-                Your Climate Impact
-              </CardTitle>
-              <CardDescription className="text-emerald-50">
-                Making a difference, one action at a time
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <p className="text-emerald-100 text-sm font-medium">Actions Completed</p>
-                  <p className="text-5xl font-bold">{completedTips.length}</p>
-                  <div className="flex items-center gap-2 text-emerald-100">
-                    <Progress value={completionRate} className="h-2 bg-emerald-700" />
-                    <span className="text-sm font-medium">{completionRate}%</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-emerald-100 text-sm font-medium">CO₂ Reduced</p>
-                  <p className="text-5xl font-bold">{achievedSavings.toFixed(0)}</p>
-                  <p className="text-emerald-100 text-sm">kg/year saved</p>
-                </div>
-              </div>
-              
-              {achievedSavings > 0 && (
-                <Alert className="bg-white/10 border-white/20 backdrop-blur">
-                  <Leaf className="w-4 h-4" />
-                  <AlertDescription className="text-white">
-                    <strong>Equivalent to:</strong> {(achievedSavings / 411).toFixed(1)} trees planted or {(achievedSavings / 8.89).toFixed(0)} gallons of gas saved
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              {completedTips.length === 0 && (
-                <Alert className="bg-white/10 border-white/20 backdrop-blur">
-                  <Target className="w-4 h-4" />
-                  <AlertDescription className="text-white">
-                    <strong>Get Started:</strong> Complete your first action below to start tracking your impact!
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Potential Savings Card */}
-          <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="w-6 h-6" />
-                Potential Impact
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-blue-100 text-sm mb-2">Available Actions</p>
-                <p className="text-4xl font-bold mb-1">{tips.length - completedTips.length}</p>
-                <p className="text-blue-100 text-sm">tips to explore</p>
-              </div>
-              
-              <div className="pt-4 border-t border-white/20">
-                <p className="text-blue-100 text-sm mb-2">Possible Reduction</p>
-                <p className="text-3xl font-bold mb-1">{(potentialSavings - achievedSavings).toFixed(0)}</p>
-                <p className="text-blue-100 text-sm">kg CO₂/year more</p>
-              </div>
-
-              <Button 
-                className="w-full bg-white text-blue-600 hover:bg-blue-50 font-semibold"
-                onClick={() => setActiveTab("all")}
-              >
-                Explore Actions <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Sustainability Tips
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            Discover practical ways to reduce your carbon footprint
+          </p>
         </div>
 
-        {/* Your Emission Breakdown - Smart Analysis */}
-        {!loadingEmissions && topCategories.length > 0 && Object.keys(categoryEmissions).length > 0 && (
-          <Card className="border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-400">
-                    <Flame className="w-6 h-6 fill-current" />
-                    Your Emission Hotspots
-                  </CardTitle>
-                  <CardDescription className="text-amber-700 dark:text-amber-300 mt-2">
-                    We've analyzed your carbon footprint - here's where you can make the biggest impact
-                  </CardDescription>
-                </div>
-                <Badge className="bg-amber-500 text-white border-0">
-                  <BarChart3 className="w-3 h-3 mr-1" />
-                  AI Analysis
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Top 3 Emission Categories with Bars */}
-              <div className="space-y-3">
-                {topCategories.slice(0, 3).map((category, index) => {
-                  const emission = categoryEmissions[category] || 0;
-                  const percentage = (emission / totalUserEmissions) * 100;
-                  const categoryTips = tips.filter(t => t.category.toLowerCase() === category).length;
-                  
-                  return (
-                    <div key={category} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <Badge className={`${
-                            index === 0 ? 'bg-red-500' : index === 1 ? 'bg-orange-500' : 'bg-amber-500'
-                          } text-white border-0`}>
-                            #{index + 1}
-                          </Badge>
-                          <span className="font-semibold capitalize">{category}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-amber-900 dark:text-amber-300">
-                            {emission.toFixed(1)} kg CO₂
-                          </span>
-                          <span className="text-amber-700 dark:text-amber-400">
-                            ({percentage.toFixed(1)}%)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Progress 
-                          value={percentage} 
-                          className="h-3 flex-1 bg-amber-200 dark:bg-amber-900/30" 
-                        />
-                        <span className="text-xs text-amber-700 dark:text-amber-400 whitespace-nowrap">
-                          {categoryTips} tips
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <Alert className="bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700">
-                <Info className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <AlertDescription className="text-amber-900 dark:text-amber-300">
-                  <strong>Impact Insight:</strong> We've prioritized {priorityTips.length} actions targeting your top emission areas. Following these tips could reduce up to <strong>{priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0).toFixed(0)} kg CO₂/year</strong> - that's equivalent to <strong>{(priorityTips.reduce((sum, tip) => sum + (tip.estimatedSavings || 0), 0) / totalUserEmissions * 100).toFixed(1)}%</strong> of your total emissions!
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Info Card - Show when no emission data yet */}
-        {!loadingEmissions && userEmissions.length === 0 && (
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                <BarChart3 className="w-6 h-6" />
-                Unlock Personalized Recommendations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Alert className="bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
-                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <AlertDescription className="text-blue-900 dark:text-blue-300">
-                  <p className="font-semibold mb-2">Start tracking to get tailored advice!</p>
-                  <p className="text-sm">Log your emissions to receive personalized recommendations based on your actual carbon footprint. We'll identify your biggest impact areas and suggest the most effective actions for you.</p>
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Tabbed View with Filters */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <TabsList className="grid grid-cols-3 w-full sm:w-auto">
-                  <TabsTrigger value="all" className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4" />
-                    All Tips
-                    <Badge variant="secondary" className="ml-1">{tips.length}</Badge>
-                  </TabsTrigger>
-                  <TabsTrigger value="priority" className="flex items-center gap-2">
-                    <Target className="w-4 h-4" />
-                    High Impact
-                    <Badge variant="secondary" className="ml-1">{priorityTips.length}</Badge>
-                  </TabsTrigger>
-                  <TabsTrigger value="completed" className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Completed
-                    <Badge variant="secondary" className="ml-1">{completedTips.length}</Badge>
-                  </TabsTrigger>
-                </TabsList>
+        {/* Recommended Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              Recommended for You
+            </h2>
+          </div>
+          
+          {loadingEmissions ? (
+            <Card className="bg-white dark:bg-slate-800 border-emerald-200 dark:border-emerald-800">
+              <CardContent className="py-8 text-center">
+                <p className="text-slate-600 dark:text-slate-400">Analyzing your emissions...</p>
+              </CardContent>
+            </Card>
+          ) : recommendedTips.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recommendedTips.map(tip => {
+                const Icon = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
+                const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
                 
-                <div className="flex flex-wrap gap-2">
-                  <Select value={categoryFilter} onValueChange={(value) => {
-                    setCategoryFilter(value);
-                    setVisibleTips(12);
-                  }}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      <SelectItem value="energy">⚡ Energy</SelectItem>
-                      <SelectItem value="electricity">� Electricity</SelectItem>
-                      <SelectItem value="transport">🚗 Transport</SelectItem>
-                      <SelectItem value="travel">✈️ Travel</SelectItem>
-                      <SelectItem value="fuel">🔥 Fuel</SelectItem>
-                      <SelectItem value="waste">♻️ Waste</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={impactFilter} onValueChange={(value) => {
-                    setImpactFilter(value);
-                    setVisibleTips(12);
-                  }}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Impact" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Impact</SelectItem>
-                      <SelectItem value="high">🔴 High</SelectItem>
-                      <SelectItem value="medium">🟡 Medium</SelectItem>
-                      <SelectItem value="low">🟢 Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Error Alert */}
-          {error && (
-            <Alert variant="destructive" className="mt-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Tips Grid with Tabs */}
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-            </div>
-          ) : (
-            <>
-              {/* All Tips Tab */}
-              <TabsContent value="all" className="mt-6">
-                {tips.length > 0 ? (
-                  <>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {displayedTips.map((tip, index) => {
-                        const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
-                        const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
-                        const isPriority = priorityTips.find((p: Tip) => p.id === tip.id);
-                        const tipCategoryEmission = categoryEmissions[tip.category.toLowerCase()] || 0;
-                        const isHighEmissionCategory = topCategories.indexOf(tip.category.toLowerCase()) < 3;
-                        const emissionPercentage = totalUserEmissions > 0 ? (tipCategoryEmission / totalUserEmissions * 100).toFixed(1) : '0';
-                        
-                        return (
-                          <Card 
-                            key={tip.id} 
-                            className={`backdrop-blur-xl hover:shadow-xl transition-all duration-300 ${
-                              isCompleted 
-                                ? 'bg-emerald-50/50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' 
-                                : isHighEmissionCategory
-                                ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-400 dark:border-amber-600'
-                                : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-700'
-                            } ${!isCompleted && 'hover:scale-[1.02]'}`}
-                          >
-                            <CardHeader className="space-y-3">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-start gap-3 flex-1">
-                                  <Checkbox
-                                    checked={isCompleted}
-                                    onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings || 0)}
-                                    className="mt-1"
-                                  />
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                      <div className={`p-2 rounded-lg ${
-                                        isHighEmissionCategory 
-                                          ? 'bg-amber-100 dark:bg-amber-900/50' 
-                                          : 'bg-emerald-100 dark:bg-emerald-900/30'
-                                      }`}>
-                                        <IconComponent className={`w-4 h-4 ${
-                                          isHighEmissionCategory 
-                                            ? 'text-amber-600 dark:text-amber-400' 
-                                            : 'text-emerald-600 dark:text-emerald-400'
-                                        }`} />
-                                      </div>
-                                      {index < 5 && isHighEmissionCategory && (
-                                        <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
-                                          <Star className="w-3 h-3 mr-1 fill-current" />
-                                          Top Match
-                                        </Badge>
-                                      )}
-                                      {tipCategoryEmission > 0 && (
-                                        <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 dark:text-amber-300">
-                                          {emissionPercentage}% of your emissions
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <CardTitle className={`text-base ${isCompleted && 'line-through text-slate-400'}`}>
-                                      {tip.title}
-                                    </CardTitle>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-wrap gap-2">
-                                <Badge className={`${impactColors[tip.impactLevel as keyof typeof impactColors]} border-0 text-xs`}>
-                                  {tip.impactLevel} impact
-                                </Badge>
-                                <Badge className={`${difficultyColors[tip.difficulty as keyof typeof difficultyColors]} border-0 text-xs`}>
-                                  {tip.difficulty}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  {tip.timeframe}
-                                </Badge>
-                              </div>
-                            </CardHeader>
-                            
-                            <CardContent className="space-y-4">
-                              <p className={`text-sm leading-relaxed ${
-                                isCompleted 
-                                  ? 'text-slate-400 dark:text-slate-500' 
-                                  : 'text-slate-600 dark:text-slate-300'
-                              }`}>
-                                {tip.content}
-                              </p>
-                              
-                              <div className={`p-3 rounded-lg ${
-                                isHighEmissionCategory 
-                                  ? 'bg-amber-100 dark:bg-amber-900/30' 
-                                  : 'bg-slate-100 dark:bg-slate-800'
-                              }`}>
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                                    {isHighEmissionCategory ? 'High-Priority Impact' : 'Potential Impact'}
-                                  </span>
-                                  <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                </div>
-                                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                                  {tip.estimatedSavings} <span className="text-sm font-normal">kg CO₂/year</span>
-                                </p>
-                                {tipCategoryEmission > 0 && (
-                                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Could reduce your {tip.category} emissions by {((tip.estimatedSavings || 0) / tipCategoryEmission * 100).toFixed(1)}%
-                                  </p>
-                                )}
-                              </div>
-
-                              {isCompleted && (
-                                <Alert className="bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                  <AlertDescription className="text-emerald-700 dark:text-emerald-300 text-sm">
-                                    <strong>Completed!</strong> You're saving {tip.estimatedSavings} kg CO₂/year
-                                  </AlertDescription>
-                                </Alert>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </>
-                ) : (
-                  <Card className="bg-white/70 dark:bg-slate-900/80">
-                    <CardContent className="text-center py-12">
-                      <Lightbulb className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No Tips Available</h3>
-                      <p className="text-slate-500 dark:text-slate-400 mb-4">
-                        Start logging emissions to receive personalized sustainability tips
-                      </p>
+                return (
+                  <Card 
+                    key={tip.id}
+                    className={`bg-white dark:bg-slate-800 border transition-all hover:shadow-md ${
+                      isCompleted 
+                        ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10'
+                        : 'border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                          <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-medium text-slate-900 dark:text-slate-100 leading-snug">
+                              {tip.title}
+                            </h3>
+                            <Checkbox
+                              checked={isCompleted}
+                              onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings)}
+                              className="mt-0.5"
+                            />
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                            {tip.content}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs">
+                              {categoryLabels[tip.category] || tip.category}
+                            </Badge>
+                            {tip.estimatedSavings && (
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                ~{tip.estimatedSavings} kg CO₂/year
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
-                )}
-              </TabsContent>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+              <CardContent className="py-8 text-center">
+                <Lightbulb className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-600 dark:text-slate-400">
+                  Start logging your emissions to get personalized recommendations
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-              <TabsContent value="priority" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {displayedTips.map((tip) => {
-                    const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
+        {/* Tips by Category */}
+        <div className="space-y-6">
+          {Object.entries(tipsByCategory).map(([category, categoryTips]) => {
+            const Icon = categoryIcons[category as keyof typeof categoryIcons] || Leaf;
+            const [isExpanded, setIsExpanded] = useState(false);
+            const displayTips = isExpanded ? categoryTips : categoryTips.slice(0, 3);
+            
+            return (
+              <div key={category} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {categoryLabels[category] || category}
+                  </h3>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                    ({categoryTips.length})
+                  </span>
+                </div>
+                
+                <div className="space-y-2">
+                  {displayTips.map(tip => {
                     const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
-                    const isPriority = priorityTips.find((p: Tip) => p.id === tip.id);
-                    const tipCategoryEmission = categoryEmissions[tip.category.toLowerCase()] || 0;
-                    const isHighEmissionCategory = topCategories.indexOf(tip.category.toLowerCase()) < 3;
                     
                     return (
                       <Card 
-                        key={tip.id} 
-                        className={`backdrop-blur-xl hover:shadow-xl transition-all duration-300 ${
+                        key={tip.id}
+                        className={`bg-white dark:bg-slate-800 border transition-all ${
                           isCompleted 
-                            ? 'bg-emerald-50/50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' 
-                            : isPriority 
-                            ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-300 dark:border-amber-700'
-                            : 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-700'
-                        } ${!isCompleted && 'hover:scale-[1.02]'}`}
+                            ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800'
+                        }`}
                       >
-                        <CardHeader className="space-y-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-start gap-3 flex-1">
-                              <Checkbox
-                                checked={isCompleted}
-                                onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings || 0)}
-                                className="mt-1"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div className={`p-2 rounded-lg ${
-                                    isPriority 
-                                      ? 'bg-amber-100 dark:bg-amber-900/50' 
-                                      : 'bg-emerald-100 dark:bg-emerald-900/30'
-                                  }`}>
-                                    <IconComponent className={`w-4 h-4 ${
-                                      isPriority 
-                                        ? 'text-amber-600 dark:text-amber-400' 
-                                        : 'text-emerald-600 dark:text-emerald-400'
-                                    }`} />
-                                  </div>
-                                  {isPriority && (
-                                    <Badge className="bg-amber-500 text-white border-0">
-                                      <Star className="w-3 h-3 mr-1 fill-current" />
-                                      Priority
-                                    </Badge>
-                                  )}
-                                </div>
-                                <CardTitle className={`text-base ${isCompleted && 'line-through text-slate-400'}`}>
-                                  {tip.title}
-                                </CardTitle>
-                              </div>
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={isCompleted}
+                              onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings)}
+                              className="mt-1"
+                            />
+                            <div className="flex-1 space-y-1">
+                              <h4 className="font-medium text-slate-900 dark:text-slate-100">
+                                {tip.title}
+                              </h4>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {tip.content}
+                              </p>
+                              {tip.estimatedSavings && (
+                                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                  Potential savings: ~{tip.estimatedSavings} kg CO₂/year
+                                </p>
+                              )}
                             </div>
                           </div>
-                          
-                          <div className="flex flex-wrap gap-2">
-                            <Badge className={`${impactColors[tip.impactLevel as keyof typeof impactColors]} border-0 text-xs`}>
-                              {tip.impactLevel} impact
-                            </Badge>
-                            <Badge className={`${difficultyColors[tip.difficulty as keyof typeof difficultyColors]} border-0 text-xs`}>
-                              {tip.difficulty}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {tip.timeframe}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        
-                        <CardContent className="space-y-4">
-                          <p className={`text-sm leading-relaxed ${
-                            isCompleted 
-                              ? 'text-slate-400 dark:text-slate-500' 
-                              : 'text-slate-600 dark:text-slate-300'
-                          }`}>
-                            {tip.content}
-                          </p>
-                          
-                          {/* Impact Metrics */}
-                          <div className={`p-3 rounded-lg ${
-                            isPriority 
-                              ? 'bg-amber-100 dark:bg-amber-900/30' 
-                              : 'bg-slate-100 dark:bg-slate-800'
-                          }`}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                                Potential Impact
-                              </span>
-                              <TrendingDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                              {tip.estimatedSavings} <span className="text-sm font-normal">kg CO₂/year</span>
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                              ≈ {(tip.estimatedSavings! / 411).toFixed(1)} trees planted annually
-                            </p>
-                          </div>
-
-                          {isCompleted && (
-                            <Alert className="bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700">
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                              <AlertDescription className="text-emerald-700 dark:text-emerald-300 text-sm">
-                                <strong>Completed!</strong> You're saving {tip.estimatedSavings} kg CO₂/year
-                              </AlertDescription>
-                            </Alert>
-                          )}
                         </CardContent>
                       </Card>
                     );
                   })}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="priority" className="mt-6">
-                {priorityTips.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {priorityTips.map((tip: Tip) => {
-                      const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
-                      const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
-                      
-                      return (
-                        <Card 
-                          key={tip.id}
-                          className={`backdrop-blur-xl hover:shadow-xl transition-all duration-300 border-2 ${
-                            isCompleted
-                              ? 'bg-emerald-50/50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700'
-                              : 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-300 dark:border-amber-700 hover:scale-[1.02]'
-                          }`}
-                        >
-                          <CardHeader className="space-y-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3 flex-1">
-                                <Checkbox
-                                  checked={isCompleted}
-                                  onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings || 0)}
-                                  className="mt-1"
-                                />
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                                      <IconComponent className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                                    </div>
-                                    <Badge className="bg-amber-500 text-white border-0">
-                                      <Flame className="w-3 h-3 mr-1 fill-current" />
-                                      High Priority
-                                    </Badge>
-                                  </div>
-                                  <CardTitle className={`text-base ${isCompleted && 'line-through text-slate-400'}`}>
-                                    {tip.title}
-                                  </CardTitle>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-2">
-                              <Badge className={`${impactColors[tip.impactLevel as keyof typeof impactColors]} border-0 text-xs`}>
-                                {tip.impactLevel} impact
-                              </Badge>
-                              <Badge className={`${difficultyColors[tip.difficulty as keyof typeof difficultyColors]} border-0 text-xs`}>
-                                {tip.difficulty}
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          
-                          <CardContent className="space-y-4">
-                            <p className={`text-sm leading-relaxed ${
-                              isCompleted 
-                                ? 'text-slate-400 dark:text-slate-500' 
-                                : 'text-slate-600 dark:text-slate-300'
-                            }`}>
-                              {tip.content}
-                            </p>
-                            
-                            <div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs font-medium text-amber-900 dark:text-amber-300">
-                                  Your Category Impact
-                                </span>
-                                <Target className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                              </div>
-                              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                                {tip.estimatedSavings} <span className="text-sm font-normal">kg CO₂/year</span>
-                              </p>
-                            </div>
-
-                            {isCompleted && (
-                              <Alert className="bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                <AlertDescription className="text-emerald-700 dark:text-emerald-300 text-sm">
-                                  <strong>Amazing!</strong> You're tackling your priority area
-                                </AlertDescription>
-                              </Alert>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <Card className="bg-white/70 dark:bg-slate-900/80">
-                    <CardContent className="text-center py-12">
-                      <Target className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No Priority Actions Yet</h3>
-                      <p className="text-slate-500 dark:text-slate-400">
-                        Log your emissions to get personalized priority recommendations
-                      </p>
-                    </CardContent>
-                  </Card>
+                
+                {categoryTips.length > 3 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="w-full text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="w-4 h-4 mr-1" />
+                        Show less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4 mr-1" />
+                        Show {categoryTips.length - 3} more
+                      </>
+                    )}
+                  </Button>
                 )}
-              </TabsContent>
+              </div>
+            );
+          })}
+        </div>
 
-              <TabsContent value="completed" className="mt-6">
-                {completedTips.length > 0 ? (
-                  <>
-                    <div className="mb-6 p-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-2xl font-bold mb-2">🎉 Great Progress!</h3>
-                          <p className="text-emerald-50">You've completed {completedTips.length} actions and saved {achievedSavings.toFixed(0)} kg CO₂/year</p>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          className="bg-white text-emerald-600 hover:bg-emerald-50"
-                        >
-                          <Share2 className="w-4 h-4 mr-2" />
-                          Share Progress
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {completedTips.map((completedTip) => {
-                        const tip = tips.find(t => t.id === completedTip.tipId);
-                        if (!tip) return null;
-                        
-                        const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
-                        const completedDate = new Date(completedTip.completedAt).toLocaleDateString();
-                        
-                        return (
-                          <Card 
-                            key={tip.id}
-                            className="bg-emerald-50/80 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700"
-                          >
-                            <CardHeader>
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-start gap-3 flex-1">
-                                  <Checkbox
-                                    checked={true}
-                                    onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings || 0)}
-                                    className="mt-1"
-                                  />
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                                        <IconComponent className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                      </div>
-                                      <Badge className="bg-emerald-500 text-white border-0">
-                                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                                        Done
-                                      </Badge>
-                                    </div>
-                                    <CardTitle className="text-base line-through text-slate-500">
-                                      {tip.title}
-                                    </CardTitle>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            
-                            <CardContent className="space-y-3">
-                              <div className="p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-xs font-medium text-emerald-900 dark:text-emerald-300">
-                                    Your Saving
-                                  </span>
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                </div>
-                                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                                  {completedTip.estimatedSavings} <span className="text-sm font-normal">kg CO₂/year</span>
-                                </p>
-                                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
-                                  Completed on {completedDate}
-                                </p>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </>
-                ) : (
-                  <Card className="bg-white/70 dark:bg-slate-900/80">
-                    <CardContent className="text-center py-12">
-                      <Award className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No Completed Actions Yet</h3>
-                      <p className="text-slate-500 dark:text-slate-400 mb-4">
-                        Start checking off actions to track your progress
-                      </p>
-                      <Button onClick={() => setActiveTab("all")} className="bg-emerald-600 hover:bg-emerald-700">
-                        <Target className="w-4 h-4 mr-2" />
-                        Browse Actions
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              {/* Load More Button - Only for "All" tab */}
-              {activeTab === "all" && hasMoreTips && (
-                <div className="flex flex-col items-center gap-4 mt-8">
-                  <p className="text-slate-600 dark:text-slate-400">
-                    Showing {displayedTips.length} of {filteredTips.length} actions
+        {/* Completion Stats */}
+        {completedTips.length > 0 && (
+          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                    You've completed
                   </p>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={loadMoreTips}
-                      size="lg"
-                      className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800"
-                    >
-                      <ArrowRight className="w-4 h-4 mr-2" />
-                      Load More Actions
-                    </Button>
-                    <Button
-                      onClick={showAllTips}
-                      variant="outline"
-                      size="lg"
-                    >
-                      Show All {filteredTips.length}
-                    </Button>
-                  </div>
+                  <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {completedTips.length} {completedTips.length === 1 ? 'tip' : 'tips'}
+                  </p>
                 </div>
+                <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+              </div>
+              {completedTips.reduce((sum, ct) => sum + ct.estimatedSavings, 0) > 0 && (
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-3">
+                  Potential impact: ~{completedTips.reduce((sum, ct) => sum + ct.estimatedSavings, 0).toFixed(0)} kg CO₂/year saved
+                </p>
               )}
-
-              {/* All Loaded Message */}
-              {activeTab === "all" && !hasMoreTips && filteredTips.length > 12 && (
-                <div className="text-center mt-8">
-                  <Badge variant="outline" className="text-base py-2 px-4">
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    All {filteredTips.length} actions loaded!
-                  </Badge>
-                </div>
-              )}
-
-              {/* Empty State for All Tab */}
-              {activeTab === "all" && !loading && filteredTips.length === 0 && (
-                <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30 mt-6">
-                  <CardContent className="text-center py-12">
-                    <Lightbulb className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                      No actions found
-                    </h3>
-                    <p className="text-slate-500 dark:text-slate-400">
-                      Try adjusting your filters to see more options.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-        </Tabs>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -125,8 +125,8 @@ export default function LogEmissions() {
         department: ""
       });
 
-      // Reload stats to reflect new entry - use async delay to ensure backend has processed
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Reload stats to reflect new entry - use longer delay to ensure backend has processed
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await reloadStats();
 
     } catch (err: any) {

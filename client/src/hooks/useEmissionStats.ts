@@ -32,6 +32,7 @@ export function useEmissionStats() {
       const yesterday = new Date(today);
       yesterday.setDate(today.getDate() - 1);
 
+      // Fetch data with fresh requests
       const [todayData, weekData, monthData, yesterdayData] = await Promise.all([
         apiService.getEmissionsSummary(today.toISOString().split('T')[0], today.toISOString().split('T')[0]),
         apiService.getEmissionsSummary(startOfWeek.toISOString().split('T')[0], today.toISOString().split('T')[0]),
@@ -39,14 +40,19 @@ export function useEmissionStats() {
         apiService.getEmissionsSummary(yesterday.toISOString().split('T')[0], yesterday.toISOString().split('T')[0])
       ]);
 
-      setStats({
+      // Update stats with new data
+      const newStats = {
         todayEntries: todayData.totalEntries || 0,
         weekEntries: weekData.totalEntries || 0,
         monthEmissions: Math.round((monthData.totalEmissions || 0) * 10) / 10,
         todayChange: (todayData.totalEntries || 0) - (yesterdayData.totalEntries || 0),
         weekDays: weekData.uniqueDays || 0
-      });
+      };
+      
+      console.log('📊 Updated stats:', newStats);
+      setStats(newStats);
     } catch (err) {
+      console.error('Failed to load statistics:', err);
       setError('Failed to load statistics');
     } finally {
       setLoading(false);
