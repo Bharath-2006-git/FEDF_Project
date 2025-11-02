@@ -209,7 +209,11 @@ class ApiService {
 
   async getEmissionsSummary(startDate?: string, endDate?: string): Promise<any> {
     const response = await this.api.get('/emissions/summary', {
-      params: { startDate, endDate }
+      params: { 
+        startDate, 
+        endDate,
+        _t: Date.now() // Cache busting parameter
+      }
     });
     return response.data;
   }

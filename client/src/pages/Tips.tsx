@@ -317,7 +317,7 @@ export default function Tips() {
       if (response.ok) {
         const data = await response.json();
         const emissions = data.emissions || data;
-        console.log('📊 User emissions data:', emissions);
+        console.log('User emissions data:', emissions);
         setUserEmissions(emissions);
 
         if (emissions && emissions.length > 0) {
@@ -332,7 +332,7 @@ export default function Tips() {
             categoryTotals[cat] = (categoryTotals[cat] || 0) + (emission.co2Emissions || 0);
           });
 
-          console.log('📈 Category totals:', categoryTotals);
+          console.log('Category totals:', categoryTotals);
           setCategoryEmissions(categoryTotals);
 
           // Get ALL categories sorted by emissions (not just top 3)
@@ -340,14 +340,14 @@ export default function Tips() {
             .sort(([, a], [, b]) => b - a)
             .map(([cat]) => cat);
           
-          console.log('🎯 All categories sorted:', sorted);
+          console.log('All categories sorted:', sorted);
           setTopCategories(sorted); // Now contains all categories in order
         } else {
-          console.log('⚠️ No emission data found');
+          console.log('No emission data found');
         }
       }
     } catch (err) {
-      console.error('❌ Failed to fetch user emissions:', err);
+      console.error('Failed to fetch user emissions:', err);
     }
   };
 
@@ -462,7 +462,7 @@ export default function Tips() {
     // Sort by relevance score
     const sorted = scoredTips.sort((a, b) => b.relevanceScore - a.relevanceScore);
     
-    console.log('🎯 Smart-sorted tips:', sorted.slice(0, 5).map(t => ({
+    console.log('Smart-sorted tips:', sorted.slice(0, 5).map(t => ({
       title: t.title,
       category: t.category,
       score: t.relevanceScore,

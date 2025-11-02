@@ -20,7 +20,7 @@ import {
 export const INDIVIDUAL_CATEGORIES = [
   {
     value: "energy",
-    label: "🌍 Energy Usage",
+    label: "Energy Usage",
     icon: Zap,
     description: "Track your household energy consumption",
     subcategories: ["electricity", "cooking_fuel", "heating_cooling"],
@@ -29,7 +29,7 @@ export const INDIVIDUAL_CATEGORIES = [
   },
   {
     value: "transportation",
-    label: "🚗 Transportation",
+    label: "Transportation",
     icon: Car,
     description: "All your travel and commute activities",
     subcategories: ["car_travel", "two_wheeler", "public_transport", "flights", "shared_mobility"],
@@ -38,7 +38,7 @@ export const INDIVIDUAL_CATEGORIES = [
   },
   {
     value: "household",
-    label: "🏠 Household & Lifestyle",
+    label: "Household & Lifestyle",
     icon: Home,
     description: "Water, waste, and appliance usage",
     subcategories: ["water_usage", "waste_generation", "appliance_use"],
@@ -47,7 +47,7 @@ export const INDIVIDUAL_CATEGORIES = [
   },
   {
     value: "food",
-    label: "🍽️ Food & Diet",
+    label: "Food & Diet",
     icon: Beef,
     description: "Track your dietary carbon footprint",
     subcategories: ["meat_consumption", "dairy", "plant_based_foods", "processed_food"],
@@ -56,7 +56,7 @@ export const INDIVIDUAL_CATEGORIES = [
   },
   {
     value: "shopping",
-    label: "🛍️ Shopping & Goods",
+    label: "Shopping & Goods",
     icon: ShoppingBag,
     description: "Purchases and consumer goods",
     subcategories: ["clothing", "electronics"],

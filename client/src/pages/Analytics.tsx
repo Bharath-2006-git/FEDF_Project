@@ -184,7 +184,7 @@ export default function Analytics() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
           <CardContent className="p-6 text-center space-y-4">
-            <div className="text-red-500 dark:text-red-400 text-5xl">📊</div>
+            <BarChart3 className="w-16 h-16 text-red-500 dark:text-red-400 mx-auto" />
             <h3 className="text-lg font-semibold">Failed to Load Analytics</h3>
             <p className="text-sm text-muted-foreground">{error}</p>
             <Button onClick={fetchAnalyticsData} className="w-full">Try Again</Button>
@@ -204,7 +204,7 @@ export default function Analytics() {
           />
           <Card className="border-dashed">
             <CardContent className="p-12 text-center space-y-4">
-              <div className="text-6xl">📈</div>
+              <Activity className="w-24 h-24 text-slate-400 mx-auto" />
               <h3 className="text-xl font-semibold">Not Enough Data</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
                 Start logging emissions to see detailed analytics and insights about your carbon footprint.

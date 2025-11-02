@@ -19,7 +19,8 @@ import {
   Calendar,
   CheckCircle,
   Award,
-  Building
+  Building,
+  AlertCircle
 } from "lucide-react";
 import {
   PieChart,
@@ -110,7 +111,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-6">
         <Card className="max-w-md w-full">
           <CardContent className="p-6 text-center space-y-4">
-            <div className="text-red-500 dark:text-red-400 text-5xl">⚠️</div>
+            <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto" />
             <h3 className="text-lg font-semibold">Failed to Load Dashboard</h3>
             <p className="text-sm text-muted-foreground">{error}</p>
             <Button onClick={loadDashboardData} className="w-full">Try Again</Button>

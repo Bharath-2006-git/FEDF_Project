@@ -136,7 +136,7 @@ export default function LogEmissions() {
       ].filter(Boolean).join(' | ');
       
       toast({
-        title: "✅ Emission Logged Successfully",
+        title: "Emission Logged Successfully",
         description: (
           <div className="space-y-1">
             <p className="font-medium">{formData.category}{formData.subcategory ? ` → ${formData.subcategory}` : ''}</p>
@@ -156,14 +156,13 @@ export default function LogEmissions() {
         department: ""
       });
 
-      // Reload stats to reflect new entry - use longer delay to ensure backend has processed
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Reload stats to reflect new entry - immediate reload after success
       await reloadStats();
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to log emission. Please try again.");
       toast({
-        title: "❌ Error",
+        title: "Error",
         description: err.response?.data?.message || "Failed to log emission. Please try again.",
         variant: "destructive"
       });

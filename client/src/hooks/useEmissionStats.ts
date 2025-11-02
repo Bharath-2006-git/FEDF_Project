@@ -49,7 +49,7 @@ export function useEmissionStats() {
         weekDays: weekData.uniqueDays || 0
       };
       
-      console.log('📊 Updated stats:', newStats);
+      console.log('Updated stats:', newStats);
       setStats(newStats);
     } catch (err) {
       console.error('Failed to load statistics:', err);
