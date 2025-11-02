@@ -74,12 +74,14 @@ export default function LogEmissions() {
       // Validation
       if (!formData.category || !formData.quantity || !formData.unit || !formData.date) {
         setError("Please fill in all required fields");
+        setLoading(false);
         return;
       }
 
       const quantity = parseFloat(formData.quantity);
       if (isNaN(quantity) || quantity <= 0) {
         setError("Please enter a valid positive number for quantity");
+        setLoading(false);
         return;
       }
 
@@ -112,9 +114,6 @@ export default function LogEmissions() {
         ),
       });
 
-      // Reload stats to reflect new entry
-      reloadStats();
-
       // Reset form
       setFormData({
         category: "",
@@ -125,6 +124,11 @@ export default function LogEmissions() {
         description: "",
         department: ""
       });
+
+      // Reload stats to reflect new entry - with a small delay to ensure backend processing is complete
+      setTimeout(() => {
+        reloadStats();
+      }, 300);
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to log emission. Please try again.");

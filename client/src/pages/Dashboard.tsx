@@ -88,10 +88,17 @@ export default function Dashboard() {
   };
   const prepareHistoryData = () => {
     if (!dashboardData?.history) return [];
-    return dashboardData.history.map(item => ({
-      ...item,
-      month: new Date(item.date + '-01').toLocaleDateString('en-US', { month: 'short' })
-    }));
+    return dashboardData.history.map(item => {
+      // Parse the date (format: YYYY-MM)
+      const dateStr = item.date.includes('-') ? `${item.date}-01` : item.date;
+      const date = new Date(dateStr);
+      return {
+        ...item,
+        month: !isNaN(date.getTime()) 
+          ? date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          : item.date
+      };
+    });
   };
   const { trend, isPositive } = calculateTrend();
   if (loading) {
