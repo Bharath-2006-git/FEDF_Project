@@ -278,21 +278,50 @@ export default function Reports() {
     doc.setFillColor(236, 253, 245); // Very light green
     doc.rect(0, 48, pageWidth, 2, 'F');
     
-    // Logo/Brand area with circle
-    doc.setFillColor(255, 255, 255);
-    doc.circle(25, 18, 8, 'F');
-    doc.setFillColor(5, 150, 105);
-    doc.circle(25, 18, 6, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CS', 25, 21, { align: 'center' });
+    // CarbonSense Logo - Earth with orbit rings
+    const logoX = 20;
+    const logoY = 18;
+    const logoSize = 8;
+    
+    // Earth globe
+    doc.setFillColor(79, 195, 247); // Light blue earth
+    doc.circle(logoX, logoY, logoSize, 'F');
+    
+    // Darker blue border
+    doc.setDrawColor(2, 119, 189);
+    doc.setLineWidth(0.5);
+    doc.circle(logoX, logoY, logoSize, 'S');
+    
+    // Green continents (landmass shapes)
+    doc.setFillColor(76, 175, 80); // Green
+    // Top left continent
+    doc.circle(logoX - 3, logoY - 2, 2, 'F');
+    // Bottom right continent
+    doc.circle(logoX + 2, logoY + 3, 2.5, 'F');
+    // Small island
+    doc.circle(logoX - 1, logoY + 1, 1, 'F');
+    
+    // Orbit ring (ellipse for 3D effect)
+    doc.setDrawColor(76, 175, 80); // Green orbit
+    doc.setLineWidth(1);
+    doc.ellipse(logoX, logoY, logoSize + 3, 3, 'S');
+    
+    // Second orbit ring
+    doc.setDrawColor(0, 188, 212); // Cyan orbit
+    doc.setLineWidth(0.8);
+    doc.ellipse(logoX, logoY, logoSize + 4, 2.5, 'S');
+    
+    // Small leaf icon on orbit (sustainability symbol)
+    doc.setFillColor(76, 175, 80);
+    const leafX = logoX + logoSize + 3;
+    const leafY = logoY - 2;
+    doc.circle(leafX, leafY, 1.5, 'F');
     
     // Company name beside logo
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('CarbonSense', 37, 18);
+    doc.text('CarbonSense', logoX + 18, 18);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -601,18 +630,33 @@ export default function Reports() {
       doc.setFillColor(236, 253, 245);
       doc.rect(0, 23, pageWidth, 2, 'F');
       
-      // Logo on page 2
-      doc.setFillColor(255, 255, 255);
-      doc.circle(20, 10, 6, 'F');
-      doc.setFillColor(5, 150, 105);
-      doc.circle(20, 10, 4.5, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('CS', 20, 12, { align: 'center' });
+      // CarbonSense Logo on page 2 (smaller version)
+      const logo2X = 17;
+      const logo2Y = 10;
+      const logo2Size = 5;
       
+      // Earth globe
+      doc.setFillColor(79, 195, 247);
+      doc.circle(logo2X, logo2Y, logo2Size, 'F');
+      doc.setDrawColor(2, 119, 189);
+      doc.setLineWidth(0.3);
+      doc.circle(logo2X, logo2Y, logo2Size, 'S');
+      
+      // Green continents
+      doc.setFillColor(76, 175, 80);
+      doc.circle(logo2X - 2, logo2Y - 1, 1.2, 'F');
+      doc.circle(logo2X + 1, logo2Y + 2, 1.5, 'F');
+      
+      // Orbit ring
+      doc.setDrawColor(76, 175, 80);
+      doc.setLineWidth(0.6);
+      doc.ellipse(logo2X, logo2Y, logo2Size + 2, 1.5, 'S');
+      
+      // Text beside logo
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(13);
-      doc.text('CarbonSense - Detailed Activity Log', 29, 13);
+      doc.setFont('helvetica', 'bold');
+      doc.text('CarbonSense - Detailed Activity Log', logo2X + 10, 13);
       
       yPos = 38;
       
@@ -802,13 +846,24 @@ export default function Reports() {
       const footerText = 'Powered by CarbonSense Carbon Tracking Platform';
       doc.text(footerText, pageWidth / 2, pageHeight - 5, { align: 'center' });
       
-      // Small logo in footer corner
-      doc.setFillColor(16, 185, 129);
-      doc.circle(pageWidth - 10, pageHeight - 10, 2.5, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(6);
-      doc.setFont('helvetica', 'bold');
-      doc.text('CS', pageWidth - 10, pageHeight - 9, { align: 'center' });
+      // Small CarbonSense logo in footer corner
+      const footerLogoX = pageWidth - 10;
+      const footerLogoY = pageHeight - 10;
+      const footerLogoSize = 2.5;
+      
+      // Mini earth
+      doc.setFillColor(79, 195, 247);
+      doc.circle(footerLogoX, footerLogoY, footerLogoSize, 'F');
+      
+      // Mini orbit
+      doc.setDrawColor(76, 175, 80);
+      doc.setLineWidth(0.4);
+      doc.ellipse(footerLogoX, footerLogoY, footerLogoSize + 1, 1, 'S');
+      
+      // Green dot on earth
+      doc.setFillColor(76, 175, 80);
+      doc.circle(footerLogoX - 1, footerLogoY - 0.5, 0.8, 'F');
+      doc.circle(footerLogoX + 0.5, footerLogoY + 1, 0.6, 'F');
     }
     
     // Save PDF with descriptive filename
