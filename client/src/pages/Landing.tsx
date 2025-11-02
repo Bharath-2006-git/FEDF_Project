@@ -310,34 +310,34 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white py-16">
+      <footer className="bg-gradient-to-br from-slate-100 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-gray-800 dark:text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl flex items-center justify-center">
                 <Leaf className="h-7 w-7 text-white" />
               </div>
-              <span className="text-3xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">CarbonSense</span>
+              <span className="text-3xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 dark:from-emerald-400 dark:via-teal-400 dark:to-blue-400 bg-clip-text text-transparent">CarbonSense</span>
             </div>
-            <p className="text-gray-300 mb-6 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 mb-6 text-lg max-w-2xl mx-auto">
               Empowering individuals and organizations to track their carbon footprint and make a positive impact on our planet's future
             </p>
-            <div className="flex justify-center space-x-8 text-sm text-gray-400 mb-8">
-              <a href="#" className="hover:text-emerald-400 transition-colors duration-300 flex items-center space-x-1">
+            <div className="flex justify-center space-x-8 text-sm text-gray-500 dark:text-gray-400 mb-8">
+              <a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300 flex items-center space-x-1">
                 <Shield className="h-4 w-4" />
                 <span>Privacy Policy</span>
               </a>
-              <a href="#" className="hover:text-teal-400 transition-colors duration-300 flex items-center space-x-1">
+              <a href="#" className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-300 flex items-center space-x-1">
                 <FileText className="h-4 w-4" />
                 <span>Terms of Service</span>
               </a>
-              <a href="#" className="hover:text-blue-400 transition-colors duration-300 flex items-center space-x-1">
+              <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300 flex items-center space-x-1">
                 <Mail className="h-4 w-4" />
                 <span>Contact Us</span>
               </a>
             </div>
-            <div className="border-t border-gray-700/50 pt-6">
-              <p className="text-gray-500 text-sm">
+            <div className="border-t border-gray-300 dark:border-gray-700/50 pt-6">
+              <p className="text-gray-500 dark:text-gray-500 text-sm">
                 © 2024 CarbonSense. Building a sustainable future, one step at a time.
               </p>
             </div>
