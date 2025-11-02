@@ -53,10 +53,47 @@ export default function Tips() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [visibleTips, setVisibleTips] = useState<number>(12);
   const [impactFilter, setImpactFilter] = useState<string>("all");
+  const [userEmissions, setUserEmissions] = useState<any[]>([]);
+  const [topCategories, setTopCategories] = useState<string[]>([]);
+  const [showPersonalized, setShowPersonalized] = useState(true);
 
   useEffect(() => {
     fetchTips();
+    fetchUserEmissions();
   }, [user?.role, categoryFilter]);
+
+  const fetchUserEmissions = async () => {
+    try {
+      const response = await fetch('/api/emissions/history', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('carbonSense_token')}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const emissions = data.emissions || data;
+        setUserEmissions(emissions);
+
+        // Calculate top emission categories
+        const categoryTotals: Record<string, number> = {};
+        emissions.forEach((emission: any) => {
+          const cat = emission.category || 'other';
+          categoryTotals[cat] = (categoryTotals[cat] || 0) + (emission.co2Emissions || 0);
+        });
+
+        // Get top 3 categories
+        const sorted = Object.entries(categoryTotals)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 3)
+          .map(([cat]) => cat);
+        
+        setTopCategories(sorted);
+      }
+    } catch (err) {
+      console.error('Failed to fetch user emissions:', err);
+    }
+  };
 
   const fetchTips = async () => {
     try {
@@ -83,14 +120,24 @@ export default function Tips() {
     }
   };
 
+  // Get personalized tips based on user's top emission categories
+  const personalizedTips = tips.filter(tip => 
+    topCategories.includes(tip.category.toLowerCase())
+  ).slice(0, 6);
+
   const filteredTips = tips.filter(tip => {
     const categoryMatch = categoryFilter === 'all' || tip.category === categoryFilter;
     const impactMatch = impactFilter === 'all' || tip.impactLevel === impactFilter;
     return categoryMatch && impactMatch;
   });
 
-  const displayedTips = filteredTips.slice(0, visibleTips);
-  const hasMoreTips = filteredTips.length > visibleTips;
+  // Show personalized tips first if enabled, otherwise show filtered tips
+  const tipsToShow = showPersonalized && personalizedTips.length > 0 && categoryFilter === 'all' 
+    ? [...personalizedTips, ...filteredTips.filter(t => !personalizedTips.find(p => p.id === t.id))]
+    : filteredTips;
+
+  const displayedTips = tipsToShow.slice(0, visibleTips);
+  const hasMoreTips = tipsToShow.length > visibleTips;
 
   const loadMoreTips = () => {
     setVisibleTips(prev => prev + 12);
@@ -125,12 +172,53 @@ export default function Tips() {
           }
         />
 
+        {/* Personalized Recommendations */}
+        {personalizedTips.length > 0 && topCategories.length > 0 && categoryFilter === 'all' && (
+          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                <Star className="w-5 h-5" />
+                Recommended For You
+              </CardTitle>
+              <p className="text-sm text-blue-600 dark:text-blue-300">
+                Based on your highest emission areas: {topCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 mb-4">
+                <Button
+                  variant={showPersonalized ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowPersonalized(true)}
+                  className={showPersonalized ? "bg-blue-600 hover:bg-blue-700" : ""}
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Personalized
+                </Button>
+                <Button
+                  variant={!showPersonalized ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowPersonalized(false)}
+                >
+                  All Tips
+                </Button>
+              </div>
+              <Alert className="bg-blue-100/50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700">
+                <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-blue-700 dark:text-blue-300">
+                  We've analyzed your carbon footprint and selected {personalizedTips.length} tips specifically for your top emission categories
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Filter Section */}
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5" />
+                <Filter className="w-5 h-5 text-slate-700 dark:text-slate-300" />
                 Filter Tips
               </div>
               <Badge variant="outline" className="text-base">
@@ -189,31 +277,31 @@ export default function Tips() {
         {/* Stats Section */}
         {!loading && filteredTips.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800">
+            <Card className="bg-gradient-to-br from-blue-50 to-cyan-100/50 dark:from-blue-900/20 dark:to-cyan-800/20 border-blue-200 dark:border-blue-800">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{filteredTips.length}</p>
-                  <p className="text-sm text-emerald-600 dark:text-emerald-300 mt-1">Total Tips</p>
+                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{filteredTips.length}</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-300 mt-1">Total Tips</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-chart-1/10 to-chart-1/5 dark:from-chart-1/20 dark:to-chart-1/10 border-chart-1/30">
+            <Card className="bg-gradient-to-br from-red-50/80 to-orange-100/50 dark:from-red-900/20 dark:to-orange-800/20 border-red-200 dark:border-red-800">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-chart-1">{filteredTips.filter(t => t.impactLevel === 'high').length}</p>
+                  <p className="text-3xl font-bold text-red-600 dark:text-red-400">{filteredTips.filter(t => t.impactLevel === 'high').length}</p>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">High Impact</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 border-primary/30">
+            <Card className="bg-gradient-to-br from-amber-50 to-yellow-100/50 dark:from-amber-900/20 dark:to-yellow-800/20 border-amber-200 dark:border-amber-800">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">{filteredTips.filter(t => t.impactLevel === 'medium').length}</p>
+                  <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{filteredTips.filter(t => t.impactLevel === 'medium').length}</p>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Medium Impact</p>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-emerald-100/50 to-emerald-50/30 dark:from-emerald-800/10 dark:to-emerald-900/10 border-emerald-200/50 dark:border-emerald-700/30">
+            <Card className="bg-gradient-to-br from-emerald-50 to-green-100/50 dark:from-emerald-900/20 dark:to-green-800/20 border-emerald-200 dark:border-emerald-800">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{filteredTips.filter(t => t.impactLevel === 'low').length}</p>
@@ -232,28 +320,38 @@ export default function Tips() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayedTips.map((tip) => {
+              {displayedTips.map((tip, index) => {
                 const IconComponent = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
+                const isPersonalized = personalizedTips.find(p => p.id === tip.id) && showPersonalized;
+                const cardBorderClass = isPersonalized 
+                  ? "border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-900/10 dark:to-slate-900/80" 
+                  : "bg-white/70 dark:bg-slate-900/80 border-white/30 dark:border-slate-700/30";
               
               return (
                 <Card 
                   key={tip.id} 
-                  className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-white/30 dark:border-slate-700/30 hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  className={`${cardBorderClass} backdrop-blur-xl hover:shadow-lg transition-all duration-300 hover:scale-105`}
                 >
                   <CardHeader className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                          <IconComponent className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        <div className={`p-2 rounded-lg ${isPersonalized ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+                          <IconComponent className={`w-5 h-5 ${isPersonalized ? 'text-blue-600 dark:text-blue-400' : 'text-emerald-600 dark:text-emerald-400'}`} />
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <CardTitle className="text-lg">{tip.title}</CardTitle>
+                          {isPersonalized && (
+                            <Badge className="mt-1 bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-0 text-xs">
+                              <Star className="w-3 h-3 mr-1" />
+                              For You
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       <Badge 
                         className={`${impactColors[tip.impactLevel as keyof typeof impactColors]} border-0`}
                       >
-                        {tip.impactLevel} impact
+                        {tip.impactLevel}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -265,10 +363,12 @@ export default function Tips() {
                       <Badge variant="outline" className="capitalize">
                         {tip.category}
                       </Badge>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-primary fill-current" />
-                        <span className="text-sm text-slate-500 dark:text-slate-400">Recommended</span>
-                      </div>
+                      {isPersonalized && (
+                        <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                          <TrendingUp className="w-4 h-4" />
+                          <span className="text-xs font-medium">High Priority</span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
