@@ -67,4 +67,5 @@ vite.config.ts.*
 
 # Database
 *.sqlite
-*.db
+.github/instructions/ai.instructions.instructions.md
+*.db.github/instructions/ai.instructions.instructions.md
