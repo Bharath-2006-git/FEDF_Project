@@ -264,27 +264,23 @@ export default function Reports() {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     
-    // Modern gradient-style header with decorative elements
+    // Clean professional header
     doc.setFillColor(16, 185, 129); // Emerald color
-    doc.rect(0, 0, pageWidth, 50, 'F');
+    doc.rect(0, 0, pageWidth, 45, 'F');
     
-    // Add decorative accent bar
+    // Add accent line
     doc.setFillColor(5, 150, 105); // Darker emerald
-    doc.rect(0, 45, pageWidth, 5, 'F');
+    doc.rect(0, 40, pageWidth, 5, 'F');
     
-    // Logo/Icon circle
-    doc.setFillColor(255, 255, 255, 0.2);
-    doc.circle(20, 25, 8, 'F');
-    
+    // Company name
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
+    doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-  doc.text('CarbonSense', 35, 23);
+    doc.text('CarbonSense', 20, 20);
     
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  // Use plain text (avoid emojis/unicode that jsPDF may not support)
-  doc.text('Carbon Emissions Report', 35, 32);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Carbon Emissions Report', 20, 30);
     
     // Report Info box in header
     doc.setFontSize(9);
@@ -343,14 +339,13 @@ export default function Reports() {
     
     // Section divider
     doc.setDrawColor(16, 185, 129);
-    doc.setLineWidth(2);
-    doc.line(15, yPos - 5, 25, yPos - 5);
+    doc.setLineWidth(1);
+    doc.line(15, yPos - 3, pageWidth - 15, yPos - 3);
     
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(16, 185, 129);
-  // Plain section title (avoid emoji)
-  doc.text('Report Summary', 30, yPos);
+    doc.text('REPORT SUMMARY', 15, yPos + 3);
     
     yPos += 5;
     
@@ -394,14 +389,13 @@ export default function Reports() {
     
     // Section divider
     doc.setDrawColor(16, 185, 129);
-    doc.setLineWidth(2);
-    doc.line(15, yPos - 5, 25, yPos - 5);
+    doc.setLineWidth(1);
+    doc.line(15, yPos - 3, pageWidth - 15, yPos - 3);
     
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(16, 185, 129);
-  // Avoid emoji; use clear section title
-  doc.text('Emissions by Category', 30, yPos);
+    doc.text('EMISSIONS BY CATEGORY', 15, yPos + 3);
     
     yPos += 5;
     
@@ -480,23 +474,23 @@ export default function Reports() {
       
       // Page header for second page
       doc.setFillColor(16, 185, 129);
-      doc.rect(0, 0, pageWidth, 25, 'F');
+      doc.rect(0, 0, pageWidth, 20, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('CarbonSense Report (Continued)', pageWidth / 2, 16, { align: 'center' });
+      doc.text('CarbonSense - Detailed Report', 20, 13);
       
-      yPos = 35;
+      yPos = 30;
       
-  // Section divider
-  doc.setDrawColor(16, 185, 129);
-  doc.setLineWidth(2);
-  doc.line(15, yPos, 25, yPos);
+      // Section divider
+      doc.setDrawColor(16, 185, 129);
+      doc.setLineWidth(1);
+      doc.line(15, yPos, pageWidth - 15, yPos);
       
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(16, 185, 129);
-  doc.text('Detailed Emissions Log', 30, yPos + 5);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 185, 129);
+      doc.text('DETAILED EMISSIONS LOG', 15, yPos + 7);
       
       yPos += 10;
       
@@ -542,46 +536,46 @@ export default function Reports() {
         
         // Info box for remaining entries
         doc.setFillColor(254, 243, 199);
-        doc.roundedRect(15, remainingYPos, pageWidth - 30, 12, 2, 2, 'F');
+        doc.roundedRect(15, remainingYPos, pageWidth - 30, 10, 2, 2, 'F');
         doc.setDrawColor(245, 158, 11);
         doc.setLineWidth(0.5);
-        doc.roundedRect(15, remainingYPos, pageWidth - 30, 12, 2, 2, 'S');
+        doc.roundedRect(15, remainingYPos, pageWidth - 30, 10, 2, 2, 'S');
         
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
         doc.setTextColor(146, 64, 14);
         doc.text(
-          `ℹ Note: Showing first 50 of ${emissions.length} total entries (${emissions.length - 50} more entries not displayed)`,
+          `NOTE: Showing first 50 of ${emissions.length} total entries. ${emissions.length - 50} entries not displayed.`,
           pageWidth / 2,
-          remainingYPos + 7,
+          remainingYPos + 6,
           { align: 'center' }
         );
       }
       
       // Recommendations section at bottom
-      const recommendationsY = (doc as any).lastAutoTable.finalY + 25;
-      if (recommendationsY < pageHeight - 50) {
+      const recommendationsY = (doc as any).lastAutoTable.finalY + 22;
+      if (recommendationsY < pageHeight - 45) {
         doc.setDrawColor(16, 185, 129);
-        doc.setLineWidth(2);
-        doc.line(15, recommendationsY, 25, recommendationsY);
+        doc.setLineWidth(1);
+        doc.line(15, recommendationsY, pageWidth - 15, recommendationsY);
         
-        doc.setFontSize(12);
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(16, 185, 129);
-        doc.text('💡 Sustainability Tips', 30, recommendationsY + 5);
+        doc.text('SUSTAINABILITY RECOMMENDATIONS', 15, recommendationsY + 7);
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(70, 70, 70);
+        doc.setTextColor(60, 60, 60);
         const tips = [
-          '• Consider using public transport or carpooling to reduce travel emissions',
-          '• Switch to LED bulbs and unplug devices when not in use',
-          '• Reduce, reuse, and recycle to minimize waste emissions',
-          '• Set up a goal to track your progress toward lower emissions'
+          '- Consider using public transport or carpooling to reduce travel emissions',
+          '- Switch to LED bulbs and unplug devices when not in use',
+          '- Reduce, reuse, and recycle to minimize waste emissions',
+          '- Set goals to track your progress toward lower emissions'
         ];
         
         tips.forEach((tip, index) => {
-          doc.text(tip, 20, recommendationsY + 15 + (index * 6));
+          doc.text(tip, 20, recommendationsY + 16 + (index * 5));
         });
       }
     }
@@ -612,16 +606,11 @@ export default function Reports() {
       
       doc.setFontSize(7);
       doc.text(
-        'Generated by CarbonSense - Your Carbon Footprint Tracking Partner',
+        'Generated by CarbonSense | www.carbonsense.com',
         pageWidth / 2,
         pageHeight - 6,
         { align: 'center' }
       );
-      
-      // Small leaf icon in footer
-      doc.setTextColor(16, 185, 129);
-      doc.text('🌱', 15, pageHeight - 9);
-      doc.text('🌱', pageWidth - 20, pageHeight - 9);
     }
     
     // Save PDF with better filename
