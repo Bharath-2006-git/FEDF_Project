@@ -995,6 +995,45 @@ app.post("/api/reports/generate", authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/analytics/category-breakdown
+app.get("/api/analytics/category-breakdown", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+    const { timeRange } = req.query;
+
+    // Get emissions grouped by category
+    const { data: emissions, error } = await supabase
+      .from("emissions")
+      .select("category, co2_emissions")
+      .eq("user_id", user.userId);
+
+    if (error) throw error;
+
+    // Group by category and calculate totals
+    const categoryData: Record<string, number> = {};
+    let total = 0;
+    
+    (emissions || []).forEach((e: any) => {
+      const category = e.category || 'other';
+      const value = parseFloat(e.co2_emissions || 0);
+      categoryData[category] = (categoryData[category] || 0) + value;
+      total += value;
+    });
+
+    const data = Object.entries(categoryData).map(([category, value]) => ({
+      category,
+      value,
+      percentage: total > 0 ? (value / total) * 100 : 0,
+      trend: 0
+    }));
+
+    res.json({ data });
+  } catch (error) {
+    console.error('Error fetching category breakdown:', error);
+    res.status(500).json({ message: "Failed to fetch category breakdown" });
+  }
+});
+
 // GET /api/analytics/monthly-comparison
 app.get("/api/analytics/monthly-comparison", authenticateToken, async (req, res) => {
   try {
