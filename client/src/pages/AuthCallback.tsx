@@ -1,52 +1,68 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
 
 export default function AuthCallback() {
   const [, setLocation] = useLocation();
-  const { updateUser } = useAuth();
+  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
 
   useEffect(() => {
-    // Parse URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const userParam = params.get('user');
-    const error = params.get('error');
-
-    if (error) {
-      setLocation('/auth?error=' + error);
-      return;
-    }
-
-    if (token && userParam) {
+    const processAuth = async () => {
       try {
+        // Parse URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const userParam = params.get('user');
+        const error = params.get('error');
+
+        console.log('AuthCallback - Processing authentication...', { hasToken: !!token, hasUser: !!userParam, error });
+
+        if (error) {
+          console.error('AuthCallback - Error from OAuth:', error);
+          setStatus('error');
+          window.location.href = '/auth?error=' + error;
+          return;
+        }
+
+        if (!token || !userParam) {
+          console.error('AuthCallback - Missing token or user data');
+          setStatus('error');
+          window.location.href = '/auth?error=missing_data';
+          return;
+        }
+
+        // Parse user data
         const user = JSON.parse(decodeURIComponent(userParam));
+        console.log('AuthCallback - User data parsed:', { email: user.email, firstName: user.firstName, lastName: user.lastName });
         
         // Store token and user data
         localStorage.setItem('carbonSense_token', token);
         localStorage.setItem('carbonSense_user', JSON.stringify(user));
         
-        // Update auth context
-        updateUser(user);
+        console.log('AuthCallback - Data stored in localStorage');
+        setStatus('success');
         
-        // Redirect to dashboard using setLocation
-        setTimeout(() => {
-          setLocation('/dashboard');
-        }, 100);
+        // Force a full page reload to ensure AuthContext picks up the new data
+        // This is more reliable than trying to update context directly
+        window.location.href = '/dashboard';
       } catch (err) {
-        console.error('AuthCallback error:', err);
-        setLocation('/auth?error=invalid_data');
+        console.error('AuthCallback - Error processing authentication:', err);
+        setStatus('error');
+        window.location.href = '/auth?error=invalid_data';
       }
-    } else {
-      setLocation('/auth?error=missing_data');
-    }
-  }, [setLocation, updateUser]);
+    };
+
+    processAuth();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-        <p className="text-lg text-slate-600 dark:text-slate-400">Completing sign in...</p>
+        <p className="text-lg text-slate-600 dark:text-slate-400">
+          {status === 'processing' && 'Completing sign in...'}
+          {status === 'success' && 'Success! Redirecting to dashboard...'}
+          {status === 'error' && 'Authentication failed. Redirecting...'}
+        </p>
       </div>
     </div>
   );

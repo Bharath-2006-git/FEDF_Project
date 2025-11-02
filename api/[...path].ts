@@ -113,10 +113,22 @@ app.get("/api/auth/google/callback", (req, res, next) => {
         { expiresIn: '24h' }
       );
 
-      const { password, ...userWithoutPassword } = user;
-      const userData = encodeURIComponent(JSON.stringify(userWithoutPassword));
+      // Map database fields to frontend expected format
+      const { password, first_name, last_name, company_name, company_department, created_at, updated_at, ...rest } = user;
+      const userForFrontend = {
+        ...rest,
+        firstName: first_name || 'User',
+        lastName: last_name || '',
+        companyName: company_name,
+        companyDepartment: company_department,
+        createdAt: created_at,
+      };
+      
+      const userData = encodeURIComponent(JSON.stringify(userForFrontend));
+      console.log('Redirecting to auth-callback with user:', userForFrontend.email);
       res.redirect(`${FRONTEND_URL}/auth-callback?token=${token}&user=${userData}`);
     } catch (error) {
+      console.error('Token generation error:', error);
       res.redirect(`${FRONTEND_URL}/auth?error=token_generation_failed`);
     }
   })(req, res, next);
@@ -178,9 +190,19 @@ app.post("/api/auth/signup", async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    const { password: _, ...userWithoutPassword } = user;
+    // Map database fields to frontend expected format
+    const { password: _, first_name, last_name, company_name, company_department, created_at, updated_at, ...rest } = user;
+    const userForFrontend = {
+      ...rest,
+      firstName: first_name || '',
+      lastName: last_name || '',
+      companyName: company_name,
+      companyDepartment: company_department,
+      createdAt: created_at,
+    };
+    
     res.status(201).json({
-      user: userWithoutPassword,
+      user: userForFrontend,
       token,
       message: "User created successfully"
     });
@@ -204,10 +226,10 @@ app.post("/api/auth/login", async (req, res) => {
       const demoUser = {
         id: 999,
         email: 'demo@carbonsense.com',
-        first_name: 'Demo',
-        last_name: 'User',
+        firstName: 'Demo',
+        lastName: 'User',
         role: 'individual',
-        created_at: new Date().toISOString()
+        createdAt: new Date().toISOString()
       };
 
       const token = jwt.sign(
@@ -248,9 +270,19 @@ app.post("/api/auth/login", async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    const { password: _, ...userWithoutPassword } = user;
+    // Map database fields to frontend expected format
+    const { password: _, first_name, last_name, company_name, company_department, created_at, updated_at, ...rest } = user;
+    const userForFrontend = {
+      ...rest,
+      firstName: first_name || '',
+      lastName: last_name || '',
+      companyName: company_name,
+      companyDepartment: company_department,
+      createdAt: created_at,
+    };
+    
     res.json({
-      user: userWithoutPassword,
+      user: userForFrontend,
       token,
       message: "Login successful"
     });
