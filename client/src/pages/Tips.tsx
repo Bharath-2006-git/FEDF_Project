@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { 
   Zap, 
@@ -17,8 +17,16 @@ import {
   ChevronUp,
   Info,
   Filter,
-  ArrowUpDown,
-  ExternalLink
+  Search,
+  ExternalLink,
+  Target,
+  TrendingUp,
+  Award,
+  Sparkles,
+  Check,
+  X,
+  Lightbulb,
+  Leaf
 } from "lucide-react";
 import { tipsAPI, emissionsAPI, CompletedTip as ApiCompletedTip, Tip as ApiTip } from "@/services/api";
 import {
@@ -33,6 +41,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 interface Tip extends ApiTip {
   estimatedSavings?: number;
@@ -53,200 +67,88 @@ const categoryConfig = {
   energy: {
     icon: Zap,
     label: "Energy",
-    color: "amber",
-    bgClass: "bg-amber-50 dark:bg-amber-900/20",
-    iconClass: "text-amber-600 dark:text-amber-400",
-    borderClass: "border-amber-200 dark:border-amber-800",
+    color: "blue",
+    gradient: "from-blue-500 to-cyan-600",
+    bgClass: "bg-blue-50 dark:bg-blue-950/30",
+    iconBg: "bg-blue-500/10 dark:bg-blue-400/20",
+    iconClass: "text-blue-600 dark:text-blue-400",
+    borderClass: "border-blue-200 dark:border-blue-800",
+    dotClass: "bg-blue-500",
   },
   transport: {
     icon: Car,
     label: "Transport",
-    color: "blue",
-    bgClass: "bg-blue-50 dark:bg-blue-900/20",
-    iconClass: "text-blue-600 dark:text-blue-400",
-    borderClass: "border-blue-200 dark:border-blue-800",
+    color: "cyan",
+    gradient: "from-cyan-500 to-teal-600",
+    bgClass: "bg-cyan-50 dark:bg-cyan-950/30",
+    iconBg: "bg-cyan-500/10 dark:bg-cyan-400/20",
+    iconClass: "text-cyan-600 dark:text-cyan-400",
+    borderClass: "border-cyan-200 dark:border-cyan-800",
+    dotClass: "bg-cyan-500",
   },
   food: {
     icon: Utensils,
     label: "Food",
     color: "green",
-    bgClass: "bg-green-50 dark:bg-green-900/20",
+    gradient: "from-green-500 to-emerald-600",
+    bgClass: "bg-green-50 dark:bg-green-950/30",
+    iconBg: "bg-green-500/10 dark:bg-green-400/20",
     iconClass: "text-green-600 dark:text-green-400",
     borderClass: "border-green-200 dark:border-green-800",
+    dotClass: "bg-green-500",
   },
   waste: {
     icon: Trash2,
     label: "Waste",
-    color: "red",
-    bgClass: "bg-red-50 dark:bg-red-900/20",
-    iconClass: "text-red-600 dark:text-red-400",
-    borderClass: "border-red-200 dark:border-red-800",
+    color: "orange",
+    gradient: "from-orange-500 to-red-600",
+    bgClass: "bg-orange-50 dark:bg-orange-950/30",
+    iconBg: "bg-orange-500/10 dark:bg-orange-400/20",
+    iconClass: "text-orange-600 dark:text-orange-400",
+    borderClass: "border-orange-200 dark:border-orange-800",
+    dotClass: "bg-orange-500",
   },
   water: {
     icon: Droplets,
     label: "Water",
-    color: "cyan",
-    bgClass: "bg-cyan-50 dark:bg-cyan-900/20",
-    iconClass: "text-cyan-600 dark:text-cyan-400",
-    borderClass: "border-cyan-200 dark:border-cyan-800",
+    color: "teal",
+    gradient: "from-teal-500 to-blue-600",
+    bgClass: "bg-teal-50 dark:bg-teal-950/30",
+    iconBg: "bg-teal-500/10 dark:bg-teal-400/20",
+    iconClass: "text-teal-600 dark:text-teal-400",
+    borderClass: "border-teal-200 dark:border-teal-800",
+    dotClass: "bg-teal-500",
   },
 };
 
 const difficultyConfig = {
-  easy: { label: "Easy", class: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-  medium: { label: "Medium", class: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  hard: { label: "Hard", class: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400" },
-};
-
-const TipCard: React.FC<{
-  tip: Tip;
-  isCompleted: boolean;
-  onToggle: () => void;
-}> = ({ tip, isCompleted, onToggle }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const config = categoryConfig[tip.category as keyof typeof categoryConfig];
-
-  return (
-    <Card className={`border-l-4 transition-all ${isCompleted 
-      ? 'border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10' 
-      : config?.borderClass || 'border-l-slate-200'
-    }`}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <Checkbox
-            checked={isCompleted}
-            onCheckedChange={onToggle}
-            className="mt-1"
-          />
-          <div className="flex-1 space-y-2">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold text-slate-900 dark:text-slate-100">
-                {tip.title}
-              </h4>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Badge variant="outline" className="text-xs">
-                  {config?.label || tip.category}
-                </Badge>
-                {tip.difficulty && (
-                  <Badge variant="secondary" className={`text-xs ${difficultyConfig[tip.difficulty as keyof typeof difficultyConfig]?.class || ''}`}>
-                    {difficultyConfig[tip.difficulty as keyof typeof difficultyConfig]?.label || tip.difficulty}
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {tip.content}
-            </p>
-
-            {tip.estimatedSavings && (
-              <p className={`text-sm font-medium ${config?.iconClass || 'text-slate-600'}`}>
-                Potential savings: ~{tip.estimatedSavings} kg CO₂/year
-              </p>
-            )}
-
-            {(tip.explanation || tip.source) && (
-              <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
-                    <Info className="w-3 h-3 mr-1" />
-                    Learn More
-                    {isExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-2 space-y-2">
-                  {tip.explanation && (
-                    <div className="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                      <p className="font-medium mb-1">Why this matters:</p>
-                      <p>{tip.explanation}</p>
-                    </div>
-                  )}
-                  {tip.source && (
-                    <a
-                      href={tip.source}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Source Reference
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const CategorySection: React.FC<{
-  category: string;
-  tips: Tip[];
-  completedTips: CompletedTip[];
-  onToggleTip: (tipId: number, estimatedSavings: number) => void;
-  potentialSavings: number;
-}> = ({ category, tips, completedTips, onToggleTip, potentialSavings }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const config = categoryConfig[category as keyof typeof categoryConfig];
-  const Icon = config?.icon || Zap;
-
-  const completedCount = tips.filter(tip => 
-    completedTips.some(ct => ct.tipId === tip.id)
-  ).length;
-
-  return (
-    <div className="space-y-3">
-      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        <div className={`flex items-center justify-between p-4 rounded-xl ${config?.bgClass || 'bg-slate-50'}`}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-white/70 dark:bg-slate-800/70">
-              <Icon className={`w-5 h-5 ${config?.iconClass || 'text-slate-600'}`} />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                {config?.label || category}
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                {completedCount} of {tips.length} implemented • Potential: {potentialSavings} kg CO₂/year
-              </p>
-            </div>
-          </div>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm">
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-        
-        <CollapsibleContent className="space-y-2 mt-2">
-          {tips.map(tip => {
-            const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
-            return (
-              <TipCard
-                key={tip.id}
-                tip={tip}
-                isCompleted={isCompleted}
-                onToggle={() => onToggleTip(tip.id, tip.estimatedSavings || 0)}
-              />
-            );
-          })}
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
-  );
+  easy: { 
+    label: "Easy", 
+    class: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    icon: "🌱"
+  },
+  medium: { 
+    label: "Medium", 
+    class: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    icon: "⚡"
+  },
+  hard: { 
+    label: "Hard", 
+    class: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+    icon: "🎯"
+  },
 };
 
 export default function Tips() {
   const { user } = useAuth();
   const [tips, setTips] = useState<Tip[]>([]);
   const [completedTips, setCompletedTips] = useState<CompletedTip[]>([]);
-  const [userEmissions, setUserEmissions] = useState<CategoryBreakdown[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("impact");
-  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedTips, setExpandedTips] = useState<Set<number>>(new Set());
+  const [emissionBreakdown, setEmissionBreakdown] = useState<CategoryBreakdown[]>([]);
 
   useEffect(() => {
     loadData();
@@ -255,245 +157,382 @@ export default function Tips() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [tipsData, completedData, emissionsData] = await Promise.all([
+      const [allTips, completed, personalizedTips] = await Promise.all([
         tipsAPI.get(),
-        tipsAPI.getCompleted().catch(() => []),
-        emissionsAPI.summary().catch(() => ({ categories: {} }))
+        tipsAPI.getCompleted(),
+        tipsAPI.getPersonalized().catch(() => [])
       ]);
 
-      setTips(tipsData);
-      setCompletedTips(completedData);
+      const tipsToUse = personalizedTips.length > 0 ? personalizedTips : allTips;
+      setTips(tipsToUse);
+      setCompletedTips(completed);
 
-      const totalEmissions = Object.values(emissionsData.categories || {}).reduce(
-        (sum: number, val) => sum + Number(val), 
-        0
-      );
-
-      const breakdown: CategoryBreakdown[] = Object.entries(emissionsData.categories || {})
-        .map(([category, emissions]) => ({
-          category: category.toLowerCase(),
-          emissions: Number(emissions),
-          percentage: totalEmissions > 0 ? (Number(emissions) / totalEmissions) * 100 : 0
-        }))
-        .sort((a, b) => b.emissions - a.emissions);
-
-      setUserEmissions(breakdown);
-    } catch (error) {
-      console.error("Failed to load tips data:", error);
+      // Get emission breakdown for personalization
+      try {
+        const summary = await emissionsAPI.summary();
+        const breakdown: CategoryBreakdown[] = Object.entries(summary.byCategory || {})
+          .map(([category, emissions]) => ({
+            category,
+            emissions: emissions as number,
+            percentage: 0
+          }));
+        
+        const total = breakdown.reduce((sum, item) => sum + item.emissions, 0);
+        breakdown.forEach(item => {
+          item.percentage = total > 0 ? (item.emissions / total) * 100 : 0;
+        });
+        
+        setEmissionBreakdown(breakdown);
+      } catch (err) {
+        console.error("Failed to load emission breakdown:", err);
+      }
+    } catch (err) {
+      console.error("Failed to load tips:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleTipCompletion = async (tipId: number, estimatedSavings: number) => {
-    const isCompleted = completedTips.some(ct => ct.tipId === tipId);
-
+  const handleToggleComplete = async (tipId: number) => {
     try {
+      const isCompleted = completedTips.some(ct => ct.tipId === tipId);
+      
       if (isCompleted) {
         await tipsAPI.unmarkCompleted(tipId);
         setCompletedTips(prev => prev.filter(ct => ct.tipId !== tipId));
       } else {
-        const completed = await tipsAPI.markCompleted(tipId, estimatedSavings);
-        setCompletedTips(prev => [...prev, completed]);
+        const tip = tips.find(t => t.id === tipId);
+        await tipsAPI.markCompleted(tipId, tip?.estimatedSavings || 0);
+        await loadData();
       }
-    } catch (error) {
-      console.error("Failed to toggle tip completion:", error);
+    } catch (err) {
+      console.error("Failed to toggle tip completion:", err);
     }
   };
 
-  const recommendedTips = useMemo(() => {
-    if (userEmissions.length === 0) return [];
-
-    const topCategories = userEmissions
-      .filter(e => e.percentage > 15)
-      .map(e => e.category);
-
-    return tips
-      .filter(tip => 
-        topCategories.includes(tip.category.toLowerCase()) &&
-        !completedTips.some(ct => ct.tipId === tip.id)
-      )
-      .sort((a, b) => (b.estimatedSavings || 0) - (a.estimatedSavings || 0))
-      .slice(0, 6);
-  }, [tips, completedTips, userEmissions]);
+  const toggleExpanded = (tipId: number) => {
+    setExpandedTips(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(tipId)) {
+        newSet.delete(tipId);
+      } else {
+        newSet.add(tipId);
+      }
+      return newSet;
+    });
+  };
 
   const filteredAndSortedTips = useMemo(() => {
-    let filtered = filterCategory === "all" 
-      ? tips 
-      : tips.filter(tip => tip.category.toLowerCase() === filterCategory);
+    let filtered = tips;
 
-    switch (sortBy) {
-      case "impact":
-        return filtered.sort((a, b) => (b.estimatedSavings || 0) - (a.estimatedSavings || 0));
-      case "difficulty":
-        const difficultyOrder = { easy: 1, medium: 2, hard: 3 };
-        return filtered.sort((a, b) => 
-          (difficultyOrder[a.difficulty as keyof typeof difficultyOrder] || 2) - 
-          (difficultyOrder[b.difficulty as keyof typeof difficultyOrder] || 2)
-        );
-      case "category":
-        return filtered.sort((a, b) => a.category.localeCompare(b.category));
-      default:
-        return filtered;
+    // Filter by category
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter(tip => tip.category === categoryFilter);
     }
-  }, [tips, sortBy, filterCategory]);
+
+    // Filter by search
+    if (searchQuery) {
+      filtered = filtered.filter(tip =>
+        tip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tip.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === "impact") {
+        return (b.estimatedSavings || 0) - (a.estimatedSavings || 0);
+      } else if (sortBy === "difficulty") {
+        const diffOrder = { easy: 0, medium: 1, hard: 2 };
+        return (diffOrder[a.difficulty as keyof typeof diffOrder] || 0) - 
+               (diffOrder[b.difficulty as keyof typeof diffOrder] || 0);
+      } else {
+        return a.category.localeCompare(b.category);
+      }
+    });
+
+    return sorted;
+  }, [tips, categoryFilter, sortBy, searchQuery]);
 
   const tipsByCategory = useMemo(() => {
     const grouped: Record<string, Tip[]> = {};
     filteredAndSortedTips.forEach(tip => {
-      const cat = tip.category.toLowerCase();
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(tip);
+      if (!grouped[tip.category]) {
+        grouped[tip.category] = [];
+      }
+      grouped[tip.category].push(tip);
     });
     return grouped;
   }, [filteredAndSortedTips]);
 
-  const totalSavingsPotential = useMemo(() => {
-    return completedTips.reduce((sum, ct) => sum + ct.estimatedSavings, 0);
-  }, [completedTips]);
+  const completionStats = useMemo(() => {
+    const total = tips.length;
+    const completed = completedTips.length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const totalSavings = completedTips.reduce((sum, ct) => sum + (ct.estimatedSavings || 0), 0);
+    
+    return { total, completed, percentage, totalSavings };
+  }, [tips, completedTips]);
 
-  const implementationProgress = useMemo(() => {
-    if (tips.length === 0) return 0;
-    return Math.round((completedTips.length / tips.length) * 100);
-  }, [completedTips.length, tips.length]);
-
-  const categorySavings = useMemo(() => {
-    const savings: Record<string, number> = {};
-    Object.keys(tipsByCategory).forEach(category => {
-      savings[category] = tipsByCategory[category].reduce(
-        (sum, tip) => sum + (tip.estimatedSavings || 0), 
-        0
-      );
-    });
-    return savings;
-  }, [tipsByCategory]);
+  const topCategory = useMemo(() => {
+    if (emissionBreakdown.length === 0) return null;
+    return emissionBreakdown.reduce((max, item) => 
+      item.emissions > max.emissions ? item : max
+    );
+  }, [emissionBreakdown]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <PageHeader
-          title="Carbon Reduction Tips"
-          description="Data-driven recommendations to reduce your carbon footprint"
-        />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="p-6 max-w-7xl mx-auto space-y-8">
+        
+        {/* Enhanced Header */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 dark:from-blue-600 dark:to-cyan-700 rounded-2xl shadow-lg mb-4">
+            <Lightbulb className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-3">
+            Sustainability Tips
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
+            Personalized recommendations to reduce your carbon footprint and make a positive environmental impact
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm text-slate-600 dark:text-slate-400">Tips Implemented</div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-                {completedTips.length} of {tips.length}
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Completed Tips</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{completionStats.completed}</p>
+                  <p className="text-xs text-green-600 dark:text-green-400 font-medium">of {completionStats.total} total</p>
+                </div>
+                <div className="p-3 bg-green-500/10 dark:bg-green-400/20 rounded-xl group-hover:bg-green-500/20 dark:group-hover:bg-green-400/30 transition-colors">
+                  <Check className="h-7 w-7 text-green-600 dark:text-green-400" />
+                </div>
               </div>
-              <Progress value={implementationProgress} className="mt-2" />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm text-slate-600 dark:text-slate-400">Estimated Annual Reduction</div>
-              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                {totalSavingsPotential} kg CO₂
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Progress</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{completionStats.percentage}%</p>
+                  <Progress value={completionStats.percentage} className="mt-2 h-2" />
+                </div>
+                <div className="p-3 bg-blue-500/10 dark:bg-blue-400/20 rounded-xl group-hover:bg-blue-500/20 dark:group-hover:bg-blue-400/30 transition-colors">
+                  <Target className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">Based on completed tips</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm text-slate-600 dark:text-slate-400">Available Tips</div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-                {tips.length - completedTips.length}
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">CO₂ Saved</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{Math.round(completionStats.totalSavings)}</p>
+                  <p className="text-xs text-teal-600 dark:text-teal-400 font-medium">kg this month</p>
+                </div>
+                <div className="p-3 bg-teal-500/10 dark:bg-teal-400/20 rounded-xl group-hover:bg-teal-500/20 dark:group-hover:bg-teal-400/30 transition-colors">
+                  <TrendingUp className="h-7 w-7 text-teal-600 dark:text-teal-400" />
+                </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">Ready to implement</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Focus Area</p>
+                  {topCategory && (
+                    <>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 capitalize">{topCategory.category}</p>
+                      <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">{Math.round(topCategory.percentage)}% of emissions</p>
+                    </>
+                  )}
+                </div>
+                <div className="p-3 bg-purple-500/10 dark:bg-purple-400/20 rounded-xl group-hover:bg-purple-500/20 dark:group-hover:bg-purple-400/30 transition-colors">
+                  <Award className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {recommendedTips.length > 0 && (
-          <Card className="border-emerald-200 dark:border-emerald-800 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-emerald-900 dark:text-emerald-100">
-                <Zap className="w-5 h-5" />
-                Recommended for You
-              </CardTitle>
-              <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                Based on your emission patterns, these actions will have the most impact
+        {/* Filters and Search */}
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search tips..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                />
+              </div>
+              
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full md:w-48 h-11 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="energy">⚡ Energy</SelectItem>
+                  <SelectItem value="transport">🚗 Transport</SelectItem>
+                  <SelectItem value="food">🍽️ Food</SelectItem>
+                  <SelectItem value="waste">🗑️ Waste</SelectItem>
+                  <SelectItem value="water">💧 Water</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-48 h-11 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="impact">Highest Impact</SelectItem>
+                  <SelectItem value="difficulty">Easiest First</SelectItem>
+                  <SelectItem value="category">By Category</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tips by Category */}
+        {Object.entries(tipsByCategory).map(([category, categoryTips]) => {
+          const config = categoryConfig[category as keyof typeof categoryConfig];
+          if (!config) return null;
+
+          const CategoryIcon = config.icon;
+
+          return (
+            <Card key={category} className={`bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg`}>
+              <CardHeader className={`${config.bgClass} border-b ${config.borderClass}`}>
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className={`p-2 ${config.iconBg} rounded-lg`}>
+                    <CategoryIcon className={`w-5 h-5 ${config.iconClass}`} />
+                  </div>
+                  <span className="text-slate-900 dark:text-slate-100">{config.label}</span>
+                  <Badge variant="secondary" className="ml-auto">
+                    {categoryTips.length} tips
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="p-6 space-y-4">
+                {categoryTips.map((tip) => {
+                  const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
+                  const isExpanded = expandedTips.has(tip.id);
+                  const difficulty = difficultyConfig[tip.difficulty as keyof typeof difficultyConfig];
+
+                  return (
+                    <Card key={tip.id} className={`border ${config.borderClass} ${isCompleted ? 'opacity-60' : ''} transition-all duration-300 hover:shadow-md`}>
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <Checkbox
+                            checked={isCompleted}
+                            onCheckedChange={() => handleToggleComplete(tip.id)}
+                            className="mt-1"
+                          />
+                          
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <h3 className={`font-semibold text-slate-900 dark:text-slate-100 ${isCompleted ? 'line-through' : ''}`}>
+                                  {tip.title}
+                                </h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                  {tip.content}
+                                </p>
+                              </div>
+                              
+                              <div className="flex flex-col items-end gap-2">
+                                {tip.estimatedSavings && tip.estimatedSavings > 0 && (
+                                  <Badge className={`bg-gradient-to-r ${config.gradient} text-white`}>
+                                    -{tip.estimatedSavings} kg CO₂
+                                  </Badge>
+                                )}
+                                {difficulty && (
+                                  <Badge className={difficulty.class}>
+                                    {difficulty.icon} {difficulty.label}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+
+                            {(tip.explanation || tip.source) && (
+                              <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(tip.id)}>
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs">
+                                    <Info className="h-3 w-3 mr-1" />
+                                    Learn More
+                                    {isExpanded ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                                  </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="mt-3">
+                                  <div className={`p-4 rounded-lg ${config.bgClass} space-y-2`}>
+                                    {tip.explanation && (
+                                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                                        {tip.explanation}
+                                      </p>
+                                    )}
+                                    {tip.source && (
+                                      <a 
+                                        href={tip.source} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className={`text-xs ${config.iconClass} hover:underline flex items-center gap-1`}
+                                      >
+                                        Source <ExternalLink className="h-3 w-3" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          );
+        })}
+
+        {filteredAndSortedTips.length === 0 && (
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
+            <CardContent className="p-12 text-center">
+              <Sparkles className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                No tips found
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                Try adjusting your filters or search query
               </p>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {recommendedTips.map(tip => {
-                const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
-                return (
-                  <TipCard
-                    key={tip.id}
-                    tip={tip}
-                    isCompleted={isCompleted}
-                    onToggle={() => toggleTipCompletion(tip.id, tip.estimatedSavings || 0)}
-                  />
-                );
-              })}
             </CardContent>
           </Card>
         )}
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>All Tips</CardTitle>
-              <div className="flex items-center gap-2">
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="w-40">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {Object.entries(categoryConfig).map(([key, config]) => (
-                      <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
-                    <ArrowUpDown className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="impact">Highest Impact</SelectItem>
-                    <SelectItem value="difficulty">Easiest First</SelectItem>
-                    <SelectItem value="category">By Category</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {Object.entries(tipsByCategory).map(([category, categoryTips]) => (
-              <CategorySection
-                key={category}
-                category={category}
-                tips={categoryTips}
-                completedTips={completedTips}
-                onToggleTip={toggleTipCompletion}
-                potentialSavings={categorySavings[category] || 0}
-              />
-            ))}
-
-            {Object.keys(tipsByCategory).length === 0 && (
-              <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                <p>No tips available for the selected filters.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
