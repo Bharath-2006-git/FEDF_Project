@@ -83,9 +83,19 @@ export default function Reports() {
   const loadReports = async () => {
     try {
       setLoading(true);
-      // Use actual API - for now empty array until backend generates reports
-      setReports([]);
+      // Load reports from localStorage
+      const savedReports = localStorage.getItem('carbonSense_reports');
+      if (savedReports) {
+        const parsedReports = JSON.parse(savedReports);
+        // Filter reports for current user
+        const userReports = parsedReports.filter((r: Report) => r.status === 'completed');
+        setReports(userReports);
+      } else {
+        setReports([]);
+      }
     } catch (error) {
+      console.error('Failed to load reports:', error);
+      setReports([]);
       toast({
         title: "Error",
         description: "Failed to load reports",
@@ -93,6 +103,16 @@ export default function Reports() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Save reports to localStorage
+  const saveReportsToStorage = (updatedReports: Report[]) => {
+    try {
+      localStorage.setItem('carbonSense_reports', JSON.stringify(updatedReports));
+      setReports(updatedReports);
+    } catch (error) {
+      console.error('Failed to save reports:', error);
     }
   };
 
@@ -211,7 +231,8 @@ export default function Reports() {
         status: 'completed'
       };
       
-      setReports(prev => [newReport, ...prev]);
+      const updatedReports = [newReport, ...reports];
+      saveReportsToStorage(updatedReports);
 
       toast({
         title: "Success",
@@ -936,7 +957,8 @@ export default function Reports() {
 
   const deleteReport = async (reportId: number) => {
     try {
-      setReports(prev => prev.filter(r => r.id !== reportId));
+      const updatedReports = reports.filter(r => r.id !== reportId);
+      saveReportsToStorage(updatedReports);
       toast({
         title: "Success",
         description: "Report deleted successfully",
