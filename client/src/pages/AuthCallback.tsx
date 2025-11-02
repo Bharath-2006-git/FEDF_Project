@@ -14,17 +14,13 @@ export default function AuthCallback() {
         const userParam = params.get('user');
         const error = params.get('error');
 
-        console.log('AuthCallback - Processing authentication...', { hasToken: !!token, hasUser: !!userParam, error });
-
         if (error) {
-          console.error('AuthCallback - Error from OAuth:', error);
           setStatus('error');
           window.location.href = '/auth?error=' + error;
           return;
         }
 
         if (!token || !userParam) {
-          console.error('AuthCallback - Missing token or user data');
           setStatus('error');
           window.location.href = '/auth?error=missing_data';
           return;
@@ -32,20 +28,17 @@ export default function AuthCallback() {
 
         // Parse user data
         const user = JSON.parse(decodeURIComponent(userParam));
-        console.log('AuthCallback - User data parsed:', { email: user.email, firstName: user.firstName, lastName: user.lastName });
         
         // Store token and user data
         localStorage.setItem('carbonSense_token', token);
         localStorage.setItem('carbonSense_user', JSON.stringify(user));
         
-        console.log('AuthCallback - Data stored in localStorage');
         setStatus('success');
         
         // Force a full page reload to ensure AuthContext picks up the new data
-        // This is more reliable than trying to update context directly
         window.location.href = '/dashboard';
       } catch (err) {
-        console.error('AuthCallback - Error processing authentication:', err);
+        console.error('[AuthCallback] Error:', err);
         setStatus('error');
         window.location.href = '/auth?error=invalid_data';
       }

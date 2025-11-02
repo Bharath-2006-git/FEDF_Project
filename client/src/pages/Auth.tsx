@@ -47,17 +47,19 @@ export default function Auth() {
     if (errorParam) {
       const errorMessages: Record<string, string> = {
         'google_auth_failed': 'Google authentication failed. Please try again.',
-        'no_code': 'Authentication code not received from Google.',
+        'no_code': 'Authentication code not received.',
         'failed': 'Authentication failed. Please try again.',
-        'invalid_data': 'Invalid authentication data received.',
-        'missing_data': 'Authentication data is missing.',
-        'token_generation_failed': 'Failed to generate authentication token.',
+        'invalid_data': 'Invalid authentication data. Please try again.',
+        'missing_data': 'Authentication incomplete. Please try again.',
+        'token_generation_failed': 'Failed to complete authentication. Please try again.',
       };
       
-      setError(errorMessages[errorParam] || 'Authentication error occurred. Please try again.');
+      setError(errorMessages[errorParam] || 'An error occurred. Please try again.');
       
-      // Clear the error param from URL
-      window.history.replaceState({}, '', '/auth');
+      // Clear the error param from URL after short delay
+      setTimeout(() => {
+        window.history.replaceState({}, '', '/auth');
+      }, 100);
     }
   }, []);
 

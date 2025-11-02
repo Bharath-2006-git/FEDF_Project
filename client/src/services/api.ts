@@ -138,11 +138,25 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        // Handle authentication errors
+        if (error.response?.status === 401 || error.response?.status === 403) {
           localStorage.removeItem('carbonSense_token');
           localStorage.removeItem('carbonSense_user');
-          window.location.href = '/login';
+          if (window.location.pathname !== '/login' && window.location.pathname !== '/auth') {
+            window.location.href = '/login';
+          }
         }
+        
+        // Log errors for debugging (only in development)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[API Error]', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            message: error.response?.data?.message || error.message
+          });
+        }
+        
         return Promise.reject(error);
       }
     );
