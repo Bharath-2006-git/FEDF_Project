@@ -9,19 +9,55 @@ import { createClient } from "@supabase/supabase-js";
 // Environment configuration
 process.env.NODE_ENV = 'production';
 
-// Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  { auth: { persistSession: false } }
-);
-
-// JWT and OAuth config
-const JWT_SECRET = process.env.JWT_SECRET || '';
+// Validate and get required environment variables
+const SUPABASE_URL = process.env.SUPABASE_URL as string;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
+const JWT_SECRET = process.env.JWT_SECRET as string;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || '';
 const FRONTEND_URL = process.env.FRONTEND_URL || '';
+
+// Validate critical environment variables
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !JWT_SECRET) {
+  console.error('❌ CRITICAL: Missing required environment variables');
+  console.error('Required: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET');
+  console.error('SUPABASE_URL present:', !!process.env.SUPABASE_URL);
+  console.error('SUPABASE_SERVICE_ROLE_KEY present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+  console.error('JWT_SECRET present:', !!process.env.JWT_SECRET);
+}
+
+// Create Supabase client with better error handling
+const supabase = createClient(
+  SUPABASE_URL || '',
+  SUPABASE_SERVICE_ROLE_KEY || '',
+  {
+    auth: { 
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'carbonsense-api',
+      },
+    },
+  }
+);
+
+// Test Supabase connection on startup
+(async () => {
+  try {
+    const { error } = await supabase.from('users').select('count').limit(1);
+    if (error) {
+      console.error('❌ Supabase connection test FAILED:', error.message);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+    } else {
+      console.log('✅ Supabase connection successful');
+    }
+  } catch (e) {
+    console.error('❌ Supabase connection test ERROR:', e);
+  }
+})();
 
 // Configure Google OAuth
 if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
@@ -107,6 +143,10 @@ app.get("/api/auth/google/callback", (req, res, next) => {
     }
 
     try {
+      if (!JWT_SECRET) {
+        return res.redirect(`${FRONTEND_URL}/auth?error=config_error`);
+      }
+
       const token = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
         JWT_SECRET,
@@ -133,9 +173,41 @@ app.get("/api/auth/google/callback", (req, res, next) => {
   })(req, res, next);
 });
 
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+// Health check with Supabase connection test
+app.get("/api/health", async (req, res) => {
+  try {
+    // Test Supabase connection
+    const { data, error } = await supabase
+      .from('users')
+      .select('count')
+      .limit(1);
+    
+    const supabaseStatus = error ? 'disconnected' : 'connected';
+    const supabaseError = error ? error.message : null;
+
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      environment: {
+        SUPABASE_URL_SET: !!SUPABASE_URL,
+        SUPABASE_KEY_SET: !!SUPABASE_SERVICE_ROLE_KEY,
+        JWT_SECRET_SET: !!JWT_SECRET,
+        GOOGLE_OAuth_SET: !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET),
+        NODE_ENV: process.env.NODE_ENV,
+      },
+      supabase: {
+        status: supabaseStatus,
+        error: supabaseError,
+        url: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 30)}...` : 'NOT SET',
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: "error", 
+      message: String(error),
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // POST /api/auth/signup
@@ -178,11 +250,19 @@ app.post("/api/auth/signup", async (req, res) => {
       .single();
 
     if (error) {
-      console.error('Signup error:', error);
-      return res.status(500).json({ message: "Failed to create user" });
+      console.error('❌ Signup error:', JSON.stringify(error, null, 2));
+      console.error('Supabase URL configured:', !!SUPABASE_URL);
+      return res.status(500).json({ 
+        message: "Failed to create user",
+        details: error.message || 'Database error',
+      });
     }
 
     // Generate JWT token
+    if (!JWT_SECRET) {
+      return res.status(503).json({ message: "Server configuration error" });
+    }
+
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       JWT_SECRET,
@@ -231,6 +311,10 @@ app.post("/api/auth/login", async (req, res) => {
         createdAt: new Date().toISOString()
       };
 
+      if (!JWT_SECRET) {
+        return res.status(503).json({ message: "Server configuration error" });
+      }
+
       const token = jwt.sign(
         { userId: demoUser.id, email: demoUser.email, role: demoUser.role },
         JWT_SECRET,
@@ -253,6 +337,9 @@ app.post("/api/auth/login", async (req, res) => {
       .maybeSingle();
 
     if (error || !user) {
+      if (error) {
+        console.error('❌ Login DB error:', JSON.stringify(error, null, 2));
+      }
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
@@ -263,6 +350,10 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     // Generate JWT token
+    if (!JWT_SECRET) {
+      return res.status(503).json({ message: "Server configuration error" });
+    }
+
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       JWT_SECRET,
@@ -307,6 +398,10 @@ const authenticateToken = (req: any, res: any, next: any) => {
     return res.status(401).json({ message: 'Access token required' });
   }
 
+  if (!JWT_SECRET) {
+    return res.status(503).json({ message: 'Server configuration error' });
+  }
+
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) {
       return res.status(403).json({ message: 'Invalid token' });
@@ -343,7 +438,10 @@ app.get("/api/emissions/list", authenticateToken, async (req, res) => {
 
     const { data: emissions, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Fetch emissions error:', JSON.stringify(error, null, 2));
+      throw error;
+    }
 
     // Map database fields to frontend format
     const mappedEmissions = (emissions || []).map((e: any) => ({
@@ -408,7 +506,11 @@ app.post("/api/emissions/add", authenticateToken, async (req, res) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Add emission error:', JSON.stringify(error, null, 2));
+      console.error('Payload:', { user_id: user.userId, category, quantity: quantityNum });
+      throw error;
+    }
 
     res.status(201).json({
       message: "Emission logged successfully",
@@ -936,27 +1038,31 @@ app.all("/api/*", (req, res) => {
 // Export handler
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Only log in development or for debugging
-    if (process.env.DEBUG === 'true') {
-      console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    }
+    // Log all requests for debugging
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     
-    // Validate environment on startup
-    if (!JWT_SECRET || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('[Config] Missing required environment variables');
+    // Validate environment variables
+    if (!JWT_SECRET || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('❌ [Config] Missing required environment variables');
+      console.error('Environment check:', {
+        JWT_SECRET: !!JWT_SECRET,
+        SUPABASE_URL: !!SUPABASE_URL,
+        SUPABASE_SERVICE_ROLE_KEY: !!SUPABASE_SERVICE_ROLE_KEY,
+        NODE_ENV: process.env.NODE_ENV,
+      });
       return res.status(503).json({ 
         message: 'Service configuration error',
-        details: 'Server is not properly configured'
+        details: 'Server is not properly configured. Check environment variables.',
       });
     }
     
     app(req as any, res as any);
   } catch (error) {
-    console.error('[Server] Unhandled error:', error);
+    console.error('❌ [Server] Unhandled error:', error);
     if (!res.headersSent) {
       res.status(500).json({ 
         message: 'Internal server error',
-        ...(process.env.NODE_ENV !== 'production' && { error: String(error) })
+        error: String(error),
       });
     }
   }
