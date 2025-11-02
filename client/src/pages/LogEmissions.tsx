@@ -125,10 +125,9 @@ export default function LogEmissions() {
         department: ""
       });
 
-      // Reload stats to reflect new entry - with a small delay to ensure backend processing is complete
-      setTimeout(() => {
-        reloadStats();
-      }, 300);
+      // Reload stats to reflect new entry - use async delay to ensure backend has processed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await reloadStats();
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to log emission. Please try again.");
@@ -225,7 +224,7 @@ export default function LogEmissions() {
                   </div>
                 ) : (
                   <>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.monthEmissions}kg</p>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.monthEmissions} kg</p>
                     <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">This month</p>
                   </>
                 )}

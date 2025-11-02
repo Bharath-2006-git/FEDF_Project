@@ -1,11 +1,8 @@
 /**
- * Format emission value with appropriate unit
+ * Format emission value with appropriate unit (always in kg)
  */
 export function formatEmissionValue(value: number): string {
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}t`;
-  }
-  return `${value.toFixed(1)}kg`;
+  return `${value.toFixed(1)} kg`;
 }
 
 /**
