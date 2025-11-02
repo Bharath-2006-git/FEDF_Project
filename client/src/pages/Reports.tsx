@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiService } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -17,7 +18,8 @@ import {
   RefreshCw,
   Eye,
   Trash2,
-  Plus
+  Plus,
+  X
 } from "lucide-react";
 interface Report {
   id: number;
@@ -30,6 +32,25 @@ interface Report {
   totalEmissions: number;
   status: string;
 }
+
+// Color map for categories
+const colorMap: Record<string, string> = {
+  'electricity': '#059669',
+  'travel': '#0ea5e9', 
+  'fuel': '#f59e0b',
+  'waste': '#ef4444',
+  'water': '#8b5cf6',
+  'food': '#ec4899',
+  'transport': '#06b6d4',
+  'heating': '#f97316',
+  'cooling': '#3b82f6',
+  'manufacturing': '#a855f7',
+  'agriculture': '#84cc16',
+  'construction': '#78716c',
+  'shipping': '#0891b2',
+  'aviation': '#6366f1',
+  'other': '#6b7280'
+};
 
 export default function Reports() {
   const { user } = useAuth();
@@ -86,25 +107,6 @@ export default function Reports() {
 
       const totalEmissions = emissionHistory.reduce((sum: number, item: any) => sum + item.emissions, 0);
       
-      // Create breakdown data with colors - comprehensive color map
-      const colorMap: Record<string, string> = {
-        'electricity': '#059669',
-        'travel': '#0ea5e9', 
-        'fuel': '#f59e0b',
-        'waste': '#ef4444',
-        'water': '#8b5cf6',
-        'food': '#ec4899',
-        'transport': '#06b6d4',
-        'heating': '#f97316',
-        'cooling': '#3b82f6',
-        'manufacturing': '#a855f7',
-        'agriculture': '#84cc16',
-        'construction': '#78716c',
-        'shipping': '#0891b2',
-        'aviation': '#6366f1',
-        'other': '#6b7280'
-      };
-
       // Default colors if category not in map
       const defaultColors = ['#059669', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -818,7 +820,7 @@ export default function Reports() {
 
   const downloadReport = async (report: Report) => {
     try {
-      // Generate real report content based on actual data
+      // Fetch actual emission data for the report period
       const emissionData = await apiService.getEmissionHistory();
       const filteredData = emissionData.filter((item: any) => {
         const date = new Date(item.date);
@@ -827,44 +829,51 @@ export default function Reports() {
         return date >= start && date <= end;
       });
 
-      const totalEmissions = filteredData.reduce((sum: number, item: any) => sum + item.emissions, 0);
-      const categoryBreakdown = filteredData.reduce((acc: Record<string, number>, item: any) => {
-        acc[item.category] = (acc[item.category] || 0) + item.emissions;
-        return acc;
-      }, {});
-
-      // Generate report content
-      const reportContent = {
-        title: `Carbon Emissions Report - ${report.reportType}`,
-        period: `${report.startDate} to ${report.endDate}`,
-        summary: {
-          totalEmissions: `${totalEmissions.toFixed(2)} kg CO2e`,
-          averageDaily: `${(totalEmissions / filteredData.length || 0).toFixed(2)} kg CO2e/day`,
-          entryCount: filteredData.length
-        },
-        categoryBreakdown,
-        detailedData: filteredData
-      };
-
-      const reportText = JSON.stringify(reportContent, null, 2);
-      const blob = new Blob([reportText], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+      // Calculate metrics
+      const totalEmissions = filteredData.reduce((sum: number, item: any) => sum + item.co2Emissions, 0);
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `carbon_report_${report.reportType}_${Date.now()}.json`;
-      link.click();
-      
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Success",
-        description: "Report downloaded successfully",
+      // Build category breakdown with colors
+      const categoryMap: Record<string, number> = {};
+      filteredData.forEach((item: any) => {
+        const cat = item.category || 'Unknown';
+        categoryMap[cat] = (categoryMap[cat] || 0) + item.co2Emissions;
       });
+      
+      const breakdown = Object.entries(categoryMap).map(([category, value]) => ({
+        category,
+        value,
+        percentage: totalEmissions > 0 ? (value / totalEmissions) * 100 : 0,
+        color: colorMap[category.toLowerCase()] || '#6b7280'
+      }));
+      
+      // Calculate daily average
+      const daysInPeriod = Math.max(1, Math.ceil((new Date(report.endDate).getTime() - new Date(report.startDate).getTime()) / (1000 * 60 * 60 * 24)));
+      const averageDaily = totalEmissions / daysInPeriod;
+      
+      // Temporarily set report form to match this report
+      const originalForm = { ...reportForm };
+      setReportForm({
+        reportType: report.reportType,
+        startDate: report.startDate,
+        endDate: report.endDate
+      });
+      
+      // Generate the PDF using the existing function
+      setTimeout(() => {
+        generatePDFReport(filteredData, totalEmissions, breakdown, averageDaily);
+        setReportForm(originalForm); // Restore original form
+        
+        toast({
+          title: "Success",
+          description: "Report downloaded successfully",
+        });
+      }, 100);
+      
     } catch (error) {
+      console.error('Download error:', error);
       toast({
         title: "Error",
-        description: "Failed to generate and download report",
+        description: "Failed to download report",
         variant: "destructive"
       });
     }
@@ -1141,6 +1150,78 @@ export default function Reports() {
         </CardContent>
       </Card>
       </div>
+
+      {/* View Report Dialog */}
+      <Dialog open={selectedReport !== null} onOpenChange={() => setSelectedReport(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span className="capitalize">{selectedReport?.reportType} Report Details</span>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedReport(null)}>
+                <X className="w-5 h-5" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedReport && (
+            <div className="space-y-6 py-4">
+              {/* Report Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Report Type</p>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white capitalize">
+                    {selectedReport.reportType}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Date Range</p>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {new Date(selectedReport.startDate).toLocaleDateString()} - {new Date(selectedReport.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Emissions</p>
+                  <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                    {selectedReport.totalEmissions.toFixed(1)} kg CO₂
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Generated On</p>
+                  <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {new Date(selectedReport.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Format</p>
+                  <Badge variant="secondary" className="text-sm">
+                    {selectedReport.fileFormat.toUpperCase()}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Status</p>
+                  <Badge variant="outline" className="text-sm">
+                    {selectedReport.status}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setSelectedReport(null)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  downloadReport(selectedReport);
+                  setSelectedReport(null);
+                }} className="bg-emerald-600 hover:bg-emerald-700">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
