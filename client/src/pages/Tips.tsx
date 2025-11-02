@@ -124,18 +124,15 @@ const categoryConfig = {
 const difficultyConfig = {
   easy: { 
     label: "Easy", 
-    class: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    icon: "🌱"
+    class: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
   },
   medium: { 
     label: "Medium", 
-    class: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    icon: "⚡"
+    class: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
   },
   hard: { 
     label: "Hard", 
-    class: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-    icon: "🎯"
+    class: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
   },
 };
 
@@ -380,11 +377,11 @@ export default function Tips() {
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="energy">⚡ Energy</SelectItem>
-                  <SelectItem value="transport">🚗 Transport</SelectItem>
-                  <SelectItem value="food">🍽️ Food</SelectItem>
-                  <SelectItem value="waste">🗑️ Waste</SelectItem>
-                  <SelectItem value="water">💧 Water</SelectItem>
+                  <SelectItem value="energy">Energy</SelectItem>
+                  <SelectItem value="transport">Transport</SelectItem>
+                  <SelectItem value="food">Food</SelectItem>
+                  <SelectItem value="waste">Waste</SelectItem>
+                  <SelectItem value="water">Water</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -419,7 +416,7 @@ export default function Tips() {
                   const difficulty = difficultyConfig[tip.difficulty as keyof typeof difficultyConfig];
 
                   return (
-                    <Card key={tip.id} className={`border ${config.borderClass} ${isCompleted ? 'opacity-60' : ''} transition-all duration-300 hover:shadow-md`}>
+                    <Card key={tip.id} className={`bg-white dark:bg-slate-800 border ${config.borderClass} ${isCompleted ? 'opacity-60' : ''} transition-all duration-300 hover:shadow-md`}>
                       <CardContent className="p-5">
                         <div className="flex items-start gap-4">
                           <Checkbox
@@ -447,7 +444,7 @@ export default function Tips() {
                                 )}
                                 {difficulty && (
                                   <Badge className={difficulty.class}>
-                                    {difficulty.icon} {difficulty.label}
+                                    {difficulty.label}
                                   </Badge>
                                 )}
                               </div>
