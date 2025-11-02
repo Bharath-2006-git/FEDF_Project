@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       return { success: false, error: 'Failed to initiate Google login' };
     }
-  };
+  }; 
 
   const logout = () => {
     localStorage.removeItem('carbonSense_token');
