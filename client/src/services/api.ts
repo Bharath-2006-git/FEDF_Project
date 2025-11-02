@@ -220,8 +220,8 @@ class ApiService {
   }
 
   async getGoals(): Promise<Goal[]> {
-    const response = await this.api.get<Goal[]>('/goals');
-    return response.data;
+    const response = await this.api.get<any>('/goals');
+    return response.data.goals || response.data;
   }
 
   async updateGoal(goalId: number, goalData: Partial<Goal>): Promise<void> {

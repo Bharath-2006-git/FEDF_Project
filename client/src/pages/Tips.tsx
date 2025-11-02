@@ -75,7 +75,7 @@ export default function Tips() {
       }
 
       const data = await response.json();
-      setTips(data);
+      setTips(data.tips || data);
     } catch (err: any) {
       setError(err.message);
     } finally {

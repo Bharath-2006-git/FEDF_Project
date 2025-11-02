@@ -995,6 +995,108 @@ app.post("/api/reports/generate", authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/analytics/monthly-comparison
+app.get("/api/analytics/monthly-comparison", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+    const { timeRange } = req.query;
+
+    // Get emissions for the specified time range
+    const { data: emissions, error } = await supabase
+      .from("emissions")
+      .select("date, co2_emissions")
+      .eq("user_id", user.userId)
+      .order("date", { ascending: true });
+
+    if (error) throw error;
+
+    // Group by month and calculate totals
+    const monthlyData: Record<string, number> = {};
+    (emissions || []).forEach((e: any) => {
+      const month = e.date.substring(0, 7); // YYYY-MM
+      monthlyData[month] = (monthlyData[month] || 0) + parseFloat(e.co2_emissions || 0);
+    });
+
+    const data = Object.entries(monthlyData).map(([month, current]) => ({
+      month,
+      current,
+      previous: 0, // Could calculate previous year comparison
+      change: 0
+    }));
+
+    res.json({ data });
+  } catch (error) {
+    console.error('Error fetching monthly comparison:', error);
+    res.status(500).json({ message: "Failed to fetch monthly comparison" });
+  }
+});
+
+// GET /api/analytics/yearly-trends
+app.get("/api/analytics/yearly-trends", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+
+    const { data: emissions, error } = await supabase
+      .from("emissions")
+      .select("date, co2_emissions")
+      .eq("user_id", user.userId)
+      .order("date", { ascending: true });
+
+    if (error) throw error;
+
+    // Group by year
+    const yearlyData: Record<string, number> = {};
+    (emissions || []).forEach((e: any) => {
+      const year = e.date.substring(0, 4);
+      yearlyData[year] = (yearlyData[year] || 0) + parseFloat(e.co2_emissions || 0);
+    });
+
+    const data = Object.entries(yearlyData).map(([year, emissions]) => ({
+      year,
+      emissions,
+      goals: 0,
+      achieved: false
+    }));
+
+    res.json({ data });
+  } catch (error) {
+    console.error('Error fetching yearly trends:', error);
+    res.status(500).json({ message: "Failed to fetch yearly trends" });
+  }
+});
+
+// GET /api/analytics/peak-analysis
+app.get("/api/analytics/peak-analysis", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+
+    const { data: emissions, error } = await supabase
+      .from("emissions")
+      .select("date, co2_emissions")
+      .eq("user_id", user.userId)
+      .order("co2_emissions", { ascending: false });
+
+    if (error) throw error;
+
+    const emissionsArray = emissions || [];
+    const highest = emissionsArray[0];
+    const lowest = emissionsArray[emissionsArray.length - 1];
+    const total = emissionsArray.reduce((sum: number, e: any) => sum + parseFloat(e.co2_emissions || 0), 0);
+    const average = emissionsArray.length > 0 ? total / emissionsArray.length : 0;
+
+    const data = {
+      highestDay: { date: highest?.date || '', value: parseFloat(highest?.co2_emissions || 0) },
+      lowestDay: { date: lowest?.date || '', value: parseFloat(lowest?.co2_emissions || 0) },
+      averageDaily: average
+    };
+
+    res.json({ data });
+  } catch (error) {
+    console.error('Error fetching peak analysis:', error);
+    res.status(500).json({ message: "Failed to fetch peak analysis" });
+  }
+});
+
 // PUT /api/profile
 app.put("/api/profile", authenticateToken, async (req, res) => {
   try {
