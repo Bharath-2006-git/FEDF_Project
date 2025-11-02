@@ -264,357 +264,555 @@ export default function Reports() {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     
-    // Clean professional header
-    doc.setFillColor(16, 185, 129); // Emerald color
-    doc.rect(0, 0, pageWidth, 45, 'F');
+    // Modern gradient-style header
+    doc.setFillColor(5, 150, 105); // Dark emerald base
+    doc.rect(0, 0, pageWidth, 50, 'F');
     
-    // Add accent line
-    doc.setFillColor(5, 150, 105); // Darker emerald
-    doc.rect(0, 40, pageWidth, 5, 'F');
+    // Overlay lighter section
+    doc.setFillColor(16, 185, 129); // Lighter emerald
+    doc.rect(0, 0, pageWidth, 35, 'F');
     
-    // Company name
+    // Accent stripe at bottom of header
+    doc.setFillColor(236, 253, 245); // Very light green
+    doc.rect(0, 48, pageWidth, 2, 'F');
+    
+    // Logo/Brand area with circle
+    doc.setFillColor(255, 255, 255);
+    doc.circle(25, 18, 8, 'F');
+    doc.setFillColor(5, 150, 105);
+    doc.circle(25, 18, 6, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CarbonSense', 20, 20);
-    
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Carbon Emissions Report', 20, 30);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CS', 25, 21, { align: 'center' });
     
-    // Report Info box in header
-    doc.setFontSize(9);
+    // Company name beside logo
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CarbonSense', 37, 18);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Carbon Footprint Analysis Report', 37, 28);
+    
+    // Report metadata in header (right side)
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
     const reportDate = new Date().toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     });
-  doc.text(`Generated: ${reportDate}`, pageWidth - 15, 18, { align: 'right' });
-  doc.text(`Period: ${reportForm.startDate} to ${reportForm.endDate}`, pageWidth - 15, 25, { align: 'right' });
-  doc.text(`User: ${user?.firstName || 'User'}`, pageWidth - 15, 32, { align: 'right' });
+    const userName = user?.firstName || 'User';
+    doc.text(`Date: ${reportDate}`, pageWidth - 15, 13, { align: 'right' });
+    doc.text(`Period: ${reportForm.startDate} to ${reportForm.endDate}`, pageWidth - 15, 19, { align: 'right' });
+    doc.text(`User: ${userName}`, pageWidth - 15, 25, { align: 'right' });
     
-    // Key Metrics Highlight Boxes
-    let yPos = 65;
-    const boxWidth = (pageWidth - 50) / 3;
-    const boxHeight = 25;
-    const boxY = yPos;
+    // Executive Summary Cards with modern card design
+    let yPos = 68;
+    const cardWidth = (pageWidth - 48) / 3;
+    const cardHeight = 28;
+    const cardSpacing = 6;
     
-    // Total Emissions Box
-    doc.setFillColor(239, 246, 255); // Light blue bg
-    doc.roundedRect(15, boxY, boxWidth, boxHeight, 3, 3, 'F');
-    doc.setDrawColor(59, 130, 246); // Blue border
-    doc.setLineWidth(0.5);
-    doc.roundedRect(15, boxY, boxWidth, boxHeight, 3, 3, 'S');
-    doc.setTextColor(30, 64, 175);
+    // Card 1: Total Emissions (Blue theme)
+    const card1X = 15;
+    doc.setFillColor(239, 246, 255); // Light blue
+    doc.roundedRect(card1X, yPos, cardWidth, cardHeight, 4, 4, 'F');
+    doc.setDrawColor(191, 219, 254); // Border
+    doc.setLineWidth(0.8);
+    doc.roundedRect(card1X, yPos, cardWidth, cardHeight, 4, 4, 'S');
+    
+    // Icon circle for card 1
+    doc.setFillColor(59, 130, 246);
+    doc.circle(card1X + 10, yPos + 10, 5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CO2', card1X + 10, yPos + 12, { align: 'center' });
+    
+    // Card 1 content
+    doc.setTextColor(30, 58, 138);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('TOTAL EMISSIONS', card1X + 20, yPos + 10);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${totalEmissions.toFixed(1)}`, card1X + 20, yPos + 20);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('kg CO2e', card1X + 20, yPos + 25);
+    
+    // Card 2: Daily Average (Green theme)
+    const card2X = card1X + cardWidth + cardSpacing;
+    doc.setFillColor(236, 253, 245); // Light green
+    doc.roundedRect(card2X, yPos, cardWidth, cardHeight, 4, 4, 'F');
+    doc.setDrawColor(167, 243, 208);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(card2X, yPos, cardWidth, cardHeight, 4, 4, 'S');
+    
+    // Icon circle for card 2
+    doc.setFillColor(16, 185, 129);
+    doc.circle(card2X + 10, yPos + 10, 5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AVG', card2X + 10, yPos + 12, { align: 'center' });
+    
+    // Card 2 content
+    doc.setTextColor(6, 78, 59);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DAILY AVERAGE', card2X + 20, yPos + 10);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${averageDaily.toFixed(1)}`, card2X + 20, yPos + 20);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('kg/day', card2X + 20, yPos + 25);
+    
+    // Card 3: Total Entries (Purple theme)
+    const card3X = card2X + cardWidth + cardSpacing;
+    doc.setFillColor(243, 232, 255); // Light purple
+    doc.roundedRect(card3X, yPos, cardWidth, cardHeight, 4, 4, 'F');
+    doc.setDrawColor(221, 214, 254);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(card3X, yPos, cardWidth, cardHeight, 4, 4, 'S');
+    
+    // Icon circle for card 3
+    doc.setFillColor(139, 92, 246);
+    doc.circle(card3X + 10, yPos + 10, 5, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Total Emissions', 15 + boxWidth / 2, boxY + 8, { align: 'center' });
-    doc.setFontSize(16);
-    doc.text(`${totalEmissions.toFixed(1)} kg`, 15 + boxWidth / 2, boxY + 17, { align: 'center' });
+    doc.text('#', card3X + 10, yPos + 12, { align: 'center' });
     
-    // Daily Average Box
-    doc.setFillColor(236, 253, 245); // Light green bg
-    doc.roundedRect(20 + boxWidth, boxY, boxWidth, boxHeight, 3, 3, 'F');
-    doc.setDrawColor(16, 185, 129); // Green border
-    doc.roundedRect(20 + boxWidth, boxY, boxWidth, boxHeight, 3, 3, 'S');
-    doc.setTextColor(6, 95, 70);
-    doc.setFontSize(10);
-    doc.text('Daily Average', 20 + boxWidth + boxWidth / 2, boxY + 8, { align: 'center' });
-    doc.setFontSize(16);
-    doc.text(`${averageDaily.toFixed(1)} kg`, 20 + boxWidth + boxWidth / 2, boxY + 17, { align: 'center' });
-    
-    // Total Entries Box
-    doc.setFillColor(254, 243, 199); // Light yellow bg
-    doc.roundedRect(25 + boxWidth * 2, boxY, boxWidth, boxHeight, 3, 3, 'F');
-    doc.setDrawColor(245, 158, 11); // Orange border
-    doc.roundedRect(25 + boxWidth * 2, boxY, boxWidth, boxHeight, 3, 3, 'S');
-    doc.setTextColor(146, 64, 14);
-    doc.setFontSize(10);
-    doc.text('Total Entries', 25 + boxWidth * 2 + boxWidth / 2, boxY + 8, { align: 'center' });
-    doc.setFontSize(16);
-    doc.text(`${emissions.length}`, 25 + boxWidth * 2 + boxWidth / 2, boxY + 17, { align: 'center' });
-    
-    // Summary Section with better styling
-    yPos = boxY + boxHeight + 20;
-    
-    // Section divider
-    doc.setDrawColor(16, 185, 129);
-    doc.setLineWidth(1);
-    doc.line(15, yPos - 3, pageWidth - 15, yPos - 3);
-    
-    doc.setFontSize(13);
+    // Card 3 content
+    doc.setTextColor(76, 29, 149);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('TOTAL ENTRIES', card3X + 20, yPos + 10);
+    doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(16, 185, 129);
-    doc.text('REPORT SUMMARY', 15, yPos + 3);
+    doc.text(`${emissions.length}`, card3X + 20, yPos + 20);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('records', card3X + 20, yPos + 25);
     
-    yPos += 5;
+    // Key Metrics Section with modern header
+    yPos = yPos + cardHeight + 18;
     
-    const daysCount = Math.ceil((new Date(reportForm.endDate).getTime() - new Date(reportForm.startDate).getTime()) / (1000 * 60 * 60 * 24)) || 0;
-    const emissionsPerEntry = emissions.length ? (totalEmissions / emissions.length) : 0;
+    // Section header with background bar
+    doc.setFillColor(241, 245, 249);
+    doc.rect(15, yPos - 2, pageWidth - 30, 10, 'F');
+    
+    doc.setFillColor(16, 185, 129); // Green accent bar
+    doc.rect(15, yPos - 2, 4, 10, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('KEY METRICS OVERVIEW', 22, yPos + 5);
+    
+    yPos += 13;
+    
+    // Calculate metrics with safe defaults
+    const daysCount = Math.max(1, Math.ceil((new Date(reportForm.endDate).getTime() - new Date(reportForm.startDate).getTime()) / (1000 * 60 * 60 * 24)));
+    const emissionsPerEntry = emissions.length > 0 ? (totalEmissions / emissions.length) : 0;
+    const reportTypeText = reportForm.reportType.charAt(0).toUpperCase() + reportForm.reportType.slice(1);
+    const performanceStatus = totalEmissions < (averageDaily * 30) ? 'On Track' : 'Needs Attention';
+    
     const summaryData = [
-      ['Report Type', reportForm.reportType.charAt(0).toUpperCase() + reportForm.reportType.slice(1)],
-      ['Analysis Period', `${daysCount} day(s)`],
-      ['Emissions per Entry', emissions.length ? `${emissionsPerEntry.toFixed(2)} kg CO₂e` : '-'],
-      ['Status', (totalEmissions < (averageDaily * 30)) ? 'Below target' : 'Above target']
+      ['Report Type', reportTypeText],
+      ['Analysis Period', `${daysCount} days`],
+      ['Avg per Entry', `${emissionsPerEntry.toFixed(2)} kg CO2e`],
+      ['Performance', performanceStatus]
     ];
     
     autoTable(doc, {
       startY: yPos,
       head: [['Metric', 'Value']],
       body: summaryData,
-      theme: 'grid',
+      theme: 'striped',
       headStyles: { 
         fillColor: [16, 185, 129], 
-        textColor: 255,
-        fontSize: 11,
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      bodyStyles: {
-        fontSize: 10,
-        textColor: [50, 50, 50]
-      },
-      alternateRowStyles: {
-        fillColor: [249, 250, 251]
-      },
-      margin: { left: 15, right: 15 },
-      columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 60 },
-        1: { halign: 'right' }
-      }
-    });
-    
-    // Category Breakdown with visual bars
-    yPos = (doc as any).lastAutoTable.finalY + 20;
-    
-    // Section divider
-    doc.setDrawColor(16, 185, 129);
-    doc.setLineWidth(1);
-    doc.line(15, yPos - 3, pageWidth - 15, yPos - 3);
-    
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(16, 185, 129);
-    doc.text('EMISSIONS BY CATEGORY', 15, yPos + 3);
-    
-    yPos += 5;
-    
-    // Build category table rows; we'll draw a colored bar in the Distribution column using autoTable's hooks
-    const categoryData = breakdown.map(item => [
-      decodeHtml(String(item.category)),
-      `${(item.value || 0).toFixed(2)} kg`,
-      `${(item.percentage || 0).toFixed(1)}%`,
-      (item.percentage || 0)
-    ]);
-    
-    autoTable(doc, {
-      startY: yPos,
-      head: [['Category', 'Emissions (kg CO₂e)', '%', 'Distribution']],
-      body: categoryData,
-      theme: 'grid',
-      headStyles: { 
-        fillColor: [16, 185, 129], 
-        textColor: 255,
+        textColor: [255, 255, 255],
         fontSize: 10,
         fontStyle: 'bold',
-        halign: 'center'
+        halign: 'left',
+        cellPadding: 5
       },
       bodyStyles: {
         fontSize: 9,
-        textColor: [50, 50, 50]
+        textColor: [51, 65, 85],
+        cellPadding: 4
       },
       alternateRowStyles: {
-        fillColor: [249, 250, 251]
+        fillColor: [248, 250, 252]
       },
       margin: { left: 15, right: 15 },
       columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 50 },
-        1: { halign: 'right', cellWidth: 40 },
-        2: { halign: 'right', cellWidth: 30 },
-        3: { cellWidth: 60, halign: 'left' }
-      },
-      // Draw a colored bar representing distribution in the 4th column
-      didDrawCell: (data) => {
-        try {
-          if (data.column.index === 3 && data.cell && typeof data.cell.raw !== 'undefined') {
-            const pct = Number(data.cell.raw) || 0;
-            const rowIndex = data.row.index;
-            const color = (breakdown[rowIndex] && breakdown[rowIndex].color) || '#6b7280';
-            const [r, g, b] = hexToRgb(color);
-
-            // bar coords
-            const padding = 2;
-            const barX = data.cell.x + padding;
-            const barY = data.cell.y + (data.cell.height / 2) - 3;
-            const maxBarWidth = data.cell.width - (padding * 2);
-            const barWidth = Math.max(0, Math.min(maxBarWidth, (pct / 100) * maxBarWidth));
-
-            // background track
-            doc.setFillColor(229, 231, 235);
-            doc.roundedRect(data.cell.x + padding, barY - 1, maxBarWidth, 6, 1, 1, 'F');
-
-            // colored bar
-            doc.setFillColor(r, g, b);
-            doc.roundedRect(barX, barY - 1, barWidth, 6, 1, 1, 'F');
-
-            // Draw percentage text on top, right aligned inside cell
-            doc.setFontSize(9);
-            doc.setTextColor(64, 64, 64);
-            doc.text(`${pct.toFixed(1)}%`, data.cell.x + data.cell.width - padding, data.cell.y + data.cell.height / 2 + 3, { align: 'right' });
-          }
-        } catch (e) {
-          // non-fatal for drawing
+        0: { 
+          fontStyle: 'bold', 
+          cellWidth: 70,
+          textColor: [71, 85, 105]
+        },
+        1: { 
+          halign: 'right',
+          fontStyle: 'normal'
         }
       }
     });
     
-    // Detailed Emissions Log
+    // Category Breakdown Section with modern styling
+    yPos = (doc as any).lastAutoTable.finalY + 18;
+    
+    // Section header with background bar
+    doc.setFillColor(241, 245, 249);
+    doc.rect(15, yPos - 2, pageWidth - 30, 10, 'F');
+    
+    doc.setFillColor(16, 185, 129); // Green accent bar
+    doc.rect(15, yPos - 2, 4, 10, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('EMISSIONS BY CATEGORY', 22, yPos + 5);
+    
+    yPos += 13;
+    
+    // Clean text sanitization function
+    const cleanText = (text: string): string => {
+      if (!text) return '-';
+      // Remove HTML entities and special chars, keep only alphanumerics, spaces, and basic punctuation
+      return String(text)
+        .replace(/&[^;]+;/g, '')
+        .replace(/[^\w\s.,()-]/g, '')
+        .trim();
+    };
+    
+    // Build category data with cleaned text
+    const categoryData = breakdown.map(item => {
+      const categoryName = cleanText(String(item.category || 'Unknown'));
+      const emissionValue = (item.value || 0).toFixed(2);
+      const percentage = (item.percentage || 0).toFixed(1);
+      
+      return [
+        categoryName,
+        `${emissionValue} kg`,
+        `${percentage}%`,
+        item.percentage || 0
+      ];
+    });
+    
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Category', 'Emissions', 'Percentage', 'Visual']],
+      body: categoryData,
+      theme: 'striped',
+      headStyles: { 
+        fillColor: [16, 185, 129], 
+        textColor: [255, 255, 255],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center',
+        cellPadding: 5
+      },
+      bodyStyles: {
+        fontSize: 9,
+        textColor: [51, 65, 85],
+        cellPadding: 4
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      },
+      margin: { left: 15, right: 15 },
+      columnStyles: {
+        0: { 
+          fontStyle: 'bold', 
+          cellWidth: 48,
+          halign: 'left'
+        },
+        1: { 
+          halign: 'right', 
+          cellWidth: 35,
+          textColor: [16, 185, 129],
+          fontStyle: 'bold'
+        },
+        2: { 
+          halign: 'center', 
+          cellWidth: 28 
+        },
+        3: { 
+          cellWidth: 65, 
+          halign: 'center' 
+        }
+      },
+      // Draw visual progress bars in the last column
+      didDrawCell: (data) => {
+        try {
+          if (data.section === 'body' && data.column.index === 3 && data.cell && typeof data.cell.raw !== 'undefined') {
+            const pct = Number(data.cell.raw) || 0;
+            const rowIndex = data.row.index;
+            const color = (breakdown[rowIndex] && breakdown[rowIndex].color) || '#10b981';
+            const [r, g, b] = hexToRgb(color);
+
+            // Bar coordinates
+            const padding = 3;
+            const barX = data.cell.x + padding;
+            const barY = data.cell.y + (data.cell.height / 2) - 4;
+            const maxBarWidth = data.cell.width - (padding * 2);
+            const barWidth = Math.max(1, Math.min(maxBarWidth, (pct / 100) * maxBarWidth));
+
+            // Background track
+            doc.setFillColor(226, 232, 240);
+            doc.roundedRect(barX, barY, maxBarWidth, 7, 2, 2, 'F');
+
+            // Colored progress bar
+            if (barWidth > 0) {
+              doc.setFillColor(r, g, b);
+              doc.roundedRect(barX, barY, barWidth, 7, 2, 2, 'F');
+            }
+
+            // Percentage text overlay
+            doc.setFontSize(8);
+            doc.setTextColor(71, 85, 105);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${pct.toFixed(0)}%`, barX + maxBarWidth / 2, barY + 5, { align: 'center' });
+          }
+        } catch (e) {
+          // Silently handle drawing errors
+          console.error('Chart drawing error:', e);
+        }
+      }
+    });
+    
+    // Detailed Emissions Log (New Page)
     if (emissions.length > 0) {
       doc.addPage();
       
-      // Page header for second page
+      // Consistent header for page 2
+      doc.setFillColor(5, 150, 105);
+      doc.rect(0, 0, pageWidth, 25, 'F');
       doc.setFillColor(16, 185, 129);
       doc.rect(0, 0, pageWidth, 20, 'F');
+      doc.setFillColor(236, 253, 245);
+      doc.rect(0, 23, pageWidth, 2, 'F');
+      
+      // Logo on page 2
+      doc.setFillColor(255, 255, 255);
+      doc.circle(20, 10, 6, 'F');
+      doc.setFillColor(5, 150, 105);
+      doc.circle(20, 10, 4.5, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.text('CarbonSense - Detailed Report', 20, 13);
-      
-      yPos = 30;
-      
-      // Section divider
-      doc.setDrawColor(16, 185, 129);
-      doc.setLineWidth(1);
-      doc.line(15, yPos, pageWidth - 15, yPos);
+      doc.text('CS', 20, 12, { align: 'center' });
       
       doc.setFontSize(13);
+      doc.text('CarbonSense - Detailed Activity Log', 29, 13);
+      
+      yPos = 38;
+      
+      // Section header
+      doc.setFillColor(241, 245, 249);
+      doc.rect(15, yPos - 2, pageWidth - 30, 10, 'F');
+      doc.setFillColor(16, 185, 129);
+      doc.rect(15, yPos - 2, 4, 10, 'F');
+      
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(16, 185, 129);
-      doc.text('DETAILED EMISSIONS LOG', 15, yPos + 7);
+      doc.setTextColor(30, 41, 59);
+      doc.text('EMISSION ENTRIES LOG', 22, yPos + 5);
       
-      yPos += 10;
+      yPos += 13;
       
-      const emissionData = emissions.slice(0, 50).map((item: any) => [
-        new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        decodeHtml(String(item.category || '-')),
-        decodeHtml(String(item.subcategory || '-')),
-        `${item.quantity || 0} ${item.unit || ''}`,
-        `${(item.co2Emissions || 0).toFixed(2)} kg`
-      ]);
+      // Clean and format emission data
+      const emissionData = emissions.slice(0, 50).map((item: any) => {
+        const dateStr = new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+        const category = cleanText(String(item.category || 'N/A'));
+        const subcategory = cleanText(String(item.subcategory || '-'));
+        const quantity = `${(item.quantity || 0)} ${cleanText(item.unit || '')}`.trim();
+        const emission = `${(item.co2Emissions || 0).toFixed(2)} kg`;
+        
+        return [dateStr, category, subcategory, quantity, emission];
+      });
       
       autoTable(doc, {
         startY: yPos,
-        head: [['Date', 'Category', 'Subcategory', 'Quantity', 'CO₂ Emissions']],
+        head: [['Date', 'Category', 'Subcategory', 'Quantity', 'CO2 Impact']],
         body: emissionData,
-        theme: 'grid',
+        theme: 'striped',
         headStyles: { 
           fillColor: [16, 185, 129], 
-          textColor: 255, 
+          textColor: [255, 255, 255], 
           fontSize: 9,
           fontStyle: 'bold',
-          halign: 'center'
+          halign: 'center',
+          cellPadding: 4
         },
         bodyStyles: { 
           fontSize: 8,
-          textColor: [50, 50, 50]
+          textColor: [51, 65, 85],
+          cellPadding: 3
         },
         alternateRowStyles: {
-          fillColor: [249, 250, 251]
+          fillColor: [248, 250, 252]
         },
         margin: { left: 15, right: 15 },
         columnStyles: {
-          0: { cellWidth: 28, halign: 'center' },
-          1: { cellWidth: 35, fontStyle: 'bold' },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 35, halign: 'right' },
-          4: { cellWidth: 35, halign: 'right', textColor: [16, 185, 129], fontStyle: 'bold' }
+          0: { 
+            cellWidth: 28, 
+            halign: 'center',
+            textColor: [71, 85, 105]
+          },
+          1: { 
+            cellWidth: 36, 
+            fontStyle: 'bold',
+            textColor: [30, 41, 59]
+          },
+          2: { 
+            cellWidth: 36,
+            fontSize: 7
+          },
+          3: { 
+            cellWidth: 32, 
+            halign: 'right' 
+          },
+          4: { 
+            cellWidth: 30, 
+            halign: 'right', 
+            textColor: [16, 185, 129], 
+            fontStyle: 'bold' 
+          }
         }
       });
       
+      // Note for truncated entries
       if (emissions.length > 50) {
-        const remainingYPos = (doc as any).lastAutoTable.finalY + 8;
+        const remainingYPos = (doc as any).lastAutoTable.finalY + 10;
         
-        // Info box for remaining entries
-        doc.setFillColor(254, 243, 199);
-        doc.roundedRect(15, remainingYPos, pageWidth - 30, 10, 2, 2, 'F');
-        doc.setDrawColor(245, 158, 11);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(15, remainingYPos, pageWidth - 30, 10, 2, 2, 'S');
+        // Alert box style
+        doc.setFillColor(254, 249, 195); // Light amber
+        doc.roundedRect(15, remainingYPos, pageWidth - 30, 12, 3, 3, 'F');
+        doc.setDrawColor(251, 191, 36);
+        doc.setLineWidth(1);
+        doc.roundedRect(15, remainingYPos, pageWidth - 30, 12, 3, 3, 'S');
+        
+        // Alert icon
+        doc.setFillColor(251, 191, 36);
+        doc.circle(22, remainingYPos + 6, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('i', 22, remainingYPos + 8, { align: 'center' });
         
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(146, 64, 14);
+        doc.setTextColor(120, 53, 15);
         doc.text(
-          `NOTE: Showing first 50 of ${emissions.length} total entries. ${emissions.length - 50} entries not displayed.`,
-          pageWidth / 2,
-          remainingYPos + 6,
-          { align: 'center' }
+          `Displaying first 50 of ${emissions.length} total entries (${emissions.length - 50} additional records omitted)`,
+          30,
+          remainingYPos + 7
         );
       }
       
-      // Recommendations section at bottom
-      const recommendationsY = (doc as any).lastAutoTable.finalY + 22;
-      if (recommendationsY < pageHeight - 45) {
-        doc.setDrawColor(16, 185, 129);
-        doc.setLineWidth(1);
-        doc.line(15, recommendationsY, pageWidth - 15, recommendationsY);
+      // Recommendations Section
+      const recommendationsY = (doc as any).lastAutoTable.finalY + 25;
+      if (recommendationsY < pageHeight - 60) {
+        // Section header
+        doc.setFillColor(241, 245, 249);
+        doc.rect(15, recommendationsY - 2, pageWidth - 30, 10, 'F');
+        doc.setFillColor(16, 185, 129);
+        doc.rect(15, recommendationsY - 2, 4, 10, 'F');
         
-        doc.setFontSize(13);
+        doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(16, 185, 129);
-        doc.text('SUSTAINABILITY RECOMMENDATIONS', 15, recommendationsY + 7);
+        doc.setTextColor(30, 41, 59);
+        doc.text('SUSTAINABILITY RECOMMENDATIONS', 22, recommendationsY + 5);
         
-        doc.setFontSize(9);
+        // Recommendation cards
+        const recY = recommendationsY + 15;
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(60, 60, 60);
-        const tips = [
-          '- Consider using public transport or carpooling to reduce travel emissions',
-          '- Switch to LED bulbs and unplug devices when not in use',
-          '- Reduce, reuse, and recycle to minimize waste emissions',
-          '- Set goals to track your progress toward lower emissions'
+        doc.setTextColor(71, 85, 105);
+        
+        const recommendations = [
+          { icon: '1', text: 'Use public transport or carpool to reduce travel emissions' },
+          { icon: '2', text: 'Switch to LED lighting and unplug devices when not in use' },
+          { icon: '3', text: 'Practice reduce, reuse, recycle to minimize waste' },
+          { icon: '4', text: 'Set measurable goals to track emission reduction progress' }
         ];
         
-        tips.forEach((tip, index) => {
-          doc.text(tip, 20, recommendationsY + 16 + (index * 5));
+        recommendations.forEach((rec, index) => {
+          const itemY = recY + (index * 9);
+          
+          // Number circle
+          doc.setFillColor(209, 250, 229); // Light green
+          doc.circle(18, itemY, 3, 'F');
+          doc.setTextColor(5, 150, 105);
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          doc.text(rec.icon, 18, itemY + 2, { align: 'center' });
+          
+          // Recommendation text
+          doc.setTextColor(71, 85, 105);
+          doc.setFont('helvetica', 'normal');
+          doc.text(rec.text, 24, itemY + 2);
         });
       }
     }
     
-    // Professional footer on all pages
+    // Modern footer on all pages
     const totalPages = doc.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
       
-      // Footer background
-      doc.setFillColor(248, 250, 252);
-      doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
+      // Footer background with gradient effect
+      doc.setFillColor(241, 245, 249);
+      doc.rect(0, pageHeight - 18, pageWidth, 18, 'F');
       
-      // Footer line
+      // Top border line
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.3);
+      doc.line(0, pageHeight - 18, pageWidth, pageHeight - 18);
+      
+      // Green accent line
       doc.setDrawColor(16, 185, 129);
-      doc.setLineWidth(0.5);
-      doc.line(15, pageHeight - 18, pageWidth - 15, pageHeight - 18);
+      doc.setLineWidth(1.5);
+      doc.line(15, pageHeight - 16.5, pageWidth - 15, pageHeight - 16.5);
       
+      // Page number
       doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      doc.setFont('helvetica', 'bold');
       doc.text(
         `Page ${i} of ${totalPages}`,
         pageWidth / 2,
-        pageHeight - 12,
+        pageHeight - 10,
         { align: 'center' }
       );
       
+      // Footer branding
       doc.setFontSize(7);
-      doc.text(
-        'Generated by CarbonSense | www.carbonsense.com',
-        pageWidth / 2,
-        pageHeight - 6,
-        { align: 'center' }
-      );
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(148, 163, 184);
+      const footerText = 'Powered by CarbonSense Carbon Tracking Platform';
+      doc.text(footerText, pageWidth / 2, pageHeight - 5, { align: 'center' });
+      
+      // Small logo in footer corner
+      doc.setFillColor(16, 185, 129);
+      doc.circle(pageWidth - 10, pageHeight - 10, 2.5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'bold');
+      doc.text('CS', pageWidth - 10, pageHeight - 9, { align: 'center' });
     }
     
-    // Save PDF with better filename
-    const fileName = `CarbonSense-Report-${reportForm.reportType}-${new Date().toISOString().split('T')[0]}.pdf`;
+    // Save PDF with descriptive filename
+    const reportTypeClean = cleanText(reportForm.reportType);
+    const dateStamp = new Date().toISOString().split('T')[0];
+    const fileName = `CarbonSense-${reportTypeClean}-Report-${dateStamp}.pdf`;
     doc.save(fileName);
   };
 
