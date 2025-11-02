@@ -39,6 +39,28 @@ export default function Auth() {
     }
   }, [isAuthenticated, setLocation]);
 
+  // Handle error from URL params (e.g., from failed OAuth)
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get('error');
+    
+    if (errorParam) {
+      const errorMessages: Record<string, string> = {
+        'google_auth_failed': 'Google authentication failed. Please try again.',
+        'no_code': 'Authentication code not received from Google.',
+        'failed': 'Authentication failed. Please try again.',
+        'invalid_data': 'Invalid authentication data received.',
+        'missing_data': 'Authentication data is missing.',
+        'token_generation_failed': 'Failed to generate authentication token.',
+      };
+      
+      setError(errorMessages[errorParam] || 'Authentication error occurred. Please try again.');
+      
+      // Clear the error param from URL
+      window.history.replaceState({}, '', '/auth');
+    }
+  }, []);
+
   const toggleMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
     setError('');

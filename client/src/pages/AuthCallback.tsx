@@ -29,9 +29,12 @@ export default function AuthCallback() {
         // Update auth context
         updateUser(user);
         
-        // Redirect to dashboard
-        window.location.href = '/dashboard';
+        // Redirect to dashboard using setLocation
+        setTimeout(() => {
+          setLocation('/dashboard');
+        }, 100);
       } catch (err) {
+        console.error('AuthCallback error:', err);
         setLocation('/auth?error=invalid_data');
       }
     } else {

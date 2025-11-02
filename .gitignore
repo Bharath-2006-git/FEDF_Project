@@ -16,9 +16,12 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 
-# Keep .env.example for reference
+# Keep example files for reference
 !.env.example
+!.env.production.example
+!.env.vercel
 
 # OS generated files
 .DS_Store
