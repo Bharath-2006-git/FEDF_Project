@@ -38,7 +38,7 @@ const categoryIcons = {
 };
 
 const impactColors = {
-  low: "bg-chart-2/20 text-chart-2 dark:bg-chart-2/30 dark:text-chart-2",
+  low: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
   medium: "bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary", 
   high: "bg-chart-1/20 text-chart-1 dark:bg-chart-1/30 dark:text-chart-1"
 };
@@ -213,10 +213,10 @@ export default function Tips() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-chart-2/10 to-chart-2/5 dark:from-chart-2/20 dark:to-chart-2/10 border-chart-2/30">
+            <Card className="bg-gradient-to-br from-emerald-100/50 to-emerald-50/30 dark:from-emerald-800/10 dark:to-emerald-900/10 border-emerald-200/50 dark:border-emerald-700/30">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-chart-2">{filteredTips.filter(t => t.impactLevel === 'low').length}</p>
+                  <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{filteredTips.filter(t => t.impactLevel === 'low').length}</p>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Low Impact</p>
                 </div>
               </CardContent>
