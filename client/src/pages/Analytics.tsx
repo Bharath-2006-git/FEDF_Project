@@ -87,10 +87,10 @@ export default function Analytics() {
       ]);
 
       setData({
-        monthlyComparison: monthlyRes.data,
-        categoryBreakdown: categoryRes.data,
-        yearlyTrends: yearlyRes.data,
-        peakAnalysis: peakRes.data
+        monthlyComparison: monthlyRes.data || monthlyRes,
+        categoryBreakdown: categoryRes.data || categoryRes,
+        yearlyTrends: yearlyRes.data || yearlyRes,
+        peakAnalysis: peakRes.data || peakRes
       });
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load analytics data. Please try again.");
