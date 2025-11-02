@@ -70,7 +70,7 @@ export default function Login() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-br from-cyan-400/10 to-emerald-400/10 rounded-full blur-2xl animate-pulse delay-500"></div>
       </div>
       
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-6xl relative z-10">
         {/* Back to Home */}
         <div className="mb-8">
           <Link href="/">
@@ -81,20 +81,20 @@ export default function Login() {
           </Link>
         </div>
 
-        <Card className="shadow-2xl border border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl">
-        <CardHeader className="space-y-4 text-center pb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl mb-4 shadow-lg mx-auto">
-            <LogIn className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-              Welcome Back
-            </CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400 text-lg">
-              Sign in to continue your sustainability journey
-            </CardDescription>
-          </div>
-        </CardHeader>
+        <Card className="shadow-2xl border border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+            {/* Left Side - Login Form */}
+            <div className="flex flex-col">
+              <CardHeader className="space-y-4 pb-6">
+                <div>
+                  <CardTitle className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                    Welcome Back
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400 mt-2">
+                    Access your carbon footprint dashboard
+                  </CardDescription>
+                </div>
+              </CardHeader>
 
         <form onSubmit={handleSubmit} autoComplete="on" method="post">
           <CardContent className="space-y-6 px-8">
@@ -166,7 +166,7 @@ export default function Login() {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-6 px-8 pb-8">
+          <CardFooter className="flex flex-col space-y-6 px-8 pb-8 mt-auto">
             <Button
               type="submit"
               className="w-full h-12 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white font-semibold transition-all duration-300 shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-teal-500/30"
@@ -186,19 +186,78 @@ export default function Login() {
             </Button>
 
             <div className="text-center text-sm text-slate-600 dark:text-slate-400">
-              Don't have an account?{' '}
-              <Button
-                variant="ghost"
-                className="p-0 h-auto font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent hover:from-emerald-700 hover:to-teal-700 underline"
-                onClick={() => setLocation('/signup')}
-                disabled={loading}
-              >
-                Create Account
-              </Button>
+              New to CarbonSense?{' '}
+              <Link href="/signup">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 underline cursor-pointer">
+                  Create an account
+                </span>
+              </Link>
             </div>
           </CardFooter>
         </form>
-      </Card>
+            </div>
+
+            {/* Right Side - Info Section */}
+            <div className="hidden lg:flex flex-col justify-center p-12 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 text-white relative overflow-hidden">
+              {/* Decorative elements */}
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoLTJWMGgydjMwem0wIDMwdi0yaC0ydjJoMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+              
+              <div className="relative z-10 space-y-8">
+                <div>
+                  <h2 className="text-4xl font-bold mb-4">Track. Reduce. Impact.</h2>
+                  <p className="text-emerald-50 text-lg">
+                    Join thousands of users making a real difference in the fight against climate change.
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm flex-shrink-0">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Real-Time Analytics</h3>
+                      <p className="text-emerald-50">Monitor your carbon footprint with AI-powered insights and detailed breakdowns</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm flex-shrink-0">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Actionable Tips</h3>
+                      <p className="text-emerald-50">Get personalized recommendations based on your emission patterns</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm flex-shrink-0">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-1">Track Progress</h3>
+                      <p className="text-emerald-50">Set goals and watch your environmental impact decrease over time</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-white/20">
+                  <p className="text-emerald-50 italic">
+                    "CarbonSense helped me reduce my emissions by 40% in just 3 months!"
+                  </p>
+                  <p className="text-sm text-emerald-100 mt-2">- Sarah J., Environmental Engineer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
