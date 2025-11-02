@@ -73,25 +73,33 @@ export default function Tips() {
       if (response.ok) {
         const data = await response.json();
         const emissions = data.emissions || data;
+        console.log('📊 User emissions data:', emissions);
         setUserEmissions(emissions);
 
-        // Calculate top emission categories
-        const categoryTotals: Record<string, number> = {};
-        emissions.forEach((emission: any) => {
-          const cat = emission.category || 'other';
-          categoryTotals[cat] = (categoryTotals[cat] || 0) + (emission.co2Emissions || 0);
-        });
+        if (emissions && emissions.length > 0) {
+          // Calculate top emission categories
+          const categoryTotals: Record<string, number> = {};
+          emissions.forEach((emission: any) => {
+            const cat = emission.category?.toLowerCase() || 'other';
+            categoryTotals[cat] = (categoryTotals[cat] || 0) + (emission.co2Emissions || 0);
+          });
 
-        // Get top 3 categories
-        const sorted = Object.entries(categoryTotals)
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, 3)
-          .map(([cat]) => cat);
-        
-        setTopCategories(sorted);
+          console.log('📈 Category totals:', categoryTotals);
+
+          // Get top 3 categories
+          const sorted = Object.entries(categoryTotals)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 3)
+            .map(([cat]) => cat);
+          
+          console.log('🎯 Top categories:', sorted);
+          setTopCategories(sorted);
+        } else {
+          console.log('⚠️ No emission data found');
+        }
       }
     } catch (err) {
-      console.error('Failed to fetch user emissions:', err);
+      console.error('❌ Failed to fetch user emissions:', err);
     }
   };
 
@@ -121,9 +129,16 @@ export default function Tips() {
   };
 
   // Get personalized tips based on user's top emission categories
-  const personalizedTips = tips.filter(tip => 
-    topCategories.includes(tip.category.toLowerCase())
-  ).slice(0, 6);
+  const personalizedTips = React.useMemo(() => {
+    if (topCategories.length === 0) return [];
+    
+    const matched = tips.filter(tip => 
+      topCategories.includes(tip.category.toLowerCase())
+    ).slice(0, 6);
+    
+    console.log('💡 Personalized tips matched:', matched.length, 'from categories:', topCategories);
+    return matched;
+  }, [tips, topCategories]);
 
   const filteredTips = tips.filter(tip => {
     const categoryMatch = categoryFilter === 'all' || tip.category === categoryFilter;
@@ -172,16 +187,16 @@ export default function Tips() {
           }
         />
 
-        {/* Personalized Recommendations */}
+        {/* Personalized Recommendations - Show when user has data */}
         {personalizedTips.length > 0 && topCategories.length > 0 && categoryFilter === 'all' && (
           <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                <Star className="w-5 h-5" />
+                <Star className="w-5 h-5 fill-current" />
                 Recommended For You
               </CardTitle>
               <p className="text-sm text-blue-600 dark:text-blue-300">
-                Based on your highest emission areas: {topCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')}
+                Based on your highest emission areas: <span className="font-semibold">{topCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')}</span>
               </p>
             </CardHeader>
             <CardContent>
@@ -206,7 +221,28 @@ export default function Tips() {
               <Alert className="bg-blue-100/50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700">
                 <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <AlertDescription className="text-blue-700 dark:text-blue-300">
-                  We've analyzed your carbon footprint and selected {personalizedTips.length} tips specifically for your top emission categories
+                  ✨ We've analyzed your carbon footprint and selected <strong>{personalizedTips.length} tips</strong> specifically for your top emission categories
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Info Card - Show when no emission data yet */}
+        {userEmissions.length === 0 && !loading && categoryFilter === 'all' && (
+          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                <TrendingUp className="w-5 h-5" />
+                Get Personalized Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Alert className="bg-blue-100/50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700">
+                <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-blue-700 dark:text-blue-300">
+                  <p className="font-semibold mb-2">Start logging your emissions to unlock personalized recommendations!</p>
+                  <p className="text-sm">Once you log emissions data, we'll analyze your carbon footprint and recommend tips specifically for your highest emission areas (electricity, transport, waste, etc.)</p>
                 </AlertDescription>
               </Alert>
             </CardContent>
