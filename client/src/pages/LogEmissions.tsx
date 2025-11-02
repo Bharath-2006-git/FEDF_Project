@@ -7,9 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { StatCard } from "@/components/shared/StatCard";
 import { useEmissionStats } from "@/hooks/useEmissionStats";
 import { INDIVIDUAL_CATEGORIES, COMPANY_CATEGORIES } from "@/constants/categories";
 import { 
@@ -17,10 +16,11 @@ import {
   CalendarDays,
   Loader2,
   TrendingUp,
-  Calendar,
-  CheckCircle,
-  Factory,
-  Lightbulb
+  Leaf,
+  Check,
+  X,
+  Filter,
+  Search
 } from "lucide-react";
 import { emissionsAPI } from "@/services/api";
 
@@ -31,43 +31,60 @@ interface EmissionFormData {
   unit: string;
   date: string;
   description: string;
-  department?: string;
+  department: string;
 }
 
-// Subcategory label mapping
 const SUBCATEGORY_LABELS: Record<string, string> = {
-  // Energy Usage
   electricity: "Electricity",
-  cooking_fuel: "Cooking Fuel (LPG, PNG, Biogas)",
-  heating_cooling: "Heating/Cooling",
-  
-  // Transportation
-  car_travel: "Car Travel (Petrol, Diesel, CNG, EV)",
-  two_wheeler: "Two-Wheeler (Bike, Scooter)",
-  public_transport: "Public Transport (Bus, Metro, Train)",
-  flights: "Flights (Domestic, International)",
-  shared_mobility: "Shared Mobility (Cab, Carpool)",
-  
-  // Household & Lifestyle
-  water_usage: "Water Usage",
-  waste_generation: "Waste Generation (Plastic, Food, Paper, E-waste)",
-  appliance_use: "Appliance Use (Refrigerator, TV, Washing machine)",
-  
-  // Food & Diet
-  meat_consumption: "Meat Consumption (Beef, Chicken, Fish)",
-  dairy: "Dairy (Milk, Cheese, Butter)",
-  plant_based_foods: "Plant-based Foods (Vegetables, Fruits, Grains)",
-  processed_food: "Processed Food (Packaged snacks, Soft drinks)",
-  
-  // Shopping & Goods
-  clothing: "Clothing (Cotton, Synthetic)",
-  electronics: "Electronics (Phone, Laptop, TV)",
+  natural_gas: "Natural Gas",
+  heating_oil: "Heating Oil",
+  solar: "Solar",
+  wind: "Wind",
+  car: "Car",
+  public_transport: "Public Transport",
+  flight: "Flight",
+  motorcycle: "Motorcycle",
+  bicycle: "Bicycle",
+  meat: "Meat",
+  dairy: "Dairy",
+  vegetables: "Vegetables",
+  packaged_food: "Packaged Food",
+  local_produce: "Local Produce",
+  general_waste: "General Waste",
+  recycling: "Recycling",
+  composting: "Composting",
+  electronics: "Electronics",
+  household: "Household",
+  tap_water: "Tap Water",
+  bottled_water: "Bottled Water",
+  shower: "Shower",
+  irrigation: "Irrigation",
+  industrial: "Industrial Process",
+  hvac: "HVAC Systems",
+  machinery: "Machinery",
+  lighting: "Lighting",
+  fleet: "Fleet Vehicles",
+  shipping: "Shipping",
+  employee_commute: "Employee Commute",
+  business_travel: "Business Travel",
+  production: "Production",
+  packaging: "Packaging",
+  office: "Office Supplies",
+  equipment: "Equipment",
+  landfill: "Landfill",
+  incineration: "Incineration",
+  hazardous: "Hazardous Waste",
+  construction: "Construction",
+  treatment: "Water Treatment",
+  cooling: "Cooling Systems",
+  process_water: "Process Water"
 };
 
 export default function LogEmissions() {
   const { user } = useAuth();
   const { isIndividual, isCompany } = useRoleAccess();
-  
+  const { stats, loading: statsLoading, reloadStats } = useEmissionStats();
+
   const [formData, setFormData] = useState<EmissionFormData>({
     category: "",
     subcategory: "",
@@ -77,23 +94,31 @@ export default function LogEmissions() {
     description: "",
     department: ""
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { stats, loading: statsLoading, reload: reloadStats } = useEmissionStats();
+  const [expandedCategory, setExpandedCategory] = useState<string>("");
 
   const categories = isIndividual() ? INDIVIDUAL_CATEGORIES : COMPANY_CATEGORIES;
+  
   const selectedCategory = categories.find(cat => cat.value === formData.category);
 
-
-
   const handleInputChange = (field: keyof EmissionFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-      // Reset dependent fields when category changes
-      ...(field === 'category' && { subcategory: '', unit: '' })
-    }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      if (field === 'category') {
+        updated.subcategory = "";
+        updated.unit = "";
+      }
+      
+      return updated;
+    });
+  };
+
+  const handleCategorySelect = (categoryValue: string) => {
+    handleInputChange('category', categoryValue);
+    setExpandedCategory(categoryValue);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,7 +127,6 @@ export default function LogEmissions() {
     setLoading(true);
 
     try {
-      // Validation
       if (!formData.category || !formData.quantity || !formData.unit || !formData.date) {
         setError("Please fill in all required fields");
         setLoading(false);
@@ -128,7 +152,6 @@ export default function LogEmissions() {
 
       const result = await emissionsAPI.add(emissionData);
       
-      // Create detailed calculation description
       const calculationDetails = [
         `Formula: ${quantity} ${formData.unit} × ${result.emissionFactor?.toFixed(4) || 'N/A'} kg CO₂/${formData.unit} = ${result.co2Emissions.toFixed(2)} kg CO₂`,
         result.confidence ? `Confidence: ${result.confidence}` : '',
@@ -136,16 +159,15 @@ export default function LogEmissions() {
       ].filter(Boolean).join(' | ');
       
       toast({
-        title: "Emission Logged Successfully",
+        title: "Entry Added Successfully",
         description: (
           <div className="space-y-1">
-            <p className="font-medium">{formData.category}{formData.subcategory ? ` → ${formData.subcategory}` : ''}</p>
+            <p className="font-medium text-emerald-700 dark:text-emerald-300">{formData.category}{formData.subcategory ? ` → ${formData.subcategory}` : ''}</p>
             <p className="text-xs text-muted-foreground">{calculationDetails}</p>
           </div>
         ),
       });
 
-      // Reset form
       setFormData({
         category: "",
         subcategory: "",
@@ -156,7 +178,7 @@ export default function LogEmissions() {
         department: ""
       });
 
-      // Reload stats to reflect new entry - immediate reload after success
+      setExpandedCategory("");
       await reloadStats();
 
     } catch (err: any) {
@@ -172,359 +194,336 @@ export default function LogEmissions() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="p-6 max-w-5xl mx-auto space-y-8">
-      {/* Enhanced Header */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 dark:from-blue-600 dark:to-cyan-700 rounded-2xl shadow-lg mb-4">
-          <Plus className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950/20">
+      <div className="p-6 max-w-6xl mx-auto space-y-6">
+        
+        {/* Header Section */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 rounded-2xl shadow-lg mb-2">
+            <Leaf className="w-7 h-7 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+            Log Your Emissions
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            {isIndividual() 
+              ? "Track your carbon footprint by logging daily activities" 
+              : "Record company emissions and monitor sustainability progress"
+            }
+          </p>
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-3">
-          Log Emissions
-        </h1>
-        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-          {isIndividual() 
-            ? "Track your personal carbon footprint by logging daily activities and monitor your environmental impact"
-            : "Record your company's emissions from various business operations and track sustainability goals"
-          }
-        </p>
-      </div>
 
-      {/* Enhanced Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Today's Entries</p>
-                {statsLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-                    <p className="text-2xl font-bold text-slate-400">--</p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.todayEntries}</p>
-                    <p className={`text-xs font-medium ${stats.todayChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {stats.todayChange >= 0 ? '+' : ''}{stats.todayChange} from yesterday
-                    </p>
-                  </>
-                )}
-              </div>
-              <div className="p-3 bg-blue-500/10 dark:bg-blue-400/20 rounded-xl group-hover:bg-blue-500/20 dark:group-hover:bg-blue-400/30 transition-colors">
-                <CalendarDays className="h-7 w-7 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">This Week</p>
-                {statsLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-                    <p className="text-2xl font-bold text-slate-400">--</p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.weekEntries}</p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">{stats.weekDays} days tracked</p>
-                  </>
-                )}
-              </div>
-              <div className="p-3 bg-cyan-500/10 dark:bg-cyan-400/20 rounded-xl group-hover:bg-cyan-500/20 dark:group-hover:bg-cyan-400/30 transition-colors">
-                <Plus className="h-7 w-7 text-cyan-600 dark:text-cyan-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total CO₂</p>
-                {statsLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-                    <p className="text-2xl font-bold text-slate-400">--</p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.monthEmissions} kg</p>
-                    <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">This month</p>
-                  </>
-                )}
-              </div>
-              <div className="p-3 bg-teal-500/10 dark:bg-teal-400/20 rounded-xl group-hover:bg-teal-500/20 dark:group-hover:bg-teal-400/30 transition-colors">
-                <Factory className="h-7 w-7 text-teal-600 dark:text-teal-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Enhanced Main Form */}
-      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-800/50 dark:to-slate-700/50 border-b border-slate-200/50 dark:border-slate-600/50">
-          <CardTitle className="flex items-center gap-3 text-xl text-slate-900 dark:text-slate-100">
-            <div className="p-2 bg-blue-500/10 dark:bg-blue-400/20 rounded-lg">
-              <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            New Emission Entry
-            <span className="text-sm font-normal text-slate-600 dark:text-slate-400 ml-auto px-3 py-1 bg-slate-200/70 dark:bg-slate-700/70 rounded-full">
-              {isIndividual() ? "Individual" : "Company"} Form
-            </span>
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="p-8">
-          {error && (
-            <Alert variant="destructive" className="mb-6 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/50">
-              <AlertDescription className="text-red-800 dark:text-red-200">{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Enhanced Category Selection */}
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <Label htmlFor="category" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Category *
-                  </Label>
-                  <Select onValueChange={(value) => handleInputChange('category', value)}>
-                    <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500/20 dark:focus:ring-blue-400/20">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                      {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value} className="hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700">
-                          <div className="flex items-center gap-3">
-                            <div className="p-1.5 bg-blue-500/10 dark:bg-blue-400/20 rounded-md">
-                              <category.icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <span className="text-slate-900 dark:text-slate-100">{category.label}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        {/* Live Summary Bar */}
+        <Card className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800 shadow-sm">
+          <CardContent className="p-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-emerald-500/20 dark:bg-emerald-500/30 rounded-xl">
+                  <CalendarDays className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
                 </div>
-
-                {selectedCategory && (
-                  <div className="space-y-3">
-                    <Label htmlFor="subcategory" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-                      Subcategory
-                    </Label>
-                    <Select onValueChange={(value) => handleInputChange('subcategory', value)}>
-                      <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-cyan-500/20 dark:focus:ring-cyan-400/20">
-                        <SelectValue placeholder="Select subcategory" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                        {selectedCategory.subcategories.map((sub) => (
-                          <SelectItem key={sub} value={sub} className="hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 text-slate-900 dark:text-slate-100">
-                            {SUBCATEGORY_LABELS[sub] || sub.charAt(0).toUpperCase() + sub.slice(1).replace(/_/g, ' ')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Enhanced Quantity and Unit */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label htmlFor="quantity" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                  Quantity *
-                </Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  step="0.01"
-                  placeholder="Enter amount"
-                  value={formData.quantity}
-                  onChange={(e) => handleInputChange('quantity', e.target.value)}
-                  className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-teal-500 dark:focus:border-teal-400 focus:ring-teal-500/20 dark:focus:ring-teal-400/20 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                  required
-                />
-              </div>
-
-              {selectedCategory && (
-                <div className="space-y-3">
-                  <Label htmlFor="unit" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    Unit *
-                  </Label>
-                  <Select onValueChange={(value) => handleInputChange('unit', value)}>
-                    <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-orange-500 dark:focus:border-orange-400 focus:ring-orange-500/20 dark:focus:ring-orange-400/20">
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                      {selectedCategory.units.map((unit) => (
-                        <SelectItem key={unit} value={unit} className="hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 text-slate-900 dark:text-slate-100">
-                          {unit}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div>
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Total Entries</p>
+                  {statsLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                      <p className="text-xl font-bold text-slate-400">--</p>
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.weekEntries}</p>
+                  )}
                 </div>
-              )}
-            </div>
-
-            {/* Enhanced Date and Department */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label htmlFor="date" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  Date *
-                </Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
-                  className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 text-slate-900 dark:text-slate-100"
-                  required
-                />
               </div>
-
-              {isCompany() && (
-                <div className="space-y-3">
-                  <Label htmlFor="department" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                    Department
-                  </Label>
-                  <Input
-                    id="department"
-                    placeholder="e.g., Manufacturing, IT, Sales"
-                    value={formData.department}
-                    onChange={(e) => handleInputChange('department', e.target.value)}
-                    className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Enhanced Description */}
-            <div className="space-y-3">
-              <Label htmlFor="description" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                Description (Optional)
-              </Label>
-              <Textarea
-                id="description"
-                placeholder="Add any additional details about this emission..."
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={4}
-                className="resize-none bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500/20 dark:focus:ring-green-400/20 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-              />
-            </div>
-
-            {/* Enhanced Submit Button */}
-            <div className="flex gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="flex-1 h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 dark:from-blue-500 dark:to-cyan-500 dark:hover:from-blue-600 dark:hover:to-cyan-600 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                    Logging Emission...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-3 h-5 w-5" />
-                    Log Emission Entry
-                  </>
-                )}
-              </Button>
               
-              <Button
-                type="button"
-                variant="outline"
-                className="h-14 px-6 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-300"
-                onClick={() => setFormData({
-                  category: "",
-                  subcategory: "",
-                  quantity: "",
-                  unit: "",
-                  date: new Date().toISOString().split('T')[0],
-                  description: "",
-                  department: ""
-                })}
-              >
-                Clear Form
-              </Button>
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-teal-500/20 dark:bg-teal-500/30 rounded-xl">
+                  <TrendingUp className="w-5 h-5 text-teal-700 dark:text-teal-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Total CO₂</p>
+                  {statsLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                      <p className="text-xl font-bold text-slate-400">--</p>
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.monthEmissions} kg</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-slate-500/20 dark:bg-slate-500/30 rounded-xl">
+                  <CalendarDays className="w-5 h-5 text-slate-700 dark:text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Last Entry</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    {formData.date ? new Date(formData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Today'}
+                  </p>
+                </div>
+              </div>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Enhanced Tips Section */}
-      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
-        <CardContent className="p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-yellow-500/10 dark:bg-yellow-400/20 rounded-lg">
-              <Lightbulb className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              {isIndividual() ? "Personal" : "Business"} Emission Tracking Tips
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-            {isIndividual() ? (
-              <>
-                <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Track daily commute separately from leisure travel</span>
-                </div>
-                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Include both direct and indirect energy usage</span>
-                </div>
-                <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Log household waste by type for better insights</span>
-                </div>
-                <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Consider seasonal variations in your tracking</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Separate emissions by department for better analysis</span>
-                </div>
-                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Include supply chain emissions when possible</span>
-                </div>
-                <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Track production efficiency alongside emissions</span>
-                </div>
-                <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                  <span className="text-slate-700 dark:text-slate-300">Consider scope 1, 2, and 3 emissions categories</span>
-                </div>
-              </>
+        {/* Main Form Card */}
+        <Card className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-lg">
+          <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-emerald-50/30 dark:from-slate-800/50 dark:to-emerald-900/10">
+            <CardTitle className="flex items-center gap-2 text-lg text-slate-900 dark:text-slate-100">
+              <Plus className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              New Emission Entry
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="p-6">
+            {error && (
+              <Alert variant="destructive" className="mb-4 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/50">
+                <AlertDescription className="text-red-800 dark:text-red-200">{error}</AlertDescription>
+              </Alert>
             )}
-          </div>
-        </CardContent>
-      </Card>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              {/* Category Accordion */}
+              <div>
+                <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
+                  Select Category *
+                </Label>
+                <Accordion 
+                  type="single" 
+                  collapsible 
+                  value={expandedCategory}
+                  onValueChange={setExpandedCategory}
+                  className="w-full space-y-2"
+                >
+                  {categories.map((category) => (
+                    <AccordionItem 
+                      key={category.value} 
+                      value={category.value}
+                      className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800"
+                    >
+                      <AccordionTrigger 
+                        onClick={() => handleCategorySelect(category.value)}
+                        className="px-4 py-3 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors [&[data-state=open]]:bg-emerald-100 dark:[&[data-state=open]]:bg-emerald-900/30"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-lg">
+                            <category.icon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                          </div>
+                          <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{category.label}</span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4 pt-2 bg-slate-50 dark:bg-slate-900/50">
+                        <div className="space-y-4">
+                          {/* Subcategory */}
+                          <div>
+                            <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                              Subcategory
+                            </Label>
+                            <Select 
+                              value={formData.subcategory}
+                              onValueChange={(value) => handleInputChange('subcategory', value)}
+                            >
+                              <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                                <SelectValue placeholder="Select subcategory" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                                {category.subcategories.map((sub) => (
+                                  <SelectItem key={sub} value={sub} className="hover:bg-slate-100 dark:hover:bg-slate-700">
+                                    {SUBCATEGORY_LABELS[sub] || sub.charAt(0).toUpperCase() + sub.slice(1).replace(/_/g, ' ')}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Quantity & Unit */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                Quantity *
+                              </Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={formData.quantity}
+                                onChange={(e) => handleInputChange('quantity', e.target.value)}
+                                className="h-10 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                Unit *
+                              </Label>
+                              <Select 
+                                value={formData.unit}
+                                onValueChange={(value) => handleInputChange('unit', value)}
+                              >
+                                <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                                  <SelectValue placeholder="Unit" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                                  {category.units.map((unit) => (
+                                    <SelectItem key={unit} value={unit} className="hover:bg-slate-100 dark:hover:bg-slate-700">
+                                      {unit}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          {/* Date & Department */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                Date *
+                              </Label>
+                              <Input
+                                type="date"
+                                value={formData.date}
+                                onChange={(e) => handleInputChange('date', e.target.value)}
+                                className="h-10 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                required
+                              />
+                            </div>
+                            {isCompany() && (
+                              <div>
+                                <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                  Department
+                                </Label>
+                                <Input
+                                  placeholder="e.g., IT, Sales"
+                                  value={formData.department}
+                                  onChange={(e) => handleInputChange('department', e.target.value)}
+                                  className="h-10 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Description */}
+                          <div>
+                            <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                              Description (Optional)
+                            </Label>
+                            <Textarea
+                              placeholder="Add details..."
+                              value={formData.description}
+                              onChange={(e) => handleInputChange('description', e.target.value)}
+                              rows={2}
+                              className="resize-none bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+
+              {/* Submit & Clear Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 dark:from-emerald-500 dark:to-teal-500 dark:hover:from-emerald-600 dark:hover:to-teal-600 text-white font-medium shadow-md hover:shadow-lg transition-all"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Logging...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Log Entry
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 px-5 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  onClick={() => {
+                    setFormData({
+                      category: "",
+                      subcategory: "",
+                      quantity: "",
+                      unit: "",
+                      date: new Date().toISOString().split('T')[0],
+                      description: "",
+                      department: ""
+                    });
+                    setExpandedCategory("");
+                  }}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Clear
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Tips Section */}
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-900">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-2 bg-amber-500/20 dark:bg-amber-500/30 rounded-lg">
+                <Lightbulb className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                Tracking Tips
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              {isIndividual() ? (
+                <>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Track daily commute separately from leisure travel</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Include both direct and indirect energy usage</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Log household waste by type for better insights</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Consider seasonal variations in tracking</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Separate emissions by department for analysis</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Include supply chain emissions when possible</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Track production efficiency alongside emissions</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2.5 bg-white/60 dark:bg-slate-900/40 rounded-lg">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5"></div>
+                    <span className="text-slate-700 dark:text-slate-300">Consider scope 1, 2, and 3 emissions categories</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
     </div>
   );
