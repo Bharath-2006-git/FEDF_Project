@@ -120,8 +120,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Redirect to Google OAuth endpoint
-      window.location.href = '/api/auth/google';
+      // Redirect to Google OAuth endpoint - use full URL in production
+      const apiUrl = window.location.origin + '/api/auth/google';
+      window.location.href = apiUrl;
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Failed to initiate Google login' };
