@@ -79,7 +79,7 @@ interface AnalyticsData {
   };
 }
 
-const COLORS = ['#10b981', '#059669', '#047857', '#065F46', '#064E3B', '#022C22'];
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
 export default function Analytics() {
   const { user } = useAuth();
@@ -497,15 +497,15 @@ export default function Analytics() {
               </p>
             </CardHeader>
             <CardContent className="pt-6">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                   <Pie
                     data={data?.categoryBreakdown || []}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
+                    labelLine={true}
                     label={({ category, percentage }) => `${category}: ${percentage.toFixed(0)}%`}
-                    outerRadius={90}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -521,6 +521,11 @@ export default function Analytics() {
                       borderRadius: '8px',
                       padding: '8px 12px'
                     }}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value) => <span className="text-sm">{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>
