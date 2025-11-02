@@ -20,7 +20,8 @@ import {
   Check,
   X,
   Filter,
-  Search
+  Search,
+  Lightbulb
 } from "lucide-react";
 import { emissionsAPI } from "@/services/api";
 
@@ -83,7 +84,7 @@ const SUBCATEGORY_LABELS: Record<string, string> = {
 export default function LogEmissions() {
   const { user } = useAuth();
   const { isIndividual, isCompany } = useRoleAccess();
-  const { stats, loading: statsLoading, reloadStats } = useEmissionStats();
+  const { stats, loading: statsLoading, reload: reloadStats } = useEmissionStats();
 
   const [formData, setFormData] = useState<EmissionFormData>({
     category: "",
