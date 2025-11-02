@@ -145,7 +145,6 @@ export default function Tips() {
   const [completedTips, setCompletedTips] = useState<CompletedTip[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("impact");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTips, setExpandedTips] = useState<Set<number>>(new Set());
   const [emissionBreakdown, setEmissionBreakdown] = useState<CategoryBreakdown[]>([]);
@@ -238,21 +237,8 @@ export default function Tips() {
       );
     }
 
-    // Sort
-    const sorted = [...filtered].sort((a, b) => {
-      if (sortBy === "impact") {
-        return (b.estimatedSavings || 0) - (a.estimatedSavings || 0);
-      } else if (sortBy === "difficulty") {
-        const diffOrder = { easy: 0, medium: 1, hard: 2 };
-        return (diffOrder[a.difficulty as keyof typeof diffOrder] || 0) - 
-               (diffOrder[b.difficulty as keyof typeof diffOrder] || 0);
-      } else {
-        return a.category.localeCompare(b.category);
-      }
-    });
-
-    return sorted;
-  }, [tips, categoryFilter, sortBy, searchQuery]);
+    return filtered;
+  }, [tips, categoryFilter, searchQuery]);
 
   const tipsByCategory = useMemo(() => {
     const grouped: Record<string, Tip[]> = {};
@@ -392,24 +378,13 @@ export default function Tips() {
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                   <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="energy">⚡ Energy</SelectItem>
                   <SelectItem value="transport">🚗 Transport</SelectItem>
                   <SelectItem value="food">🍽️ Food</SelectItem>
                   <SelectItem value="waste">🗑️ Waste</SelectItem>
                   <SelectItem value="water">💧 Water</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-48 h-11 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="impact">Highest Impact</SelectItem>
-                  <SelectItem value="difficulty">Easiest First</SelectItem>
-                  <SelectItem value="category">By Category</SelectItem>
                 </SelectContent>
               </Select>
             </div>
