@@ -56,11 +56,21 @@ export default function Tips() {
   const [userEmissions, setUserEmissions] = useState<any[]>([]);
   const [topCategories, setTopCategories] = useState<string[]>([]);
   const [showPersonalized, setShowPersonalized] = useState(true);
+  const [loadingEmissions, setLoadingEmissions] = useState(true);
 
   useEffect(() => {
-    fetchTips();
-    fetchUserEmissions();
-  }, [user?.role, categoryFilter]);
+    const loadData = async () => {
+      setLoading(true);
+      setLoadingEmissions(true);
+      await Promise.all([
+        fetchTips(),
+        fetchUserEmissions()
+      ]);
+      setLoading(false);
+      setLoadingEmissions(false);
+    };
+    loadData();
+  }, [user?.role]);
 
   const fetchUserEmissions = async () => {
     try {
@@ -105,7 +115,6 @@ export default function Tips() {
 
   const fetchTips = async () => {
     try {
-      setLoading(true);
       const role = user?.role || 'individual';
       const category = categoryFilter === 'all' ? undefined : categoryFilter;
       
@@ -123,8 +132,6 @@ export default function Tips() {
       setTips(data.tips || data);
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -162,6 +169,17 @@ export default function Tips() {
     setVisibleTips(filteredTips.length);
   };
 
+  const handleRefresh = async () => {
+    setLoading(true);
+    setLoadingEmissions(true);
+    await Promise.all([
+      fetchTips(),
+      fetchUserEmissions()
+    ]);
+    setLoading(false);
+    setLoadingEmissions(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -175,20 +193,20 @@ export default function Tips() {
           }
           actions={
             <Button
-              onClick={fetchTips}
+              onClick={handleRefresh}
               variant="outline"
               size="sm"
-              disabled={loading}
+              disabled={loading || loadingEmissions}
               className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Loading...' : 'Refresh'}
+              <RefreshCw className={`w-4 h-4 mr-2 ${(loading || loadingEmissions) ? 'animate-spin' : ''}`} />
+              {(loading || loadingEmissions) ? 'Loading...' : 'Refresh'}
             </Button>
           }
         />
 
         {/* Personalized Recommendations - Show when user has data */}
-        {personalizedTips.length > 0 && topCategories.length > 0 && categoryFilter === 'all' && (
+        {!loadingEmissions && personalizedTips.length > 0 && topCategories.length > 0 && categoryFilter === 'all' && (
           <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
@@ -229,7 +247,7 @@ export default function Tips() {
         )}
 
         {/* Info Card - Show when no emission data yet */}
-        {userEmissions.length === 0 && !loading && categoryFilter === 'all' && (
+        {!loadingEmissions && userEmissions.length === 0 && categoryFilter === 'all' && (
           <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
