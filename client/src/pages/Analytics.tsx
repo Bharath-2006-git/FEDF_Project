@@ -220,37 +220,34 @@ export default function Analytics() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        {/* Enhanced Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-              <div className="p-2 bg-emerald-600 rounded-xl">
-                <BarChart3 className="w-7 h-7 text-white" />
-              </div>
-              Advanced Analytics
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="p-6 md:p-8 lg:p-10 space-y-8 max-w-7xl mx-auto">
+        {/* Modern Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Analytics
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
-              Detailed insights into your carbon emission patterns and trends
+            <p className="text-slate-500 dark:text-slate-400">
+              Comprehensive insights into your carbon footprint
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-40 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-slate-300 dark:border-slate-600">
+              <SelectTrigger className="w-44 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3months">📅 Last 3 Months</SelectItem>
-                <SelectItem value="6months">📅 Last 6 Months</SelectItem>
-                <SelectItem value="year">📅 Last Year</SelectItem>
-                <SelectItem value="2years">📅 Last 2 Years</SelectItem>
+              <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                <SelectItem value="3months">Last 3 Months</SelectItem>
+                <SelectItem value="6months">Last 6 Months</SelectItem>
+                <SelectItem value="year">Last Year</SelectItem>
+                <SelectItem value="2years">Last 2 Years</SelectItem>
               </SelectContent>
             </Select>
             <Button 
               onClick={handleExport}
               variant="outline"
-              className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md"
+              className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm"
             >
               <Download className="w-4 h-4 mr-2" />
               Export
@@ -258,15 +255,25 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* Emissions Summary */}
+        {/* Emissions Summary - Modern Card */}
         {insights && (
-          <Alert className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-emerald-300 dark:border-emerald-700">
-            <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            <AlertDescription className="text-slate-900 dark:text-slate-100">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <strong className="text-lg">Emissions Summary</strong>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border-emerald-200 dark:border-emerald-900">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    {insights.recentTrend < 0 ? (
+                      <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    ) : insights.recentTrend > 0 ? (
+                      <TrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    ) : (
+                      <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    )}
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                      Emissions Summary
+                    </h3>
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
                     {insights.recentTrend < 0 ? (
                       <>Great job! Your emissions are trending downward by {Math.abs(insights.recentTrend).toFixed(1)} kg CO₂</>
                     ) : insights.recentTrend > 0 ? (
@@ -276,23 +283,24 @@ export default function Analytics() {
                     )}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                       {insights.improvingCategories.length}
                     </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400">Improving</div>
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Improving</div>
                   </div>
+                  <div className="h-12 w-px bg-slate-200 dark:bg-slate-700"></div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-slate-600 dark:text-slate-400">
+                    <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
                       {insights.worseningCategories.length}
                     </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400">Need Focus</div>
+                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Need Focus</div>
                   </div>
                 </div>
               </div>
-            </AlertDescription>
-          </Alert>
+            </CardContent>
+          </Card>
         )}
 
         {/* Key Metrics - Clean Design Matching Emerald Theme */}
@@ -482,99 +490,157 @@ export default function Analytics() {
           </CardContent>
         </Card>
 
-        {/* Category Analysis - Enhanced */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
-            <CardHeader className="border-b border-slate-200 dark:border-slate-700">
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <PieChartIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        {/* Category Analysis - Modern Redesign */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Donut Chart Card */}
+          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                    Category Breakdown
+                  </CardTitle>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Distribution by emission source
+                  </p>
                 </div>
-                Category Breakdown
-              </CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Emissions distribution by category
-              </p>
+                <div className="p-3 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl">
+                  <PieChartIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="pt-6">
-              <ResponsiveContainer width="100%" height={320}>
+            <CardContent className="pb-8">
+              {/* Donut Chart */}
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
                     data={data?.categoryBreakdown || []}
                     cx="50%"
                     cy="50%"
-                    labelLine={true}
-                    label={({ category, percentage }) => `${category}: ${percentage.toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
+                    innerRadius={75}
+                    outerRadius={110}
+                    paddingAngle={3}
                     dataKey="value"
                   >
                     {data?.categoryBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]}
+                        stroke="none"
+                      />
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [`${value.toFixed(1)} kg CO₂e`, 'Emissions']}
+                    formatter={(value: number) => [`${value.toFixed(1)} kg`, 'Emissions']}
                     contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '8px 12px'
+                      backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '12px 16px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                     }}
-                  />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36}
-                    formatter={(value) => <span className="text-sm">{value}</span>}
+                    labelStyle={{
+                      color: '#1e293b',
+                      fontWeight: 600,
+                      marginBottom: '4px'
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
+              
+              {/* Custom Legend */}
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                {data?.categoryBreakdown.map((category, index) => (
+                  <div 
+                    key={category.category}
+                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-white dark:ring-slate-900 group-hover:scale-110 transition-transform"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                        {category.category}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {category.percentage.toFixed(1)}%
+                      </p>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                      {category.value.toFixed(0)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
-            <CardHeader className="border-b border-slate-200 dark:border-slate-700">
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          {/* Category Trends Card */}
+          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                    Category Trends
+                  </CardTitle>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Performance over time
+                  </p>
                 </div>
-                Category Trends
-              </CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Track changes over time
-              </p>
+                <div className="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl">
+                  <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-3">
+            <CardContent className="pb-6">
+              <div className="space-y-4">
                 {data?.categoryBreakdown.map((category, index) => (
                   <div 
                     key={category.category} 
-                    className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="group"
                   >
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full shadow-sm"
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                      />
-                      <span className="font-medium text-slate-900 dark:text-white">
-                        {category.category}
-                      </span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="font-medium text-slate-700 dark:text-slate-300 text-sm">
+                          {category.category}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                          {category.value.toFixed(1)} kg
+                        </span>
+                        <Badge 
+                          variant={category.trend > 0 ? "destructive" : "default"}
+                          className={`text-xs font-medium px-2.5 py-0.5 ${
+                            category.trend > 0 
+                              ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' 
+                              : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                          }`}
+                        >
+                          {category.trend > 0 ? (
+                            <ArrowUpRight className="w-3 h-3 mr-0.5" />
+                          ) : (
+                            <ArrowDownRight className="w-3 h-3 mr-0.5" />
+                          )}
+                          {Math.abs(category.trend).toFixed(1)}%
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-slate-600 dark:text-slate-400 font-mono">
-                        {category.value.toFixed(1)} kg
-                      </span>
-                      <Badge 
-                        variant={category.trend > 0 ? "destructive" : "default"}
-                        className="text-xs min-w-[70px] justify-center"
-                      >
-                        {category.trend > 0 ? (
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                        ) : (
-                          <TrendingDown className="w-3 h-3 mr-1" />
-                        )}
-                        {Math.abs(category.trend).toFixed(1)}%
-                      </Badge>
+                    
+                    {/* Progress Bar */}
+                    <div className="relative h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
+                        style={{ 
+                          width: `${category.percentage}%`,
+                          backgroundColor: COLORS[index % COLORS.length]
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
