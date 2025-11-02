@@ -39,11 +39,18 @@ export default function Auth() {
     }
   }, [isAuthenticated, setLocation]);
 
-  // Handle error from URL params (e.g., from failed OAuth)
+  // Handle URL params (mode and error)
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const errorParam = params.get('error');
     
+    // Check if mode is specified in URL
+    const modeParam = params.get('mode');
+    if (modeParam === 'register' || modeParam === 'signup') {
+      setMode('register');
+    }
+    
+    // Handle error params
+    const errorParam = params.get('error');
     if (errorParam) {
       const errorMessages: Record<string, string> = {
         'google_auth_failed': 'Google authentication failed. Please try again.',

@@ -63,13 +63,13 @@ export default function Landing() {
                 </div>
               </Button>
 
-              <Link href="/auth">
+              <Link href="/auth?mode=login">
                 <Button variant="ghost" className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-50 dark:hover:bg-slate-800">
                   Login
                 </Button>
               </Link>
               
-              <Link href="/auth">
+              <Link href="/auth?mode=register">
                 <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg">
                   Get Started
                 </Button>
@@ -101,14 +101,14 @@ export default function Landing() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/auth">
+              <Link href="/auth?mode=register">
                 <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                   Get Started Today
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               
-              <Link href="/auth">
+              <Link href="/auth?mode=login">
                 <Button variant="outline" size="lg" className="px-8 py-4 text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300">
                   Sign In
                   <ChevronRight className="ml-2 h-5 w-5" />
@@ -294,13 +294,13 @@ export default function Landing() {
             set meaningful goals, and discover how small changes can make a big difference.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth">
+            <Link href="/auth?mode=register">
               <Button size="lg" variant="secondary" className="px-8 py-4 text-lg font-semibold bg-white text-emerald-600 hover:bg-gray-50 hover:scale-105 transition-all duration-300 shadow-xl">
                 Get Started Now
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/auth">
+            <Link href="/auth?mode=login">
               <Button size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 hover:scale-105 transition-all duration-300 backdrop-blur-sm">
                 Sign In
               </Button>
