@@ -59,6 +59,63 @@ const categoryIcons = {
   all: Leaf
 };
 
+const categoryColors = {
+  energy: {
+    icon: "text-yellow-600 dark:text-yellow-400",
+    bg: "bg-yellow-50 dark:bg-yellow-900/20",
+    border: "border-yellow-200 dark:border-yellow-800",
+    hover: "hover:border-yellow-300 dark:hover:border-yellow-700"
+  },
+  transport: {
+    icon: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-900/20",
+    border: "border-blue-200 dark:border-blue-800",
+    hover: "hover:border-blue-300 dark:hover:border-blue-700"
+  },
+  travel: {
+    icon: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-900/20",
+    border: "border-blue-200 dark:border-blue-800",
+    hover: "hover:border-blue-300 dark:hover:border-blue-700"
+  },
+  electricity: {
+    icon: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-900/20",
+    border: "border-amber-200 dark:border-amber-800",
+    hover: "hover:border-amber-300 dark:hover:border-amber-700"
+  },
+  fuel: {
+    icon: "text-orange-600 dark:text-orange-400",
+    bg: "bg-orange-50 dark:bg-orange-900/20",
+    border: "border-orange-200 dark:border-orange-800",
+    hover: "hover:border-orange-300 dark:hover:border-orange-700"
+  },
+  waste: {
+    icon: "text-red-600 dark:text-red-400",
+    bg: "bg-red-50 dark:bg-red-900/20",
+    border: "border-red-200 dark:border-red-800",
+    hover: "hover:border-red-300 dark:hover:border-red-700"
+  },
+  industrial: {
+    icon: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-50 dark:bg-purple-900/20",
+    border: "border-purple-200 dark:border-purple-800",
+    hover: "hover:border-purple-300 dark:hover:border-purple-700"
+  },
+  other: {
+    icon: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    border: "border-emerald-200 dark:border-emerald-800",
+    hover: "hover:border-emerald-300 dark:hover:border-emerald-700"
+  },
+  all: {
+    icon: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    border: "border-emerald-200 dark:border-emerald-800",
+    hover: "hover:border-emerald-300 dark:hover:border-emerald-700"
+  }
+};
+
 const impactColors = {
   low: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
   medium: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", 
@@ -76,6 +133,7 @@ interface CategorySectionProps {
   categoryTips: Tip[];
   categoryLabels: Record<string, string>;
   categoryIcons: Record<string, any>;
+  categoryColors: Record<string, any>;
   completedTips: CompletedTip[];
   toggleTipCompletion: (tipId: number, estimatedSavings: number) => void;
 }
@@ -85,17 +143,21 @@ function CategorySection({
   categoryTips, 
   categoryLabels, 
   categoryIcons, 
+  categoryColors,
   completedTips, 
   toggleTipCompletion 
 }: CategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const Icon = categoryIcons[category] || Leaf;
+  const colors = categoryColors[category] || categoryColors.all;
   const displayTips = isExpanded ? categoryTips : categoryTips.slice(0, 3);
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+      <div className={`flex items-center gap-3 p-3 rounded-lg ${colors.bg}`}>
+        <div className={`p-2 rounded-lg bg-white/50 dark:bg-slate-800/50`}>
+          <Icon className={`w-5 h-5 ${colors.icon}`} />
+        </div>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           {categoryLabels[category] || category}
         </h3>
@@ -111,10 +173,10 @@ function CategorySection({
           return (
             <Card 
               key={tip.id}
-              className={`bg-white dark:bg-slate-800 border transition-all ${
+              className={`bg-white dark:bg-slate-800 border-l-4 transition-all ${
                 isCompleted 
                   ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10'
-                  : 'border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800'
+                  : `${colors.border} ${colors.hover} border-t border-r border-b border-slate-200 dark:border-slate-700`
               }`}
             >
               <CardContent className="p-4">
@@ -132,7 +194,7 @@ function CategorySection({
                       {tip.content}
                     </p>
                     {tip.estimatedSavings && (
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                      <p className={`text-xs ${colors.icon} font-medium`}>
                         Potential savings: ~{tip.estimatedSavings} kg CO₂/year
                       </p>
                     )}
@@ -149,7 +211,7 @@ function CategorySection({
           variant="ghost"
           size="sm"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+          className={`w-full ${colors.icon} ${colors.bg} hover:opacity-80 transition-opacity`}
         >
           {isExpanded ? (
             <>
@@ -572,21 +634,22 @@ export default function Tips() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {recommendedTips.map(tip => {
                 const Icon = categoryIcons[tip.category as keyof typeof categoryIcons] || Leaf;
+                const colors = categoryColors[tip.category as keyof typeof categoryColors] || categoryColors.all;
                 const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
                 
                 return (
                   <Card 
                     key={tip.id}
-                    className={`bg-white dark:bg-slate-800 border transition-all hover:shadow-md ${
+                    className={`bg-white dark:bg-slate-800 border-l-4 transition-all hover:shadow-md ${
                       isCompleted 
                         ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10'
-                        : 'border-slate-200 dark:border-slate-700'
+                        : `${colors.border} border-t border-r border-b border-slate-200 dark:border-slate-700 ${colors.hover}`
                     }`}
                   >
                     <CardContent className="p-5 space-y-3">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                          <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        <div className={`p-2 rounded-lg ${colors.bg}`}>
+                          <Icon className={`w-5 h-5 ${colors.icon}`} />
                         </div>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between gap-2">
@@ -603,11 +666,11 @@ export default function Tips() {
                             {tip.content}
                           </p>
                           <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs">
+                            <Badge variant="secondary" className={`${colors.bg} ${colors.icon} text-xs border-0`}>
                               {categoryLabels[tip.category] || tip.category}
                             </Badge>
                             {tip.estimatedSavings && (
-                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                              <span className={`text-xs ${colors.icon} font-medium`}>
                                 ~{tip.estimatedSavings} kg CO₂/year
                               </span>
                             )}
@@ -640,6 +703,7 @@ export default function Tips() {
               categoryTips={categoryTips}
               categoryLabels={categoryLabels}
               categoryIcons={categoryIcons}
+              categoryColors={categoryColors}
               completedTips={completedTips}
               toggleTipCompletion={toggleTipCompletion}
             />
