@@ -18,7 +18,8 @@ import {
   Loader2,
   TrendingUp,
   Check,
-  X
+  X,
+  Factory
 } from "lucide-react";
 import { emissionsAPI } from "@/services/api";
 
@@ -186,78 +187,142 @@ export default function LogEmissions() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
-        
-        <PageHeader
-          title="Log Emissions"
-          description={isIndividual() 
-            ? "Log your daily activities and monitor your environmental impact" 
-            : "Record company emissions and monitor sustainability progress"
-          }
-        />
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard
-            title="Total Entries"
-            value={statsLoading ? "..." : stats.weekEntries.toString()}
-            subtitle={`${Math.abs(stats.todayChange)} from yesterday`}
-            icon={CalendarDays}
-            gradient="border-blue-200 dark:border-blue-800"
-            iconGradient="from-blue-500 to-cyan-600"
-          />
-          
-          <StatCard
-            title="Total CO₂"
-            value={statsLoading ? "..." : `${stats.monthEmissions} kg`}
-            subtitle="This month"
-            icon={TrendingUp}
-            gradient="border-emerald-200 dark:border-emerald-800"
-            iconGradient="from-emerald-500 to-teal-600"
-          />
-          
-          <StatCard
-            title="Last Entry"
-            value={new Date(formData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            subtitle="Today"
-            icon={CalendarDays}
-            gradient="border-slate-200 dark:border-slate-700"
-            iconGradient="from-slate-500 to-slate-600"
-          />
+      <div className="p-6 max-w-5xl mx-auto space-y-8">
+      {/* Enhanced Header */}
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 dark:from-blue-600 dark:to-cyan-700 rounded-2xl shadow-lg mb-4">
+          <Plus className="w-8 h-8 text-white" />
         </div>
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-3">
+          Log Emissions
+        </h1>
+        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+          {isIndividual() 
+            ? "Track your personal carbon footprint by logging daily activities and monitor your environmental impact"
+            : "Record your company's emissions from various business operations and track sustainability goals"
+          }
+        </p>
+      </div>
 
-        {/* Main Form Card */}
-        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-slate-200/60 dark:border-slate-700/60 shadow-xl">
-          <CardHeader className="border-b border-slate-200 dark:border-slate-700">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Plus className="w-5 h-5" />
-              New Emission Entry
-            </CardTitle>
-          </CardHeader>
-
+      {/* Enhanced Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
           <CardContent className="p-6">
-            {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Today's Entries</p>
+                {statsLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <p className="text-2xl font-bold text-slate-400">--</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.todayEntries}</p>
+                    <p className={`text-xs font-medium ${stats.todayChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {stats.todayChange >= 0 ? '+' : ''}{stats.todayChange} from yesterday
+                    </p>
+                  </>
+                )}
+              </div>
+              <div className="p-3 bg-blue-500/10 dark:bg-blue-400/20 rounded-xl group-hover:bg-blue-500/20 dark:group-hover:bg-blue-400/30 transition-colors">
+                <CalendarDays className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">This Week</p>
+                {statsLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <p className="text-2xl font-bold text-slate-400">--</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.weekEntries}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">{stats.weekDays} days tracked</p>
+                  </>
+                )}
+              </div>
+              <div className="p-3 bg-cyan-500/10 dark:bg-cyan-400/20 rounded-xl group-hover:bg-cyan-500/20 dark:group-hover:bg-cyan-400/30 transition-colors">
+                <Plus className="h-7 w-7 text-cyan-600 dark:text-cyan-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-all duration-300 group">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Total CO₂</p>
+                {statsLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <p className="text-2xl font-bold text-slate-400">--</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.monthEmissions} kg</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">This month</p>
+                  </>
+                )}
+              </div>
+              <div className="p-3 bg-teal-500/10 dark:bg-teal-400/20 rounded-xl group-hover:bg-teal-500/20 dark:group-hover:bg-teal-400/30 transition-colors">
+                <Factory className="h-7 w-7 text-teal-600 dark:text-teal-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              
-              {/* Category Selection */}
+      {/* Enhanced Main Form */}
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-800/50 dark:to-slate-700/50 border-b border-slate-200/50 dark:border-slate-600/50">
+          <CardTitle className="flex items-center gap-3 text-xl text-slate-900 dark:text-slate-100">
+            <div className="p-2 bg-blue-500/10 dark:bg-blue-400/20 rounded-lg">
+              <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            New Emission Entry
+            <span className="text-sm font-normal text-slate-600 dark:text-slate-400 ml-auto px-3 py-1 bg-slate-200/70 dark:bg-slate-700/70 rounded-full">
+              {isIndividual() ? "Individual" : "Company"} Form
+            </span>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="p-8">
+          {error && (
+            <Alert variant="destructive" className="mb-6 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/50">
+              <AlertDescription className="text-red-800 dark:text-red-200">{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Enhanced Category Selection */}
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="category" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    Category *
+                  </Label>
                   <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Select category" />
+                    <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500/20 dark:focus:ring-blue-400/20">
+                      <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                       {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          <div className="flex items-center gap-2">
-                            <category.icon className="w-4 h-4" />
-                            <span>{category.label}</span>
+                        <SelectItem key={category.value} value={category.value} className="hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700">
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-blue-500/10 dark:bg-blue-400/20 rounded-md">
+                              <category.icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <span className="text-slate-900 dark:text-slate-100">{category.label}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -266,15 +331,18 @@ export default function LogEmissions() {
                 </div>
 
                 {selectedCategory && (
-                  <div className="space-y-2">
-                    <Label htmlFor="subcategory">Subcategory</Label>
+                  <div className="space-y-3">
+                    <Label htmlFor="subcategory" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                      Subcategory
+                    </Label>
                     <Select value={formData.subcategory} onValueChange={(value) => handleInputChange('subcategory', value)}>
-                      <SelectTrigger className="h-11">
+                      <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-cyan-500/20 dark:focus:ring-cyan-400/20">
                         <SelectValue placeholder="Select subcategory" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                         {selectedCategory.subcategories.map((sub) => (
-                          <SelectItem key={sub} value={sub}>
+                          <SelectItem key={sub} value={sub} className="hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 text-slate-900 dark:text-slate-100">
                             {SUBCATEGORY_LABELS[sub] || sub.charAt(0).toUpperCase() + sub.slice(1).replace(/_/g, ' ')}
                           </SelectItem>
                         ))}
@@ -283,126 +351,194 @@ export default function LogEmissions() {
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Quantity and Unit */}
-              {selectedCategory && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity *</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      step="0.01"
-                      placeholder="Enter amount"
-                      value={formData.quantity}
-                      onChange={(e) => handleInputChange('quantity', e.target.value)}
-                      className="h-11"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="unit">Unit *</Label>
-                    <Select value={formData.unit} onValueChange={(value) => handleInputChange('unit', value)}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {selectedCategory.units.map((unit) => (
-                          <SelectItem key={unit} value={unit}>
-                            {unit}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-
-              {/* Date and Department */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="date">Date *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => handleInputChange('date', e.target.value)}
-                    className="h-11"
-                    required
-                  />
-                </div>
-
-                {isCompany() && (
-                  <div className="space-y-2">
-                    <Label htmlFor="department">Department</Label>
-                    <Input
-                      id="department"
-                      placeholder="e.g., IT, Sales"
-                      value={formData.department}
-                      onChange={(e) => handleInputChange('department', e.target.value)}
-                      className="h-11"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Add any additional details..."
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={3}
-                  className="resize-none"
+            {/* Enhanced Quantity and Unit */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="quantity" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  Quantity *
+                </Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  step="0.01"
+                  placeholder="Enter amount"
+                  value={formData.quantity}
+                  onChange={(e) => handleInputChange('quantity', e.target.value)}
+                  className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-teal-500 dark:focus:border-teal-400 focus:ring-teal-500/20 dark:focus:ring-teal-400/20 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                  required
                 />
               </div>
 
-              {/* Submit Buttons */}
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 h-11"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Log Entry
-                    </>
-                  )}
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 px-6"
-                  onClick={() => {
-                    setFormData({
-                      category: "",
-                      subcategory: "",
-                      quantity: "",
-                      unit: "",
-                      date: new Date().toISOString().split('T')[0],
-                      description: "",
-                      department: ""
-                    });
-                  }}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Clear
-                </Button>
+              {selectedCategory && (
+                <div className="space-y-3">
+                  <Label htmlFor="unit" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    Unit *
+                  </Label>
+                  <Select value={formData.unit} onValueChange={(value) => handleInputChange('unit', value)}>
+                    <SelectTrigger className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-orange-500 dark:focus:border-orange-400 focus:ring-orange-500/20 dark:focus:ring-orange-400/20">
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                      {selectedCategory.units.map((unit) => (
+                        <SelectItem key={unit} value={unit} className="hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 text-slate-900 dark:text-slate-100">
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            {/* Enhanced Date and Department */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="date" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  Date *
+                </Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => handleInputChange('date', e.target.value)}
+                  className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 text-slate-900 dark:text-slate-100"
+                  required
+                />
               </div>
-            </form>
-          </CardContent>
-        </Card>
+
+              {isCompany() && (
+                <div className="space-y-3">
+                  <Label htmlFor="department" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                    Department
+                  </Label>
+                  <Input
+                    id="department"
+                    placeholder="e.g., Manufacturing, IT, Sales"
+                    value={formData.department}
+                    onChange={(e) => handleInputChange('department', e.target.value)}
+                    className="h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Enhanced Description */}
+            <div className="space-y-3">
+              <Label htmlFor="description" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Description (Optional)
+              </Label>
+              <Textarea
+                id="description"
+                placeholder="Add any additional details about this emission..."
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                rows={4}
+                className="resize-none bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus:border-green-500 dark:focus:border-green-400 focus:ring-green-500/20 dark:focus:ring-green-400/20 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Enhanced Submit Button */}
+            <div className="flex gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="flex-1 h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 dark:from-blue-500 dark:to-cyan-500 dark:hover:from-blue-600 dark:hover:to-cyan-600 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                    Logging Emission...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-3 h-5 w-5" />
+                    Log Emission Entry
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                className="h-14 px-6 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-300"
+                onClick={() => setFormData({
+                  category: "",
+                  subcategory: "",
+                  quantity: "",
+                  unit: "",
+                  date: new Date().toISOString().split('T')[0],
+                  description: "",
+                  department: ""
+                })}
+              >
+                Clear Form
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Enhanced Tips Section */}
+      <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
+        <CardContent className="p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-yellow-500/10 dark:bg-yellow-400/20 rounded-lg">
+              <span className="text-2xl">💡</span>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              {isIndividual() ? "Personal" : "Business"} Emission Tracking Tips
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            {isIndividual() ? (
+              <>
+                <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Track daily commute separately from leisure travel</span>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Include both direct and indirect energy usage</span>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Log household waste by type for better insights</span>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Consider seasonal variations in your tracking</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Separate emissions by department for better analysis</span>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Include supply chain emissions when possible</span>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Track production efficiency alongside emissions</span>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                  <span className="text-slate-700 dark:text-slate-300">Consider scope 1, 2, and 3 emissions categories</span>
+                </div>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       </div>
     </div>
