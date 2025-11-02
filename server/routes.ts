@@ -1007,6 +1007,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/tips/completed - Get user's completed tips
+  app.get("/api/tips/completed", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      const completedTips = await storage.getCompletedTips(userId);
+      
+      res.json(completedTips);
+    } catch (error) {
+      console.error('Failed to fetch completed tips:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/tips/complete - Mark a tip as completed
+  app.post("/api/tips/complete", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      const { tipId, estimatedSavings } = req.body;
+
+      if (!tipId || estimatedSavings === undefined) {
+        return res.status(400).json({ message: 'Missing required fields: tipId and estimatedSavings' });
+      }
+
+      const completed = await storage.markTipCompleted(userId, tipId, estimatedSavings);
+      
+      res.status(201).json(completed);
+    } catch (error: any) {
+      console.error('Failed to mark tip as completed:', error);
+      if (error.message && error.message.includes('already completed')) {
+        return res.status(409).json({ message: 'Tip already completed' });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // DELETE /api/tips/complete/:tipId - Unmark a tip as completed
+  app.delete("/api/tips/complete/:tipId", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      const tipId = parseInt(req.params.tipId);
+
+      if (isNaN(tipId)) {
+        return res.status(400).json({ message: 'Invalid tip ID' });
+      }
+
+      await storage.unmarkTipCompleted(userId, tipId);
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Failed to unmark tip:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // GET /api/tips/personalized - Get personalized tips based on user emissions
+  app.get("/api/tips/personalized", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const userId = (req as AuthenticatedRequest).user!.userId;
+      const userRole = (req as AuthenticatedRequest).user!.role;
+
+      // Get user's emission breakdown
+      const emissions = await storage.getUserEmissions(userId);
+      const categoryTotals: Record<string, number> = {};
+      
+      emissions.forEach((emission: any) => {
+        const category = emission.category?.toLowerCase() || 'other';
+        categoryTotals[category] = (categoryTotals[category] || 0) + Number(emission.co2_emissions || emission.co2Emissions || 0);
+      });
+
+      // Sort categories by emissions
+      const topCategories = Object.entries(categoryTotals)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([cat]) => cat);
+
+      // Get tips for top categories
+      const allTips = await storage.getTipsForUser(userRole);
+      const personalizedTips = allTips
+        .filter((tip: any) => topCategories.includes(tip.category?.toLowerCase()))
+        .slice(0, 10);
+
+      res.json({
+        topCategories,
+        categoryBreakdown: categoryTotals,
+        recommendedTips: personalizedTips
+      });
+    } catch (error) {
+      console.error('Failed to get personalized tips:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // POST /api/reports/generate
   app.post("/api/reports/generate", authenticateToken, async (req: Request, res: Response) => {
     try {

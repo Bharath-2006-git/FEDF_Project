@@ -64,11 +64,24 @@ export const tips = pgTable("tips", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
-  category: varchar("category", { length: 50 }).notNull(), // energy, transport, waste, industrial
+  category: varchar("category", { length: 50 }).notNull(), // energy, transport, waste, food, water
   targetRole: varchar("target_role", { length: 20 }).notNull(), // individual, company, all
   impactLevel: varchar("impact_level", { length: 20 }).default("medium"), // low, medium, high
+  estimatedSavings: integer("estimated_savings"), // kg CO2 per year
+  difficulty: varchar("difficulty", { length: 20 }).default("medium"), // easy, medium, hard
+  explanation: text("explanation"), // detailed explanation for "Learn More"
+  source: text("source"), // credible reference or source link
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Completed tips table for tracking user actions
+export const completedTips = pgTable("completed_tips", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  tipId: integer("tip_id").notNull(),
+  completedAt: timestamp("completed_at").defaultNow(),
+  estimatedSavings: integer("estimated_savings").notNull(), // kg CO2 per year
 });
 
 // Zod schemas for validation
@@ -125,3 +138,4 @@ export type InsertGoal = z.infer<typeof insertGoalSchema>;
 export type Goal = typeof goals.$inferSelect;
 export type Report = typeof reports.$inferSelect;
 export type Tip = typeof tips.$inferSelect;
+export type CompletedTip = typeof completedTips.$inferSelect;

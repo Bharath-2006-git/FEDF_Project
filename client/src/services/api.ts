@@ -89,6 +89,18 @@ export interface Tip {
   category: string;
   targetRole: string;
   impactLevel: string;
+  estimatedSavings?: number;
+  difficulty?: string;
+  explanation?: string;
+  source?: string;
+}
+
+export interface CompletedTip {
+  id?: number;
+  userId?: number;
+  tipId: number;
+  completedAt: string;
+  estimatedSavings: number;
 }
 
 export interface ReportRequest {
@@ -250,6 +262,28 @@ class ApiService {
     return response.data;
   }
 
+  async getCompletedTips(): Promise<CompletedTip[]> {
+    const response = await this.api.get<CompletedTip[]>('/tips/completed');
+    return response.data;
+  }
+
+  async markTipCompleted(tipId: number, estimatedSavings: number): Promise<CompletedTip> {
+    const response = await this.api.post<CompletedTip>('/tips/complete', { 
+      tipId, 
+      estimatedSavings 
+    });
+    return response.data;
+  }
+
+  async unmarkTipCompleted(tipId: number): Promise<void> {
+    await this.api.delete(`/tips/complete/${tipId}`);
+  }
+
+  async getPersonalizedTips(): Promise<any> {
+    const response = await this.api.get('/tips/personalized');
+    return response.data;
+  }
+
   async generateReport(reportData: ReportRequest): Promise<any> {
     const response = await this.api.post('/reports/generate', reportData);
     return response.data;
@@ -402,7 +436,12 @@ export const goalsAPI = {
 };
 
 export const tipsAPI = {
-  get: () => apiService.getTips(),
+  get: (category?: string) => apiService.getTips(category),
+  getCompleted: () => apiService.getCompletedTips(),
+  markCompleted: (tipId: number, estimatedSavings: number) => 
+    apiService.markTipCompleted(tipId, estimatedSavings),
+  unmarkCompleted: (tipId: number) => apiService.unmarkTipCompleted(tipId),
+  getPersonalized: () => apiService.getPersonalizedTips(),
 };
 
 export const reportsAPI = {

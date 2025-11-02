@@ -279,6 +279,54 @@ export class DatabaseStorage {
     return (data as any) || [];
   }
 
+  async getCompletedTips(userId: number): Promise<any[]> {
+    const { data, error } = await supabase
+      .from("completed_tips")
+      .select("*")
+      .eq("user_id", userId);
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  async markTipCompleted(userId: number, tipId: number, estimatedSavings: number): Promise<any> {
+    // Check if already completed
+    const { data: existing } = await supabase
+      .from("completed_tips")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("tip_id", tipId)
+      .single();
+
+    if (existing) {
+      throw new Error('Tip already completed');
+    }
+
+    const { data, error } = await supabase
+      .from("completed_tips")
+      .insert({
+        user_id: userId,
+        tip_id: tipId,
+        estimated_savings: estimatedSavings,
+        completed_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async unmarkTipCompleted(userId: number, tipId: number): Promise<void> {
+    const { error } = await supabase
+      .from("completed_tips")
+      .delete()
+      .eq("user_id", userId)
+      .eq("tip_id", tipId);
+    
+    if (error) throw error;
+  }
+
   async saveReport(userId: number, reportType: string, reportDate: Date, filePath: string, reportData: any): Promise<void> {
     const payload = {
       user_id: userId,
