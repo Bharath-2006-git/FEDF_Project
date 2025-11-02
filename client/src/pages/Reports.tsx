@@ -1155,11 +1155,8 @@ export default function Reports() {
       <Dialog open={selectedReport !== null} onOpenChange={() => setSelectedReport(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span className="capitalize">{selectedReport?.reportType} Report Details</span>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedReport(null)}>
-                <X className="w-5 h-5" />
-              </Button>
+            <DialogTitle className="capitalize">
+              {selectedReport?.reportType} Report Details
             </DialogTitle>
           </DialogHeader>
           
