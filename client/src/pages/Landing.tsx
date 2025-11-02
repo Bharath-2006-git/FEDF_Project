@@ -310,7 +310,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 dark:from-black dark:via-slate-950 dark:to-black text-white py-16">
+      <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
