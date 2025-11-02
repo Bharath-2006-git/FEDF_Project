@@ -370,7 +370,7 @@ export default function Dashboard() {
               View Reports
             </Button>
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700 transition-all duration-300 ease-in-out">
-              <h4 className="font-medium mb-2 text-sm text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">💡 Today's Tip</h4>
+              <h4 className="font-medium mb-2 text-sm text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">Today's Tip</h4>
               <p className="text-sm text-slate-600 dark:text-slate-400 transition-colors duration-300 ease-in-out">
                 {isIndividual() 
                   ? "Try using public transportation or biking today to reduce your carbon footprint!"

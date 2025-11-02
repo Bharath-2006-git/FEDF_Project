@@ -71,6 +71,103 @@ const difficultyColors = {
   hard: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
 };
 
+interface CategorySectionProps {
+  category: string;
+  categoryTips: Tip[];
+  categoryLabels: Record<string, string>;
+  categoryIcons: Record<string, any>;
+  completedTips: CompletedTip[];
+  toggleTipCompletion: (tipId: number, estimatedSavings: number) => void;
+}
+
+function CategorySection({ 
+  category, 
+  categoryTips, 
+  categoryLabels, 
+  categoryIcons, 
+  completedTips, 
+  toggleTipCompletion 
+}: CategorySectionProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const Icon = categoryIcons[category] || Leaf;
+  const displayTips = isExpanded ? categoryTips : categoryTips.slice(0, 3);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          {categoryLabels[category] || category}
+        </h3>
+        <span className="text-sm text-slate-500 dark:text-slate-400">
+          ({categoryTips.length})
+        </span>
+      </div>
+      
+      <div className="space-y-2">
+        {displayTips.map(tip => {
+          const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
+          
+          return (
+            <Card 
+              key={tip.id}
+              className={`bg-white dark:bg-slate-800 border transition-all ${
+                isCompleted 
+                  ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800'
+              }`}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={isCompleted}
+                    onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings || 0)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-medium text-slate-900 dark:text-slate-100">
+                      {tip.title}
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {tip.content}
+                    </p>
+                    {tip.estimatedSavings && (
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                        Potential savings: ~{tip.estimatedSavings} kg CO₂/year
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+      
+      {categoryTips.length > 3 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="w-4 h-4 mr-1" />
+              Show less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4 mr-1" />
+              Show {categoryTips.length - 3} more
+            </>
+          )}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export default function Tips() {
   const { user } = useAuth();
   const { isIndividual } = useRoleAccess();
@@ -334,7 +431,7 @@ export default function Tips() {
       return (b.estimatedSavings || 0) - (a.estimatedSavings || 0);
     });
     
-    console.log('💡 Priority tips for top categories:', topThreeCategories, 'Count:', sorted.length);
+    console.log('Priority tips for top categories:', topThreeCategories, 'Count:', sorted.length);
     return sorted;
   }, [tips, topCategories]);
 
@@ -536,86 +633,17 @@ export default function Tips() {
 
         {/* Tips by Category */}
         <div className="space-y-6">
-          {Object.entries(tipsByCategory).map(([category, categoryTips]) => {
-            const Icon = categoryIcons[category as keyof typeof categoryIcons] || Leaf;
-            const [isExpanded, setIsExpanded] = useState(false);
-            const displayTips = isExpanded ? categoryTips : categoryTips.slice(0, 3);
-            
-            return (
-              <div key={category} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    {categoryLabels[category] || category}
-                  </h3>
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    ({categoryTips.length})
-                  </span>
-                </div>
-                
-                <div className="space-y-2">
-                  {displayTips.map(tip => {
-                    const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
-                    
-                    return (
-                      <Card 
-                        key={tip.id}
-                        className={`bg-white dark:bg-slate-800 border transition-all ${
-                          isCompleted 
-                            ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10'
-                            : 'border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800'
-                        }`}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <Checkbox
-                              checked={isCompleted}
-                              onCheckedChange={() => toggleTipCompletion(tip.id, tip.estimatedSavings)}
-                              className="mt-1"
-                            />
-                            <div className="flex-1 space-y-1">
-                              <h4 className="font-medium text-slate-900 dark:text-slate-100">
-                                {tip.title}
-                              </h4>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">
-                                {tip.content}
-                              </p>
-                              {tip.estimatedSavings && (
-                                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                                  Potential savings: ~{tip.estimatedSavings} kg CO₂/year
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-                
-                {categoryTips.length > 3 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                  >
-                    {isExpanded ? (
-                      <>
-                        <ChevronUp className="w-4 h-4 mr-1" />
-                        Show less
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="w-4 h-4 mr-1" />
-                        Show {categoryTips.length - 3} more
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            );
-          })}
+          {Object.entries(tipsByCategory).map(([category, categoryTips]) => (
+            <CategorySection 
+              key={category}
+              category={category}
+              categoryTips={categoryTips}
+              categoryLabels={categoryLabels}
+              categoryIcons={categoryIcons}
+              completedTips={completedTips}
+              toggleTipCompletion={toggleTipCompletion}
+            />
+          ))}
         </div>
 
         {/* Completion Stats */}

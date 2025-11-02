@@ -19,7 +19,8 @@ import {
   TrendingUp,
   Calendar,
   CheckCircle,
-  Factory
+  Factory,
+  Lightbulb
 } from "lucide-react";
 import { emissionsAPI } from "@/services/api";
 
@@ -446,7 +447,7 @@ export default function LogEmissions() {
         <CardContent className="p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-yellow-500/10 dark:bg-yellow-400/20 rounded-lg">
-              <span className="text-2xl">💡</span>
+              <Lightbulb className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {isIndividual() ? "Personal" : "Business"} Emission Tracking Tips
