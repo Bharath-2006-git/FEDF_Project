@@ -84,15 +84,15 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              Personal Carbon Tracking Made Simple
+              Smart Carbon Tracking Platform
             </Badge>
             
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight">
-              Personal Carbon Tracking Made Simple
+              CarbonSense
             </h1>
             
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-800 dark:text-gray-200 mb-8">
-              Track Your Carbon Footprint
+              Monitor Your Environmental Impact
             </h2>
             
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed">
@@ -124,7 +124,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Why Track Your Carbon Footprint?
+              Why CarbonSense?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Every action matters. Start your journey toward a more sustainable future today.
@@ -287,10 +287,10 @@ export default function Landing() {
             <Leaf className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            Start Your Sustainability Journey Today
+            Start Your Sustainability Journey with CarbonSense
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Take the first step toward reducing your environmental impact. Track your carbon footprint, 
+            Take the first step toward reducing your environmental impact. Monitor emissions, 
             set meaningful goals, and discover how small changes can make a big difference.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

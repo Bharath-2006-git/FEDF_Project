@@ -208,7 +208,7 @@ export default function LogEmissions() {
           </h1>
           <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
             {isIndividual() 
-              ? "Track your carbon footprint by logging daily activities" 
+              ? "Log your daily activities and monitor your environmental impact" 
               : "Record company emissions and monitor sustainability progress"
             }
           </p>
@@ -339,7 +339,7 @@ export default function LogEmissions() {
                           </div>
 
                           {/* Quantity & Unit */}
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                               <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
                                 Quantity *
@@ -377,7 +377,7 @@ export default function LogEmissions() {
                           </div>
 
                           {/* Date & Department */}
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                               <Label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
                                 Date *

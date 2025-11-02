@@ -151,8 +151,8 @@ export default function Dashboard() {
         <PageHeader
           title={`Welcome back, ${user?.firstName || 'User'}!`}
           description={isIndividual() 
-            ? "Track your carbon footprint and make a positive impact on the environment."
-            : "Monitor your company's environmental impact and drive sustainable practices."
+            ? "Monitor your emissions and make a positive environmental impact with CarbonSense."
+            : "Track your company's sustainability metrics and drive eco-friendly practices."
           }
           actions={
             <Select value={timeFilter} onValueChange={setTimeFilter}>
