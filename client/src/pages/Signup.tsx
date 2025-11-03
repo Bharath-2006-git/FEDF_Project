@@ -142,9 +142,9 @@ export default function Signup() {
                 <SelectTrigger className="h-12 rounded-xl">
                   <SelectValue placeholder="Select account type" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">🌱 Individual</SelectItem>
-                  <SelectItem value="company">🏢 Company</SelectItem>
+              <SelectContent>
+                  <SelectItem value="individual">Individual</SelectItem>
+                  <SelectItem value="company">Company</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -213,19 +213,12 @@ export default function Signup() {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl"></div>
-        </div>
-        <div className="relative text-center">
-          <div className="w-64 h-64 mx-auto mb-8 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-full backdrop-blur-sm"></div>
-            <div className="absolute inset-4 bg-gradient-to-tr from-emerald-400/50 to-cyan-300/50 rounded-full animate-pulse"></div>
-            <div className="absolute inset-8 bg-gradient-to-bl from-teal-300/60 to-emerald-400/60 rounded-full"></div>
-          </div>
-          <h3 className="text-3xl font-bold text-white mb-4">Start Your Sustainability Journey</h3>
-          <p className="text-white/90 text-lg max-w-md">Track emissions, set goals, and make a real impact on our planet</p>
+      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950 p-16 relative overflow-hidden">
+        <div className="absolute inset-0"><div className="absolute top-20 right-20 w-64 h-64 bg-emerald-200/30 dark:bg-emerald-800/20 rounded-full blur-3xl animate-pulse"></div><div className="absolute bottom-20 left-20 w-80 h-80 bg-teal-200/30 dark:bg-teal-800/20 rounded-full blur-3xl animate-pulse"></div></div>
+        <div className="relative z-10 text-center">
+          <div className="mb-8 relative"><div className="w-80 h-80 mx-auto relative"><div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 animate-pulse shadow-2xl"></div><div className="absolute inset-0 rounded-full bg-gradient-to-tl from-emerald-500/40 via-transparent to-white/20"></div><div className="absolute inset-8 rounded-full bg-gradient-to-br from-emerald-300 via-teal-400 to-cyan-500 opacity-80"></div><div className="absolute inset-16 rounded-full bg-gradient-to-br from-emerald-200 via-teal-300 to-cyan-400 opacity-60"></div><div className="absolute inset-0 flex items-center justify-center"><svg className="w-64 h-64 opacity-30" viewBox="0 0 100 100"><path d="M30,25 Q35,20 40,25 L45,30 Q50,35 45,40 L40,45 Q35,50 30,45 Z" fill="currentColor" className="text-emerald-700"/><path d="M55,35 Q60,30 65,35 L70,40 Q75,45 70,50 L65,55 Q60,60 55,55 Z" fill="currentColor" className="text-emerald-700"/><path d="M25,60 Q30,55 35,60 L40,65 Q45,70 40,75 L35,80 Q30,85 25,80 Z" fill="currentColor" className="text-emerald-700"/></svg></div></div></div>
+          <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Start Your Sustainability Journey</h3>
+          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-md mx-auto">Track emissions, set goals, and make a real impact on our planet</p>
         </div>
       </div>
     </div>

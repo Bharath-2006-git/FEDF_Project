@@ -7,7 +7,6 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { useAuth } from "@/context/AuthContext";
 import { 
-  Download,
   BarChart3,
   Activity,
   Target,
@@ -51,6 +50,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { dashboardAPI } from "@/services/api";
 
 interface AnalyticsData {
@@ -88,6 +88,7 @@ export default function Analytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [timeRange, setTimeRange] = useState('6months');
   const [activeTab, setActiveTab] = useState('overview');
+  const [showPrevious, setShowPrevious] = useState(true);
 
   // Calculate insights from data
   const insights = React.useMemo(() => {
@@ -154,26 +155,7 @@ export default function Analytics() {
     }
   };
 
-  const handleExport = async () => {
-    try {
-      const response = await dashboardAPI.exportReport('csv', timeRange);
-      
-      // Create download link
-      const blob = new Blob([response.data], { 
-        type: 'text/csv' 
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `carbon-analytics-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      // Export failed
-    }
-  };
+  // export functionality removed per requirements
 
   if (loading) {
     return <LoadingSpinner message="Loading analytics..." />;
@@ -244,64 +226,10 @@ export default function Analytics() {
                 <SelectItem value="2years">Last 2 Years</SelectItem>
               </SelectContent>
             </Select>
-            <Button 
-              onClick={handleExport}
-              variant="outline"
-              className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
           </div>
         </div>
 
-        {/* Emissions Summary - Modern Card */}
-        {insights && (
-          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 border-emerald-200 dark:border-emerald-900">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    {insights.recentTrend < 0 ? (
-                      <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                    ) : insights.recentTrend > 0 ? (
-                      <TrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    ) : (
-                      <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    )}
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                      Emissions Summary
-                    </h3>
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    {insights.recentTrend < 0 ? (
-                      <>Great job! Your emissions are trending downward by {Math.abs(insights.recentTrend).toFixed(1)} kg CO₂</>
-                    ) : insights.recentTrend > 0 ? (
-                      <>Emissions increased by {insights.recentTrend.toFixed(1)} kg CO₂. Focus on {insights.highestCategory.category} to improve.</>
-                    ) : (
-                      <>Emissions are stable. Keep up the good work!</>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                      {insights.improvingCategories.length}
-                    </div>
-                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Improving</div>
-                  </div>
-                  <div className="h-12 w-px bg-slate-200 dark:bg-slate-700"></div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                      {insights.worseningCategories.length}
-                    </div>
-                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Need Focus</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Emissions Summary removed per requirements */}
 
         {/* Key Metrics - Clean Design Matching Emerald Theme */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -406,27 +334,21 @@ export default function Analytics() {
 
         {/* Tabs for Different Analytics Views */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="trends" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Trends
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-              <PieChartIcon className="w-4 h-4 mr-2" />
-              Categories
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
-              <Info className="w-4 h-4 mr-2" />
-              Insights
-            </TabsTrigger>
-          </TabsList>
+          {/* TabsList removed per requirements */}
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            {/* Quick controls */}
+            <Card className="bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800">
+              <CardContent className="p-4 flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <Switch id="toggle-previous" checked={showPrevious} onCheckedChange={setShowPrevious} />
+                  <label htmlFor="toggle-previous" className="text-sm text-slate-600 dark:text-slate-400">
+                    Show previous period
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
             {/* Monthly Comparison Chart - Enhanced */}
             <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
           <CardHeader className="border-b border-slate-200 dark:border-slate-700">
@@ -441,6 +363,7 @@ export default function Analytics() {
             </p>
           </CardHeader>
           <CardContent className="pt-6">
+            {data?.monthlyComparison?.length ? (
             <ResponsiveContainer width="100%" height={320}>
               <ComposedChart data={data?.monthlyComparison || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -452,8 +375,15 @@ export default function Analytics() {
                 <YAxis 
                   stroke="#64748b"
                   style={{ fontSize: '12px' }}
+                  tickFormatter={(v) => `${v}`}
                 />
                 <Tooltip 
+                  formatter={(value: number, name: string) => {
+                    if (name === '% Change' || name === 'change') {
+                      return [`${Number(value).toFixed(1)}%`, '% Change'];
+                    }
+                    return [`${Number(value).toFixed(1)} kg`, name];
+                  }}
                   contentStyle={{ 
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     border: '1px solid #e2e8f0',
@@ -471,22 +401,27 @@ export default function Analytics() {
                   name="Current Period"
                   radius={[6, 6, 0, 0]}
                 />
-                <Bar 
-                  dataKey="previous" 
-                  fill="#94a3b8" 
-                  name="Previous Period"
-                  radius={[6, 6, 0, 0]}
-                />
+                {showPrevious && (
+                  <Bar 
+                    dataKey="previous" 
+                    fill="#94a3b8" 
+                    name="Previous Period"
+                    radius={[6, 6, 0, 0]}
+                  />
+                )}
                 <Line 
                   type="monotone" 
                   dataKey="change" 
                   stroke="#ef4444" 
                   name="% Change"
                   strokeWidth={2}
-                  dot={{ r: 4 }}
+                  dot={{ r: 3 }}
                 />
               </ComposedChart>
             </ResponsiveContainer>
+            ) : (
+              <div className="p-8 text-center text-slate-500 dark:text-slate-400">No monthly data available for the selected range.</div>
+            )}
           </CardContent>
         </Card>
 
@@ -649,147 +584,13 @@ export default function Analytics() {
           </Card>
         </div>
 
-        {/* Yearly Trends - Enhanced */}
-        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
-          <CardHeader className="border-b border-slate-200 dark:border-slate-700">
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              Yearly Performance vs Goals
-            </CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Compare actual emissions against your targets
-            </p>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <ResponsiveContainer width="100%" height={320}>
-              <AreaChart data={data?.yearlyTrends || []}>
-                <defs>
-                  <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
-                  </linearGradient>
-                  <linearGradient id="colorGoals" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis 
-                  dataKey="year" 
-                  stroke="#64748b"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis 
-                  stroke="#64748b"
-                  style={{ fontSize: '12px' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    padding: '8px 12px'
-                  }}
-                />
-                <Legend 
-                  wrapperStyle={{ fontSize: '13px' }}
-                  iconType="circle"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="emissions" 
-                  stroke="#ef4444" 
-                  fill="url(#colorEmissions)"
-                  strokeWidth={2}
-                  name="Actual Emissions"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="goals" 
-                  stroke="#10b981" 
-                  fill="url(#colorGoals)"
-                  strokeWidth={2}
-                  name="Target Goals"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Yearly Trends removed per request */}
           </TabsContent>
 
           {/* Trends Tab */}
           <TabsContent value="trends" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
-              {/* Yearly Trends Chart */}
-              <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
-                <CardHeader className="border-b border-slate-200 dark:border-slate-700">
-                  <CardTitle className="flex items-center gap-2">
-                    <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    Yearly Performance vs Goals
-                  </CardTitle>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Compare actual emissions against your targets over time
-                  </p>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ResponsiveContainer width="100%" height={350}>
-                    <AreaChart data={data?.yearlyTrends || []}>
-                      <defs>
-                        <linearGradient id="colorEmissions2" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
-                        </linearGradient>
-                        <linearGradient id="colorGoals2" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis 
-                        dataKey="year" 
-                        stroke="#64748b"
-                        style={{ fontSize: '12px' }}
-                      />
-                      <YAxis 
-                        stroke="#64748b"
-                        style={{ fontSize: '12px' }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          padding: '8px 12px'
-                        }}
-                      />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '13px' }}
-                        iconType="circle"
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="emissions" 
-                        stroke="#ef4444" 
-                        fill="url(#colorEmissions2)"
-                        strokeWidth={2}
-                        name="Actual Emissions"
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="goals" 
-                        stroke="#10b981" 
-                        fill="url(#colorGoals2)"
-                        strokeWidth={2}
-                        name="Target Goals"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              {/* Yearly Trends section removed per request */}
 
               {/* Monthly Trend Details */}
               <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/40 dark:border-slate-700/40 shadow-lg">
@@ -1023,7 +824,7 @@ export default function Analytics() {
                         ))}
                       </div>
                       {insights.worseningCategories.length === 0 && (
-                        <p className="text-sm text-slate-600 dark:text-slate-400">All categories stable or improving! 🎉</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">All categories stable or improving!</p>
                       )}
                     </CardContent>
                   </Card>

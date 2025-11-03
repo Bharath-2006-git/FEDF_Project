@@ -132,7 +132,7 @@ export default function Dashboard() {
           />
           <Card className="border-dashed">
             <CardContent className="p-12 text-center space-y-4">
-              <div className="text-6xl">🌱</div>
+              <div className="text-6xl"></div>
               <h3 className="text-xl font-semibold">No Emissions Logged Yet</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
                 Start tracking your carbon footprint by logging your first emission.
@@ -400,7 +400,7 @@ export default function Dashboard() {
                       <Progress value={progress} className="h-4" />
                       <div className="flex justify-between text-xs text-muted-foreground">
                         <span>Current progress</span>
-                        <span>{progress >= 100 ? 'Goal Achieved! 🎉' : `${100 - progress}% to go`}</span>
+                        <span>{progress >= 100 ? 'Goal Achieved!' : `${100 - progress}% to go`}</span>
                       </div>
                     </div>
                   </div>
