@@ -10,7 +10,7 @@ import { toast } from '@/hooks/use-toast';
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { login, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated } = useAuth();
   
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +47,15 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    toast({ title: "Coming Soon", description: "Google Sign-In will be available soon!" });
+    // Use AuthContext helper if available (it will redirect to the API OAuth endpoint).
+    if (typeof loginWithGoogle === 'function') {
+      loginWithGoogle();
+      return;
+    }
+    // Fallback: redirect directly to the backend OAuth start route
+    if (typeof window !== 'undefined') {
+      window.location.href = `${window.location.origin}/api/auth/google`;
+    }
   };
 
   return (

@@ -11,7 +11,7 @@ import { Eye, EyeOff, Mail, Lock, User, Building, Loader2 } from "lucide-react";
 
 export default function Signup() {
   const [, navigate] = useLocation();
-  const { register, isAuthenticated } = useAuth();
+  const { signup, loginWithGoogle, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +42,13 @@ export default function Signup() {
   };
 
   const handleGoogleLogin = () => {
-    toast({ title: "Coming Soon", description: "Google Sign-In will be available soon!" });
+    if (typeof loginWithGoogle === 'function') {
+      loginWithGoogle();
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = `${window.location.origin}/api/auth/google`;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,7 +67,7 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      await register({
+      await signup({
         username: formData.email,
         password: formData.password,
         email: formData.email,
