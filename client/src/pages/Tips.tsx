@@ -141,6 +141,7 @@ export default function Tips() {
   const [tips, setTips] = useState<Tip[]>([]);
   const [completedTips, setCompletedTips] = useState<CompletedTip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTips, setExpandedTips] = useState<Set<number>>(new Set());
@@ -153,27 +154,38 @@ export default function Tips() {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       const [allTips, completed, personalizedTips] = await Promise.all([
-        tipsAPI.get(),
-        tipsAPI.getCompleted(),
+        tipsAPI.get().catch((err) => {
+          console.error("Failed to load tips:", err);
+          return [];
+        }),
+        tipsAPI.getCompleted().catch((err) => {
+          console.error("Failed to load completed tips:", err);
+          return [];
+        }),
         tipsAPI.getPersonalized().catch(() => [])
       ]);
 
-      const tipsToUse = personalizedTips.length > 0 ? personalizedTips : allTips;
+      const tipsToUse = Array.isArray(personalizedTips) && personalizedTips.length > 0 
+        ? personalizedTips 
+        : (Array.isArray(allTips) ? allTips : []);
+        
       setTips(tipsToUse);
-      setCompletedTips(completed);
+      setCompletedTips(Array.isArray(completed) ? completed : []);
 
       // Get emission breakdown for personalization
       try {
         const summary = await emissionsAPI.summary();
-        const breakdown: CategoryBreakdown[] = Object.entries(summary.byCategory || {})
+        const breakdown: CategoryBreakdown[] = Object.entries(summary?.byCategory || {})
           .map(([category, emissions]) => ({
             category,
             emissions: emissions as number,
             percentage: 0
           }));
         
-        const total = breakdown.reduce((sum, item) => sum + item.emissions, 0);
+        const total = breakdown.reduce((sum, item) => sum + (item?.emissions || 0), 0);
         breakdown.forEach(item => {
           item.percentage = total > 0 ? (item.emissions / total) * 100 : 0;
         });
@@ -181,9 +193,13 @@ export default function Tips() {
         setEmissionBreakdown(breakdown);
       } catch (err) {
         console.error("Failed to load emission breakdown:", err);
+        setEmissionBreakdown([]);
       }
     } catch (err) {
       console.error("Failed to load tips:", err);
+      setError("Failed to load tips. Please try again later.");
+      setTips([]);
+      setCompletedTips([]);
     } finally {
       setLoading(false);
     }
@@ -219,18 +235,19 @@ export default function Tips() {
   };
 
   const filteredAndSortedTips = useMemo(() => {
+    if (!Array.isArray(tips)) return [];
     let filtered = tips;
 
     // Filter by category
     if (categoryFilter !== "all") {
-      filtered = filtered.filter(tip => tip.category === categoryFilter);
+      filtered = filtered.filter(tip => tip?.category === categoryFilter);
     }
 
     // Filter by search
     if (searchQuery) {
       filtered = filtered.filter(tip =>
-        tip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tip.content.toLowerCase().includes(searchQuery.toLowerCase())
+        tip?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tip?.content?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -239,28 +256,34 @@ export default function Tips() {
 
   const tipsByCategory = useMemo(() => {
     const grouped: Record<string, Tip[]> = {};
+    if (!Array.isArray(filteredAndSortedTips)) return grouped;
+    
     filteredAndSortedTips.forEach(tip => {
-      if (!grouped[tip.category]) {
-        grouped[tip.category] = [];
+      if (tip?.category) {
+        if (!grouped[tip.category]) {
+          grouped[tip.category] = [];
+        }
+        grouped[tip.category].push(tip);
       }
-      grouped[tip.category].push(tip);
     });
     return grouped;
   }, [filteredAndSortedTips]);
 
   const completionStats = useMemo(() => {
-    const total = tips.length;
-    const completed = completedTips.length;
+    const total = Array.isArray(tips) ? tips.length : 0;
+    const completed = Array.isArray(completedTips) ? completedTips.length : 0;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    const totalSavings = completedTips.reduce((sum, ct) => sum + (ct.estimatedSavings || 0), 0);
+    const totalSavings = Array.isArray(completedTips) 
+      ? completedTips.reduce((sum, ct) => sum + (ct?.estimatedSavings || 0), 0)
+      : 0;
     
     return { total, completed, percentage, totalSavings };
   }, [tips, completedTips]);
 
   const topCategory = useMemo(() => {
-    if (emissionBreakdown.length === 0) return null;
+    if (!Array.isArray(emissionBreakdown) || emissionBreakdown.length === 0) return null;
     return emissionBreakdown.reduce((max, item) => 
-      item.emissions > max.emissions ? item : max
+      (item?.emissions || 0) > (max?.emissions || 0) ? item : max
     );
   }, [emissionBreakdown]);
 
@@ -268,6 +291,23 @@ export default function Tips() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
+          <CardContent className="p-12 text-center">
+            <X className="w-16 h-16 mx-auto mb-4 text-red-500" />
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Unable to Load Tips</h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">{error}</p>
+            <Button onClick={() => loadData()} className="w-full">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -389,28 +429,37 @@ export default function Tips() {
         </Card>
 
         {/* Tips by Category */}
-        {Object.entries(tipsByCategory).map(([category, categoryTips]) => {
-          const config = categoryConfig[category as keyof typeof categoryConfig];
-          if (!config) return null;
+        {Object.keys(tipsByCategory).length === 0 ? (
+          <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
+            <CardContent className="p-12 text-center">
+              <Lightbulb className="w-16 h-16 mx-auto mb-4 text-slate-400" />
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">No tips found</h3>
+              <p className="text-slate-600 dark:text-slate-400">Try adjusting your filters or check back later for new tips.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          Object.entries(tipsByCategory).map(([category, categoryTips]) => {
+            const config = categoryConfig[category as keyof typeof categoryConfig];
+            if (!config || !Array.isArray(categoryTips)) return null;
 
-          const CategoryIcon = config.icon;
+            const CategoryIcon = config.icon;
 
-          return (
-            <Card key={category} className={`bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg`}>
-              <CardHeader className={`${config.bgClass} border-b ${config.borderClass}`}>
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className={`p-2 ${config.iconBg} rounded-lg`}>
-                    <CategoryIcon className={`w-5 h-5 ${config.iconClass}`} />
-                  </div>
-                  <span className="text-slate-900 dark:text-slate-100">{config.label}</span>
-                  <Badge variant="secondary" className="ml-auto">
-                    {categoryTips.length} tips
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
+            return (
+              <Card key={category} className={`bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg`}>
+                <CardHeader className={`${config.bgClass} border-b ${config.borderClass}`}>
+                  <CardTitle className="flex items-center gap-3 text-xl">
+                    <div className={`p-2 ${config.iconBg} rounded-lg`}>
+                      <CategoryIcon className={`w-5 h-5 ${config.iconClass}`} />
+                    </div>
+                    <span className="text-slate-900 dark:text-slate-100">{config.label}</span>
+                    <Badge variant="secondary" className="ml-auto">
+                      {categoryTips.length} tips
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
 
-              <CardContent className="p-6 space-y-4">
-                {categoryTips.map((tip) => {
+                <CardContent className="p-6 space-y-4">
+                  {categoryTips.map((tip) => {
                   const isCompleted = completedTips.some(ct => ct.tipId === tip.id);
                   const isExpanded = expandedTips.has(tip.id);
                   const difficulty = difficultyConfig[tip.difficulty as keyof typeof difficultyConfig];
@@ -488,10 +537,11 @@ export default function Tips() {
                 })}
               </CardContent>
             </Card>
-          );
-        })}
+            );
+          })
+        )}
 
-        {filteredAndSortedTips.length === 0 && (
+        {filteredAndSortedTips.length === 0 && Object.keys(tipsByCategory).length > 0 && (
           <Card className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl border-white/40 dark:border-slate-600/40 shadow-lg">
             <CardContent className="p-12 text-center">
               <Sparkles className="h-12 w-12 text-slate-400 mx-auto mb-4" />
