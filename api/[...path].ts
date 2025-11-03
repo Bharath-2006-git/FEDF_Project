@@ -1269,7 +1269,7 @@ app.get("/api/tips", authenticateToken, async (req, res) => {
     // Environment variable check at the beginning of the request
     const areEnvsSet = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && JWT_SECRET;
     if (!areEnvsSet) {
-      console.error('❌ [Tips API] Critical environment variables are missing!');
+      console.error('[Tips API] Critical environment variables are missing!');
       console.error(`SUPABASE_URL set: ${!!SUPABASE_URL}`);
       console.error(`SUPABASE_SERVICE_ROLE_KEY set: ${!!SUPABASE_SERVICE_ROLE_KEY}`);
       console.error(`JWT_SECRET set: ${!!JWT_SECRET}`);
