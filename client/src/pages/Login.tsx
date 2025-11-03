@@ -1,46 +1,34 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Loader2, LogIn, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { login, isAuthenticated } = useAuth();
   
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if already authenticated
   React.useEffect(() => {
-    if (isAuthenticated) {
-      setLocation('/dashboard');
-    }
+    if (isAuthenticated) setLocation('/dashboard');
   }, [isAuthenticated, setLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const result = await login(formData.email, formData.password);
-      
       if (result.success) {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back to CarbonSense!"
-        });
+        toast({ title: "Login Successful", description: "Welcome back!" });
         setLocation('/dashboard');
       } else {
         setError(result.error || 'Login failed');
@@ -54,210 +42,46 @@ export default function Login() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const fieldName = name === 'username' ? 'email' : name; // Map username back to email for state
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: value,
-    }));
+    const fieldName = name === 'username' ? 'email' : name;
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
+  };
+
+  const handleGoogleLogin = () => {
+    toast({ title: "Coming Soon", description: "Google Sign-In will be available soon!" });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-teal-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-br from-cyan-400/10 to-emerald-400/10 rounded-full blur-2xl animate-pulse delay-500"></div>
-      </div>
-      
-      <div className="w-full max-w-6xl relative z-10">
-        {/* Back to Home */}
-        <div className="mb-8">
-          <Link href="/">
-            <Button variant="ghost" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-0 border border-emerald-200 dark:border-emerald-800">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-
-        <Card className="shadow-2xl border border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
-            {/* Left Side - Login Form */}
-            <div className="flex flex-col">
-              <CardHeader className="space-y-4 pb-6">
-                <div>
-                  <CardTitle className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                    Welcome Back
-                  </CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400 mt-2">
-                    Access your carbon footprint dashboard
-                  </CardDescription>
-                </div>
-              </CardHeader>
-
-        <form onSubmit={handleSubmit} autoComplete="on" method="post">
-          <CardContent className="space-y-6 px-8">
-            {error && (
-              <Alert variant="destructive" className="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-sm border-red-200 dark:border-red-800 shadow-lg">
-                <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <Mail className="h-4 w-4 text-blue-500" />
-                Email Address
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
-                <Input
-                  id="email"
-                  name="username"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="username email"
-                  className="pl-10 h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-blue-200 dark:border-blue-700 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <Lock className="h-4 w-4 text-teal-500" />
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-teal-500" />
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="current-password"
-                  className="pl-10 pr-12 h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-teal-200 dark:border-teal-700 focus:border-teal-400 dark:focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-800"
-                  disabled={loading}
-                  data-1p-ignore="true"
-                  data-lpignore="true"
-                  style={{ backgroundImage: 'none' }}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1 h-10 w-10 p-0 hover:bg-teal-50 dark:hover:bg-teal-900/30 text-teal-500"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-
-          <CardFooter className="flex flex-col space-y-6 px-8 pb-8 mt-auto">
-            <Button
-              type="submit"
-              className="w-full h-12 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white font-semibold transition-all duration-300 shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-teal-500/30"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing In...
-                </>
-              ) : (
-                <>
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Sign In
-                </>
-              )}
-            </Button>
-
-            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
-              New to CarbonSense?{' '}
-              <Link href="/signup">
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 underline cursor-pointer">
-                  Create an account
-                </span>
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-            </div>
-
-            {/* Right Side - Info Section */}
-            <div className="hidden lg:flex flex-col justify-center p-12 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 text-white relative overflow-hidden">
-              {/* Decorative elements */}
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzBoLTJWMGgydjMwem0wIDMwdi0yaC0ydjJoMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20"></div>
-              
-              <div className="relative z-10 space-y-8">
-                <div>
-                  <h2 className="text-4xl font-bold mb-4">Track. Reduce. Impact.</h2>
-                  <p className="text-emerald-50 text-lg">
-                    Join thousands of users making a real difference in the fight against climate change.
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm flex-shrink-0">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1">Real-Time Analytics</h3>
-                      <p className="text-emerald-50">Monitor your carbon footprint with comprehensive insights and detailed breakdowns</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm flex-shrink-0">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1">Actionable Tips</h3>
-                      <p className="text-emerald-50">Get personalized recommendations based on your emission patterns</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm flex-shrink-0">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1">Track Progress</h3>
-                      <p className="text-emerald-50">Set goals and watch your environmental impact decrease over time</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-white/20">
-                  <p className="text-emerald-50 italic">
-                    "CarbonSense helped me reduce my emissions by 40% in just 3 months!"
-                  </p>
-                  <p className="text-sm text-emerald-100 mt-2">- Sarah J., Environmental Engineer</p>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-screen bg-white dark:bg-slate-900 flex flex-col lg:flex-row">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-16">
+        <div className="w-full max-w-md">
+          <div className="mb-10">
+            <Link href="/"><h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity">CarbonSense</h1></Link>
           </div>
-        </Card>
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Welcome Back</h2>
+            <p className="text-slate-600 dark:text-slate-400">Sign in to continue your sustainability journey</p>
+          </div>
+          <form onSubmit={handleSubmit} autoComplete="on" className="space-y-5">
+            {error && (<Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"><AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription></Alert>)}
+            <Button type="button" variant="outline" className="w-full h-12 border-2 rounded-xl" onClick={handleGoogleLogin} disabled={loading}>
+              <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continue with Google
+            </Button>
+            <div className="relative"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-slate-700"></div></div><div className="relative flex justify-center text-sm"><span className="px-4 bg-white dark:bg-slate-900 text-slate-500">Or continue with email</span></div></div>
+            <div className="space-y-2"><Label htmlFor="email" className="text-sm font-medium">Email Address</Label><div className="relative"><Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" /><Input id="email" name="username" type="email" placeholder="you@example.com" value={formData.email} onChange={handleInputChange} required autoComplete="username email" className="pl-11 h-12 rounded-xl" disabled={loading} /></div></div>
+            <div className="space-y-2"><Label htmlFor="password" className="text-sm font-medium">Password</Label><div className="relative"><Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" /><Input id="password" name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" value={formData.password} onChange={handleInputChange} required autoComplete="current-password" className="pl-11 pr-11 h-12 rounded-xl" disabled={loading} /><Button type="button" variant="ghost" size="sm" className="absolute right-1 top-1 h-10 w-10 p-0 rounded-lg" onClick={() => setShowPassword(!showPassword)} disabled={loading}>{showPassword ? <EyeOff className="h-5 w-5 text-slate-400" /> : <Eye className="h-5 w-5 text-slate-400" />}</Button></div></div>
+            <Button type="submit" className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg" disabled={loading}>{loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Signing In...</> : 'Sign In'}</Button>
+            <p className="text-center text-sm text-slate-600 dark:text-slate-400">Don't have an account? <Link href="/signup"><span className="font-semibold text-emerald-600 hover:text-emerald-700 cursor-pointer">Create an account</span></Link></p>
+          </form>
+        </div>
+      </div>
+      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950 p-16 relative overflow-hidden">
+        <div className="absolute inset-0"><div className="absolute top-20 right-20 w-64 h-64 bg-emerald-200/30 dark:bg-emerald-800/20 rounded-full blur-3xl animate-pulse"></div><div className="absolute bottom-20 left-20 w-80 h-80 bg-teal-200/30 dark:bg-teal-800/20 rounded-full blur-3xl animate-pulse"></div></div>
+        <div className="relative z-10 text-center">
+          <div className="mb-8 relative"><div className="w-80 h-80 mx-auto relative"><div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 animate-pulse shadow-2xl"></div><div className="absolute inset-0 rounded-full bg-gradient-to-tl from-emerald-500/40 via-transparent to-white/20"></div><div className="absolute inset-8 rounded-full bg-gradient-to-br from-emerald-300 via-teal-400 to-cyan-500 opacity-80"></div><div className="absolute inset-16 rounded-full bg-gradient-to-br from-emerald-200 via-teal-300 to-cyan-400 opacity-60"></div><div className="absolute inset-0 flex items-center justify-center"><svg className="w-64 h-64 opacity-30" viewBox="0 0 100 100"><path d="M30,25 Q35,20 40,25 L45,30 Q50,35 45,40 L40,45 Q35,50 30,45 Z" fill="currentColor" className="text-emerald-700"/><path d="M55,35 Q60,30 65,35 L70,40 Q75,45 70,50 L65,55 Q60,60 55,55 Z" fill="currentColor" className="text-emerald-700"/><path d="M25,60 Q30,55 35,60 L40,65 Q45,70 40,75 L35,80 Q30,85 25,80 Z" fill="currentColor" className="text-emerald-700"/></svg></div></div></div>
+          <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Track Your Impact</h3>
+          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-md mx-auto">Join thousands making a difference in the fight against climate change. Every action counts towards a sustainable future.</p>
+        </div>
       </div>
     </div>
   );
