@@ -1,385 +1,227 @@
-import React, { useState } from 'react';
-import { useLocation, Link } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, EyeOff, Loader2, UserPlus, Mail, Lock, User, Building, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff, Mail, Lock, User, Building, Loader2 } from "lucide-react";
 
 export default function Signup() {
-  const [, setLocation] = useLocation();
-  const { signup, isAuthenticated } = useAuth();
-  
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    role: '' as 'individual' | 'company' | 'admin' | '',
-    companyName: '',
-    companyDepartment: '',
-  });
+  const [, navigate] = useLocation();
+  const { register, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "individual" as "individual" | "company",
+    companyName: "",
+    companyDepartment: "",
+  });
 
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      setLocation('/dashboard');
-    }
-  }, [isAuthenticated, setLocation]);
+  useEffect(() => {
+    if (isAuthenticated) navigate("/");
+  }, [isAuthenticated, navigate]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleRoleChange = (value: "individual" | "company") => {
+    setFormData(prev => ({ ...prev, role: value }));
+  };
+
+  const handleGoogleLogin = () => {
+    toast({ title: "Coming Soon", description: "Google Sign-In will be available soon!" });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-
-    if (!formData.role) {
-      setError('Please select a role');
-      return;
-    }
-
-    if (formData.role === 'company' && !formData.companyName) {
-      setError('Company name is required for company accounts');
+    if (formData.role === "company" && !formData.companyName.trim()) {
+      setError("Company name is required for company accounts");
       return;
     }
 
     setLoading(true);
-
     try {
-      const { confirmPassword, ...signupData } = formData;
-      const result = await signup(signupData as any);
-      
-      if (result.success) {
-        setLocation('/dashboard');
-      } else {
-        setError(result.error || 'Signup failed');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
+      await register({
+        username: formData.email,
+        password: formData.password,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: formData.role,
+        companyName: formData.companyName || undefined,
+        companyDepartment: formData.companyDepartment || undefined,
+      });
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const fieldName = name === 'username' ? 'email' : name; // Map username back to email for state
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: value,
-    }));
-  };
-
-  const handleRoleChange = (role: 'individual' | 'company' | 'admin') => {
-    setFormData(prev => ({
-      ...prev,
-      role,
-      // Clear company fields if switching to individual
-      companyName: role === 'individual' ? '' : prev.companyName,
-      companyDepartment: role === 'individual' ? '' : prev.companyDepartment,
-    }));
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-teal-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-br from-cyan-400/10 to-emerald-400/10 rounded-full blur-2xl animate-pulse delay-500"></div>
-      </div>
-      
-      <div className="w-full max-w-md relative z-10">
-        {/* Back to Home */}
-        <div className="mb-8">
-          <Link href="/">
-            <Button variant="ghost" className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-0 border border-emerald-200 dark:border-emerald-800">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
-
-        <Card className="shadow-2xl border border-white/20 dark:border-slate-700/50 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl">
-        <CardHeader className="space-y-6 text-center pb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl mb-4 shadow-lg mx-auto">
-            <UserPlus className="w-8 h-8 text-white" />
+    <div className="min-h-screen flex">
+      <div className="flex-1 flex items-center justify-center p-8 bg-white dark:bg-slate-900">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Join Carbon Sense</h2>
+            <p className="mt-2 text-slate-600 dark:text-slate-400">Track and reduce your carbon footprint</p>
           </div>
-          <div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-              Create Account
-            </CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400 text-lg">
-              Join us and start making a difference for our planet
-            </CardDescription>
-          </div>
-        </CardHeader>
 
-        <form onSubmit={handleSubmit} autoComplete="on" method="post">
-          <CardContent className="space-y-6 px-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <Alert variant="destructive" className="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-sm border-red-200 dark:border-red-800 shadow-lg">
-                <AlertDescription className="text-red-700 dark:text-red-300">{error}</AlertDescription>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
+            <Button type="button" variant="outline" className="w-full h-12 border-2 rounded-xl" onClick={handleGoogleLogin} disabled={loading}>
+              <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white dark:bg-slate-900 text-slate-500">Or continue with email</span>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                  <User className="h-4 w-4 text-emerald-500" />
-                  First Name
-                </Label>
+                <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-emerald-500" />
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    placeholder="First name"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                    autoComplete="given-name"
-                    className="pl-10 h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200 dark:border-emerald-700 focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800"
-                    disabled={loading}
-                  />
+                  <User className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                  <Input id="firstName" name="firstName" type="text" placeholder="First name" value={formData.firstName} onChange={handleInputChange} required autoComplete="given-name" className="pl-11 h-12 rounded-xl" disabled={loading} />
                 </div>
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                  <User className="h-4 w-4 text-blue-500" />
-                  Last Name
-                </Label>
+                <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    placeholder="Last name"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                    autoComplete="family-name"
-                    className="pl-10 h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-blue-200 dark:border-blue-700 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800"
-                    disabled={loading}
-                  />
+                  <User className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                  <Input id="lastName" name="lastName" type="text" placeholder="Last name" value={formData.lastName} onChange={handleInputChange} required autoComplete="family-name" className="pl-11 h-12 rounded-xl" disabled={loading} />
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <Mail className="h-4 w-4 text-teal-500" />
-                Email Address
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-teal-500" />
-                <Input
-                  id="email"
-                  name="username"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="username email"
-                  className="pl-10 h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-teal-200 dark:border-teal-700 focus:border-teal-400 dark:focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-800"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <Building className="h-4 w-4 text-cyan-500" />
-                Account Type
-              </Label>
+              <Label htmlFor="role" className="text-sm font-medium">Account Type</Label>
               <Select onValueChange={handleRoleChange} disabled={loading}>
-                <SelectTrigger className="h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-cyan-200 dark:border-cyan-700 focus:border-cyan-400 dark:focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-800">
+                <SelectTrigger className="h-12 rounded-xl">
                   <SelectValue placeholder="Select account type" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-cyan-200 dark:border-cyan-700">
+                <SelectContent>
                   <SelectItem value="individual">🌱 Individual</SelectItem>
                   <SelectItem value="company">🏢 Company</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {formData.role === 'company' && (
+            {formData.role === "company" && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="companyName" className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                    <Building className="h-4 w-4 text-teal-500" />
-                    Company Name
-                  </Label>
+                  <Label htmlFor="companyName" className="text-sm font-medium">Company Name</Label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-3 h-4 w-4 text-teal-500" />
-                    <Input
-                      id="companyName"
-                      name="companyName"
-                      type="text"
-                      placeholder="Enter company name"
-                      value={formData.companyName}
-                      onChange={handleInputChange}
-                      required
-                      autoComplete="organization"
-                      className="pl-10 h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-teal-200 dark:border-teal-700 focus:border-teal-400 dark:focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-800"
-                      disabled={loading}
-                    />
+                    <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Input id="companyName" name="companyName" type="text" placeholder="Company name" value={formData.companyName} onChange={handleInputChange} required autoComplete="organization" className="pl-11 h-12 rounded-xl" disabled={loading} />
                   </div>
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="companyDepartment" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    Department (Optional)
-                  </Label>
+                  <Label htmlFor="companyDepartment" className="text-sm font-medium">Department (Optional)</Label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input
-                      id="companyDepartment"
-                      name="companyDepartment"
-                      type="text"
-                      placeholder="Enter department"
-                      value={formData.companyDepartment}
-                      onChange={handleInputChange}
-                      autoComplete="organization-title"
-                      className="pl-10 h-12 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-600/50 focus:border-slate-400 dark:focus:border-slate-400"
-                      disabled={loading}
-                    />
+                    <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                    <Input id="companyDepartment" name="companyDepartment" type="text" placeholder="Department" value={formData.companyDepartment} onChange={handleInputChange} autoComplete="organization-title" className="pl-11 h-12 rounded-xl" disabled={loading} />
                   </div>
                 </div>
               </>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Password
-              </Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Create password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="new-password"
-                  className="pl-10 pr-12 h-12 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-600/50 focus:border-slate-400 dark:focus:border-slate-400"
-                  disabled={loading}
-                  data-1p-ignore="true"
-                  data-lpignore="true"
-                  style={{ backgroundImage: 'none' }}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1 h-10 w-10 p-0 hover:bg-slate-100/70 dark:hover:bg-slate-700/70"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-slate-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-slate-400" />
-                  )}
-                </Button>
+                <Mail className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                <Input id="email" name="email" type="email" placeholder="name@example.com" value={formData.email} onChange={handleInputChange} required autoComplete="email" className="pl-11 h-12 rounded-xl" disabled={loading} />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Confirm Password
-              </Label>
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirm password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="new-password"
-                  className="pl-10 pr-12 h-12 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-600/50 focus:border-slate-400 dark:focus:border-slate-400"
-                  disabled={loading}
-                  data-1p-ignore="true"
-                  data-lpignore="true"
-                  style={{ backgroundImage: 'none' }}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1 h-10 w-10 p-0 hover:bg-slate-100/70 dark:hover:bg-slate-700/70"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={loading}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4 text-slate-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-slate-400" />
-                  )}
-                </Button>
+                <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                <Input id="password" name="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={formData.password} onChange={handleInputChange} required autoComplete="new-password" className="pl-11 pr-11 h-12 rounded-xl" disabled={loading} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600" disabled={loading}>
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
-          </CardContent>
 
-          <CardFooter className="flex flex-col space-y-6 px-8 pb-8">
-            <Button
-              type="submit"
-              className="w-full h-12 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white font-semibold transition-all duration-300 shadow-xl shadow-emerald-500/25 hover:shadow-2xl hover:shadow-teal-500/30"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Create Account
-                </>
-              )}
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
+                <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" value={formData.confirmPassword} onChange={handleInputChange} required autoComplete="new-password" className="pl-11 pr-11 h-12 rounded-xl" disabled={loading} />
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600" disabled={loading}>
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              Create Account
             </Button>
 
-            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
-              Already have an account?{' '}
-              <Button
-                variant="ghost"
-                className="p-0 h-auto font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent hover:from-emerald-700 hover:to-teal-700 underline"
-                onClick={() => setLocation('/login')}
-                disabled={loading}
-              >
-                Sign In
-              </Button>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+              Already have an account?{" "}
+              <a href="/login" className="font-medium text-emerald-600 hover:text-emerald-500">
+                Sign in
+              </a>
+            </p>
+          </form>
+        </div>
+      </div>
+
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl"></div>
+        </div>
+        <div className="relative text-center">
+          <div className="w-64 h-64 mx-auto mb-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-full backdrop-blur-sm"></div>
+            <div className="absolute inset-4 bg-gradient-to-tr from-emerald-400/50 to-cyan-300/50 rounded-full animate-pulse"></div>
+            <div className="absolute inset-8 bg-gradient-to-bl from-teal-300/60 to-emerald-400/60 rounded-full"></div>
+          </div>
+          <h3 className="text-3xl font-bold text-white mb-4">Start Your Sustainability Journey</h3>
+          <p className="text-white/90 text-lg max-w-md">Track emissions, set goals, and make a real impact on our planet</p>
+        </div>
       </div>
     </div>
   );
