@@ -89,18 +89,45 @@ export default function Dashboard() {
   };
   const prepareHistoryData = () => {
     if (!dashboardData?.history) return [];
-    return dashboardData.history.map(item => {
-      const date = new Date(item.date);
-      return {
-        ...item,
-        displayDate: !isNaN(date.getTime()) 
-          ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          : item.date,
-        fullDate: !isNaN(date.getTime())
-          ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : item.date
-      };
+
+    // Use the date string from API as the key to avoid timezone shifts
+    const dateKey = (s: string) => (s || '').slice(0, 10);
+
+    // Find latest date from API (string compare works for YYYY-MM-DD)
+    const latestKey = dashboardData.history
+      .map(h => dateKey(h.date))
+      .filter(Boolean)
+      .sort()
+      .pop();
+
+    const end = latestKey ? new Date(latestKey) : new Date();
+    const start = new Date(end);
+    // Last 7 days window
+    start.setDate(end.getDate() - 6);
+
+    const startKey = dateKey(start.toISOString());
+    const endKey = dateKey(end.toISOString());
+
+    const dailyTotals: Record<string, number> = {};
+    dashboardData.history.forEach((item) => {
+      const key = dateKey(item.date);
+      if (!key) return;
+      if (key < startKey || key > endKey) return;
+      dailyTotals[key] = (dailyTotals[key] || 0) + Number(item.emissions || 0);
     });
+
+    return Object.keys(dailyTotals)
+      .filter((k) => dailyTotals[k] > 0)
+      .sort()
+      .map((key) => {
+        const d = new Date(key + 'T00:00:00');
+        return {
+          date: key,
+          emissions: dailyTotals[key],
+          displayDate: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          fullDate: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+      });
   };
   const { trend, isPositive } = calculateTrend();
   if (loading) {
@@ -293,57 +320,44 @@ export default function Dashboard() {
           <CardContent className="p-8 transition-colors duration-300 ease-in-out">
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={prepareHistoryData()} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
-                  <defs>
-                    <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                      <stop offset="50%" stopColor="#06B6D4" stopOpacity={0.5}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" stroke="#cbd5e1" />
-                  <XAxis 
-                    dataKey="displayDate" 
-                    className="text-muted-foreground transition-colors duration-300 ease-in-out"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    tick={{ fontSize: 12 }}
-                    interval={0}
-                    minTickGap={5}
-                  />
-                  <YAxis 
-                    className="text-muted-foreground transition-colors duration-300 ease-in-out"
-                    tick={{ fontSize: 12 }}
-                    label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
-                  />
-                  <Tooltip 
-                    formatter={(value) => [formatEmissionValue(Number(value)), "Emissions"]}
-                    labelFormatter={(label, payload) => {
-                      if (payload && payload[0]) {
-                        return payload[0].payload.fullDate;
-                      }
-                      return label;
-                    }}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="emissions" 
-                    stroke="#3B82F6" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorEmissions)"
-                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, strokeWidth: 2 }}
-                  />
-                </AreaChart>
+                {(() => {
+                  const historyData = prepareHistoryData();
+                  if ((historyData?.length || 0) < 2) {
+                    // Fallback to a gradient bar when there is only one logged day
+                    return (
+                      <BarChart data={historyData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+                        <defs>
+                          <linearGradient id="barEmissions" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.9} />
+                            <stop offset="60%" stopColor="#06B6D4" stopOpacity={0.6} />
+                            <stop offset="100%" stopColor="#10B981" stopOpacity={0.2} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" stroke="#cbd5e1" />
+                        <XAxis dataKey="displayDate" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }} />
+                        <Tooltip formatter={(v) => [formatEmissionValue(Number(v)), 'Emissions']} labelFormatter={() => historyData[0]?.fullDate} contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }} />
+                        <Bar dataKey="emissions" fill="url(#barEmissions)" radius={[6,6,0,0]} />
+                      </BarChart>
+                    );
+                  }
+                  return (
+                    <AreaChart data={historyData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+                      <defs>
+                        <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.9}/>
+                          <stop offset="50%" stopColor="#06B6D4" stopOpacity={0.6}/>
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" stroke="#cbd5e1" />
+                      <XAxis dataKey="displayDate" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 12 }} interval={0} minTickGap={5} />
+                      <YAxis tick={{ fontSize: 12 }} label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }} />
+                      <Tooltip formatter={(value) => [formatEmissionValue(Number(value)), 'Emissions']} labelFormatter={(label, payload) => (payload && payload[0] ? payload[0].payload.fullDate : label)} contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }} />
+                      <Area type="monotone" dataKey="emissions" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorEmissions)" dot={false} activeDot={false} />
+                    </AreaChart>
+                  );
+                })()}
               </ResponsiveContainer>
             </div>
           </CardContent>
