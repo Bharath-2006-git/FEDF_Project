@@ -1271,34 +1271,42 @@ app.get("/api/tips", authenticateToken, async (req, res) => {
 
     console.log(`[Tips] Fetching tips for user role: ${user.role}, category: ${category || 'all'}`);
 
+    // First, get all active tips without role filter
     let query = supabase
       .from("tips")
       .select("*")
-      .eq("is_active", true)
-      .or(`target_role.eq.${user.role},target_role.eq.all`);
+      .eq("is_active", true);
 
     if (category) {
       query = query.eq("category", category);
     }
 
-    const { data: tips, error } = await query;
+    const { data: allTips, error } = await query;
 
     if (error) {
       console.error('❌ Fetch tips error:', JSON.stringify(error, null, 2));
-      throw error;
+      return res.status(500).json({ message: "Failed to fetch tips", error: error.message });
     }
 
-    console.log(`✅ Found ${(tips || []).length} tips for user role: ${user.role}`);
+    console.log(`[Tips] Total active tips in DB: ${(allTips || []).length}`);
+
+    // Filter by role on the application side
+    const tips = (allTips || []).filter((tip: any) => {
+      const targetRole = tip.target_role || tip.targetRole;
+      return targetRole === user.role || targetRole === 'all';
+    });
+
+    console.log(`✅ Found ${tips.length} tips matching role: ${user.role}`);
 
     // Transform snake_case to camelCase
-    const transformedTips = (tips || []).map((tip: any) => ({
+    const transformedTips = tips.map((tip: any) => ({
       id: tip.id,
       title: tip.title,
       content: tip.content,
       category: tip.category,
-      targetRole: tip.target_role,
-      impactLevel: tip.impact_level,
-      estimatedSavings: tip.estimated_savings,
+      targetRole: tip.target_role || tip.targetRole,
+      impactLevel: tip.impact_level || tip.impactLevel,
+      estimatedSavings: tip.estimated_savings || tip.estimatedSavings,
       difficulty: tip.difficulty,
       explanation: tip.explanation,
       source: tip.source,
@@ -1427,38 +1435,44 @@ app.get("/api/tips/personalized", authenticateToken, async (req, res) => {
     const categoriesToQuery = topCategories.length > 0 ? topCategories : ["energy", "transport"];
     console.log(`[Personalized Tips] Top categories:`, categoriesToQuery);
 
-    // Build query with OR condition for role matching
+    // Get all active tips first
     let query = supabase
       .from("tips")
       .select("*")
       .eq("is_active", true)
-      .or(`target_role.eq.${user.role},target_role.eq.all`)
-      .order("impact_level", { ascending: false })
-      .limit(15);
+      .order("impact_level", { ascending: false });
 
     // Add category filter if we have categories
     if (categoriesToQuery.length > 0) {
       query = query.in("category", categoriesToQuery);
     }
 
-    const { data: tips, error } = await query;
+    const { data: allTips, error } = await query;
 
     if (error) {
       console.error('❌ Fetch personalized tips error:', JSON.stringify(error, null, 2));
-      throw error;
+      return res.json([]);
     }
 
-    console.log(`✅ Found ${(tips || []).length} personalized tips`);
+    // Filter by role on the application side and limit
+    const tips = (allTips || [])
+      .filter((tip: any) => {
+        const targetRole = tip.target_role || tip.targetRole;
+        return targetRole === user.role || targetRole === 'all';
+      })
+      .slice(0, 15);
+
+    console.log(`✅ Found ${tips.length} personalized tips`);
 
     // Transform snake_case to camelCase
-    const transformedTips = (tips || []).map((tip: any) => ({
+    const transformedTips = tips.map((tip: any) => ({
       id: tip.id,
       title: tip.title,
       content: tip.content,
       category: tip.category,
-      targetRole: tip.target_role,
-      impactLevel: tip.impact_level,
-      estimatedSavings: tip.estimated_savings,
+      targetRole: tip.target_role || tip.targetRole,
+      impactLevel: tip.impact_level || tip.impactLevel,
+      estimatedSavings: tip.estimated_savings || tip.estimatedSavings,
       difficulty: tip.difficulty,
       explanation: tip.explanation,
       source: tip.source,
