@@ -1266,6 +1266,18 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
 // GET /api/tips
 app.get("/api/tips", authenticateToken, async (req, res) => {
   try {
+    // Environment variable check at the beginning of the request
+    const areEnvsSet = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && JWT_SECRET;
+    if (!areEnvsSet) {
+      console.error('❌ [Tips API] Critical environment variables are missing!');
+      console.error(`SUPABASE_URL set: ${!!SUPABASE_URL}`);
+      console.error(`SUPABASE_SERVICE_ROLE_KEY set: ${!!SUPABASE_SERVICE_ROLE_KEY}`);
+      console.error(`JWT_SECRET set: ${!!JWT_SECRET}`);
+      return res.status(503).json({ 
+        message: "Service configuration error. Please check server environment variables." 
+      });
+    }
+
     const user = req.user as JWTUser;
     const { category, limit } = req.query;
 
