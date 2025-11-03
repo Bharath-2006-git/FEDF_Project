@@ -258,9 +258,20 @@ export default function Dashboard() {
                   />
                   <Legend 
                     verticalAlign="bottom" 
-                    height={36}
+                    height={80}
+                    wrapperStyle={{
+                      paddingTop: '20px',
+                      fontSize: '14px'
+                    }}
+                    iconType="circle"
+                    iconSize={8}
                     formatter={(value, entry: any) => (
-                      <span className="text-sm">
+                      <span style={{ 
+                        color: 'var(--foreground)',
+                        fontSize: '13px',
+                        padding: '4px 8px',
+                        display: 'inline-block'
+                      }}>
                         {entry.payload.name} ({entry.payload.percentage}%)
                       </span>
                     )}
