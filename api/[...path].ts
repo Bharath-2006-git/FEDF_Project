@@ -466,6 +466,96 @@ app.get("/api/emissions/list", authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/emissions/summary
+app.get("/api/emissions/summary", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+    const { startDate, endDate } = req.query;
+
+    let query = supabase
+      .from("emissions")
+      .select("*")
+      .eq("user_id", user.userId)
+      .order("date", { ascending: false });
+
+    if (startDate) {
+      query = query.gte("date", startDate);
+    }
+    if (endDate) {
+      query = query.lte("date", endDate);
+    }
+
+    const { data: emissions, error } = await query;
+
+    if (error) throw error;
+
+    const emissionsData = emissions || [];
+
+    // Calculate total emissions
+    const totalEmissions = emissionsData.reduce((sum, e: any) => {
+      return sum + parseFloat(e.co2_emissions || 0);
+    }, 0);
+
+    // Calculate emissions by category
+    const byCategory = emissionsData.reduce((acc, e: any) => {
+      const category = e.category;
+      const value = parseFloat(e.co2_emissions || 0);
+      acc[category] = (acc[category] || 0) + value;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Calculate emissions by subcategory
+    const bySubcategory = emissionsData.reduce((acc, e: any) => {
+      const subcategory = e.subcategory;
+      if (subcategory) {
+        const value = parseFloat(e.co2_emissions || 0);
+        acc[subcategory] = (acc[subcategory] || 0) + value;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Get average daily emissions
+    const dates = new Set(emissionsData.map((e: any) => {
+      const date = e.date instanceof Date ? e.date : new Date(e.date);
+      return date.toISOString().split('T')[0];
+    }));
+    const averageDaily = dates.size > 0 ? totalEmissions / dates.size : 0;
+
+    // Find highest and lowest emission days
+    const dailyEmissions = emissionsData.reduce((acc, e: any) => {
+      const date = e.date instanceof Date ? e.date : new Date(e.date);
+      const dateStr = date.toISOString().split('T')[0];
+      const value = parseFloat(e.co2_emissions || 0);
+      acc[dateStr] = (acc[dateStr] || 0) + value;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const highestDay = Object.entries(dailyEmissions)
+      .sort(([, a], [, b]) => b - a)[0];
+    
+    const lowestDay = Object.entries(dailyEmissions)
+      .sort(([, a], [, b]) => a - b)[0];
+
+    res.json({
+      totalEmissions: Math.round(totalEmissions * 1000) / 1000,
+      totalEntries: emissionsData.length,
+      byCategory,
+      bySubcategory,
+      averageDaily: Math.round(averageDaily * 1000) / 1000,
+      highestDay: highestDay ? { date: highestDay[0], value: Math.round(highestDay[1] * 1000) / 1000 } : null,
+      lowestDay: lowestDay ? { date: lowestDay[0], value: Math.round(lowestDay[1] * 1000) / 1000 } : null,
+      uniqueDays: dates.size,
+      period: {
+        startDate: startDate || null,
+        endDate: endDate || null
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching emissions summary:', error);
+    res.status(500).json({ message: "Failed to fetch emissions summary" });
+  }
+});
+
 // POST /api/emissions/add
 app.post("/api/emissions/add", authenticateToken, async (req, res) => {
   try {
@@ -1191,7 +1281,12 @@ app.get("/api/tips", authenticateToken, async (req, res) => {
 
     const { data: tips, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Fetch tips error:', JSON.stringify(error, null, 2));
+      throw error;
+    }
+
+    console.log(`✅ Found ${(tips || []).length} tips for user role: ${user.role}`);
 
     // Transform snake_case to camelCase
     const transformedTips = (tips || []).map((tip: any) => ({
@@ -1214,8 +1309,8 @@ app.get("/api/tips", authenticateToken, async (req, res) => {
 
     res.json(transformedTips);
   } catch (error) {
-    console.error('Error fetching tips:', error);
-    res.status(500).json({ message: "Failed to fetch tips" });
+    console.error('❌ Error fetching tips:', error);
+    res.status(500).json({ message: "Failed to fetch tips", error: String(error) });
   }
 });
 
@@ -1325,16 +1420,24 @@ app.get("/api/tips/personalized", authenticateToken, async (req, res) => {
       .map(([cat]) => cat);
 
     // Get tips for top categories
+    const categoriesToQuery = topCategories.length > 0 ? topCategories : ["energy", "transport"];
+    console.log(`🎯 Fetching personalized tips for user ${user.userId}, role: ${user.role}, categories:`, categoriesToQuery);
+
     const { data: tips, error } = await supabase
       .from("tips")
       .select("*")
       .eq("is_active", true)
       .in("target_role", [user.role, "all"])
-      .in("category", topCategories.length > 0 ? topCategories : ["energy", "transport"])
+      .in("category", categoriesToQuery)
       .order("impact_level", { ascending: false })
       .limit(15);
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Fetch personalized tips error:', JSON.stringify(error, null, 2));
+      throw error;
+    }
+
+    console.log(`✅ Found ${(tips || []).length} personalized tips`);
 
     // Transform snake_case to camelCase
     const transformedTips = (tips || []).map((tip: any) => ({
@@ -1352,7 +1455,7 @@ app.get("/api/tips/personalized", authenticateToken, async (req, res) => {
 
     res.json(transformedTips);
   } catch (error) {
-    console.error('Error fetching personalized tips:', error);
+    console.error('❌ Error fetching personalized tips:', error);
     res.json([]);
   }
 });
