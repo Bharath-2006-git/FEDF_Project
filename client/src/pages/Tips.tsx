@@ -151,6 +151,13 @@ export default function Tips() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    console.log('[Tips Page] Tips state updated:', {
+      count: tips.length,
+      tips: tips
+    });
+  }, [tips]);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -245,12 +252,23 @@ export default function Tips() {
   };
 
   const filteredAndSortedTips = useMemo(() => {
-    if (!Array.isArray(tips)) return [];
+    console.log('[Tips Page] Filtering tips:', {
+      totalTips: tips.length,
+      categoryFilter,
+      searchQuery
+    });
+    
+    if (!Array.isArray(tips)) {
+      console.log('[Tips Page] Tips is not an array:', tips);
+      return [];
+    }
+    
     let filtered = tips;
 
     // Filter by category
     if (categoryFilter !== "all") {
       filtered = filtered.filter(tip => tip?.category === categoryFilter);
+      console.log(`[Tips Page] After category filter (${categoryFilter}): ${filtered.length} tips`);
     }
 
     // Filter by search
@@ -259,8 +277,10 @@ export default function Tips() {
         tip?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tip?.content?.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      console.log(`[Tips Page] After search filter (${searchQuery}): ${filtered.length} tips`);
     }
 
+    console.log(`[Tips Page] Final filtered tips: ${filtered.length}`);
     return filtered;
   }, [tips, categoryFilter, searchQuery]);
 
