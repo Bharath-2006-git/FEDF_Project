@@ -156,6 +156,8 @@ export default function Tips() {
       setLoading(true);
       setError(null);
       
+      console.log('[Tips Page] Starting to load tips...');
+      
       const [allTips, completed, personalizedTips] = await Promise.all([
         tipsAPI.get().catch((err) => {
           console.error("Failed to load tips:", err);
@@ -168,9 +170,17 @@ export default function Tips() {
         tipsAPI.getPersonalized().catch(() => [])
       ]);
 
+      console.log('[Tips Page] Data loaded:', {
+        allTips: allTips.length,
+        completed: completed.length,
+        personalized: personalizedTips.length
+      });
+
       const tipsToUse = Array.isArray(personalizedTips) && personalizedTips.length > 0 
         ? personalizedTips 
         : (Array.isArray(allTips) ? allTips : []);
+      
+      console.log(`[Tips Page] Using ${tipsToUse.length} tips (${personalizedTips.length > 0 ? 'personalized' : 'all'})`);
         
       setTips(tipsToUse);
       setCompletedTips(Array.isArray(completed) ? completed : []);

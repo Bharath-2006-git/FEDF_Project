@@ -258,7 +258,13 @@ class ApiService {
   }
 
   async getTips(category?: string): Promise<Tip[]> {
+    console.log('[API Service] Fetching tips with category:', category);
     const response = await this.api.get<Tip[]>('/tips', { params: { category } });
+    console.log('[API Service] Tips response:', {
+      status: response.status,
+      dataLength: response.data?.length || 0,
+      data: response.data
+    });
     return response.data;
   }
 

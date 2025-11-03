@@ -1266,70 +1266,81 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
 // GET /api/tips
 app.get("/api/tips", authenticateToken, async (req, res) => {
   try {
-    // Environment variable check at the beginning of the request
-    const areEnvsSet = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && JWT_SECRET;
-    if (!areEnvsSet) {
-      console.error('[Tips API] Critical environment variables are missing!');
-      console.error(`SUPABASE_URL set: ${!!SUPABASE_URL}`);
-      console.error(`SUPABASE_SERVICE_ROLE_KEY set: ${!!SUPABASE_SERVICE_ROLE_KEY}`);
-      console.error(`JWT_SECRET set: ${!!JWT_SECRET}`);
-      return res.status(503).json({ 
-        message: "Service configuration error. Please check server environment variables." 
-      });
-    }
-
+    console.log('[Tips API] Request received');
+    
     const user = req.user as JWTUser;  
     const { category, limit } = req.query; 
 
-    console.log(`[Tips] Fetching tips for user role: ${user.role}, category: ${category || 'all'}`);
+    console.log(`[Tips] User: ${user.userId}, Role: ${user.role}, Category: ${category || 'all'}`);
 
-    // First, get all active tips without role filter
-    let query = supabase
+    // Get all active tips
+    const { data: allTips, error } = await supabase
       .from("tips")
       .select("*")
       .eq("is_active", true);
 
-    if (category) {
-      query = query.eq("category", category);
-    }
-
-    const { data: allTips, error } = await query;
-
     if (error) {
-      console.error('❌ Fetch tips error:', JSON.stringify(error, null, 2));
-      return res.status(500).json({ message: "Failed to fetch tips", error: error.message });
+      console.error('❌ [Tips] Database error:', error);
+      return res.status(500).json({ 
+        message: "Failed to fetch tips from database", 
+        error: error.message 
+      });
     }
 
-    console.log(`[Tips] Total active tips in DB: ${(allTips || []).length}`);
+    console.log(`[Tips] Found ${(allTips || []).length} active tips in database`);
 
-    // Filter by role on the application side
-    const tips = (allTips || []).filter((tip: any) => {
-      const targetRole = tip.target_role || tip.targetRole;
-      return targetRole === user.role || targetRole === 'all';
+    if (!allTips || allTips.length === 0) {
+      console.log('[Tips] No active tips found in database');
+      return res.json([]);
+    }
+
+    // Log sample tip structure
+    if (allTips.length > 0) {
+      console.log('[Tips] Sample tip structure:', {
+        id: allTips[0].id,
+        title: allTips[0].title,
+        target_role: allTips[0].target_role,
+        category: allTips[0].category
+      });
+    }
+
+    // Filter by role
+    const tipsByRole = allTips.filter((tip: any) => {
+      const targetRole = tip.target_role;
+      const matches = targetRole === user.role || targetRole === 'all';
+      return matches;
     });
 
-    console.log(`✅ Found ${tips.length} tips matching role: ${user.role}`);
+    console.log(`[Tips] After role filter (${user.role}): ${tipsByRole.length} tips`);
 
-    // Transform snake_case to camelCase
-    const transformedTips = tips.map((tip: any) => ({
+    // Filter by category if specified
+    let filteredTips = tipsByRole;
+    if (category && category !== 'all') {
+      filteredTips = tipsByRole.filter((tip: any) => tip.category === category);
+      console.log(`[Tips] After category filter (${category}): ${filteredTips.length} tips`);
+    }
+
+    // Transform to camelCase
+    const transformedTips = filteredTips.map((tip: any) => ({
       id: tip.id,
       title: tip.title,
       content: tip.content,
       category: tip.category,
-      targetRole: tip.target_role || tip.targetRole,
-      impactLevel: tip.impact_level || tip.impactLevel,
-      estimatedSavings: tip.estimated_savings || tip.estimatedSavings,
+      targetRole: tip.target_role,
+      impactLevel: tip.impact_level,
+      estimatedSavings: tip.estimated_savings,
       difficulty: tip.difficulty,
       explanation: tip.explanation,
       source: tip.source,
     }));
 
-    if (limit) {
-      const limitNum = parseInt(limit as string);
-      return res.json(transformedTips.slice(0, limitNum));
-    }
+    // Apply limit if specified
+    const finalTips = limit 
+      ? transformedTips.slice(0, parseInt(limit as string))
+      : transformedTips;
 
-    res.json(transformedTips);
+    console.log(`✅ [Tips] Returning ${finalTips.length} tips to client`);
+    res.json(finalTips);
   } catch (error) {
     console.error('❌ Error fetching tips:', error);
     res.status(500).json({ message: "Failed to fetch tips", error: String(error) });

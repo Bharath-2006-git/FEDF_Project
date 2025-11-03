@@ -287,7 +287,7 @@ export default function Dashboard() {
           <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-blue-50/50 via-cyan-50/30 to-teal-50/50 dark:from-blue-950/50 dark:via-cyan-950/30 dark:to-teal-950/50 transition-all duration-300 ease-in-out">
             <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300 transition-colors duration-300 ease-in-out">
               <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
-              Emissions Trend (Daily)
+              Emissions Trend
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 transition-colors duration-300 ease-in-out">
@@ -309,7 +309,8 @@ export default function Dashboard() {
                     textAnchor="end"
                     height={80}
                     tick={{ fontSize: 12 }}
-                    interval="preserveStartEnd"
+                    interval={0}
+                    minTickGap={5}
                   />
                   <YAxis 
                     className="text-muted-foreground transition-colors duration-300 ease-in-out"
