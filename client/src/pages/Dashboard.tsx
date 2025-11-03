@@ -323,109 +323,128 @@ export default function Dashboard() {
         </Card>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-teal-200/30 dark:border-teal-700/30">
-          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-teal-50/50 via-emerald-50/30 to-green-50/50 dark:from-teal-950/50 dark:via-emerald-950/30 dark:to-green-950/50 transition-colors duration-300 ease-in-out">
-            <CardTitle className="flex items-center gap-2 text-teal-700 dark:text-teal-300 transition-colors duration-300 ease-in-out">
-              <Target className="w-5 h-5 text-teal-600 dark:text-teal-400 transition-colors duration-300 ease-in-out" />
-              Active Goals & Progress
+        <Card className="lg:col-span-2 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/50 dark:to-emerald-950/50 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-teal-300/50 dark:border-teal-700/50">
+          <CardHeader className="border-b border-teal-200 dark:border-teal-800 pb-4">
+            <CardTitle className="flex items-center justify-between text-teal-800 dark:text-teal-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-teal-500/10 rounded-lg">
+                  <Target className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                </div>
+                Active Goals & Progress
+              </div>
+              {dashboardData?.goals && dashboardData.goals.length > 0 && (
+                <Badge className="bg-teal-600 text-white px-3 py-1">
+                  {dashboardData.goals.length} Active
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 p-6">
+          <CardContent className="space-y-5 p-6">
             {dashboardData?.goals && dashboardData.goals.length > 0 ? (
               dashboardData.goals.map((goal) => {
                 const progress = typeof goal.progress === 'number' && !isNaN(goal.progress) ? goal.progress : 0;
+                const isCompleted = progress >= 100;
                 return (
-                  <div key={goal.id} className="space-y-2 transition-all duration-300 ease-in-out">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">{goal.name}</h4>
-                      <Badge variant={progress >= 100 ? "default" : "secondary"} className="bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 transition-all duration-300 ease-in-out">
+                  <div key={goal.id} className="p-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-teal-200 dark:border-teal-800 hover:border-teal-400 dark:hover:border-teal-600 transition-all duration-300 shadow-sm hover:shadow-md">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-slate-900 dark:text-slate-100">{goal.name}</h4>
+                          {isCompleted && (
+                            <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          Target: Reduce emissions by {goal.target}%
+                        </p>
+                      </div>
+                      <Badge 
+                        variant={isCompleted ? "default" : "secondary"} 
+                        className={`text-lg px-3 py-1 ${
+                          isCompleted 
+                            ? 'bg-emerald-600 text-white' 
+                            : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                        }`}
+                      >
                         {progress}%
                       </Badge>
                     </div>
-                    <Progress value={progress} className="h-3 transition-all duration-300 ease-in-out" />
-                    <p className="text-sm text-slate-600 dark:text-slate-400 transition-colors duration-300 ease-in-out">
-                      Target: Reduce emissions by {goal.target}%
-                    </p>
+                    <div className="space-y-2">
+                      <Progress value={progress} className="h-4" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Current progress</span>
+                        <span>{progress >= 100 ? 'Goal Achieved! 🎉' : `${100 - progress}% to go`}</span>
+                      </div>
+                    </div>
                   </div>
                 );
               })
             ) : (
-              <div className="text-center text-slate-600 dark:text-slate-400 py-8 transition-colors duration-300 ease-in-out">
-                <Target className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-600 dark:text-emerald-400 transition-all duration-300 ease-in-out" />
-                <p className="transition-colors duration-300 ease-in-out">No active goals yet.</p>
-                <Button variant="outline" className="mt-2 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all duration-300 ease-in-out">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Set Your First Goal
-                </Button>
+              <div className="text-center py-12 px-6">
+                <div className="inline-flex p-4 bg-teal-500/10 rounded-2xl mb-4">
+                  <Target className="w-12 h-12 text-teal-600 dark:text-teal-400" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">No active goals yet</h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  Set your first goal and start tracking your progress towards a greener future!
+                </p>
+                <a href="/goals">
+                  <Button className="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Set Your First Goal
+                  </Button>
+                </a>
               </div>
             )}
           </CardContent>
         </Card>
-        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-cyan-200/30 dark:border-cyan-700/30">
-          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-cyan-50/50 via-blue-50/30 to-teal-50/50 dark:from-cyan-950/50 dark:via-blue-950/30 dark:to-teal-950/50 transition-colors duration-300 ease-in-out">
-            <CardTitle className="flex items-center gap-2 text-cyan-700 dark:text-cyan-300 transition-colors duration-300 ease-in-out">
-              <Lightbulb className="w-5 h-5 text-cyan-600 dark:text-cyan-400 transition-colors duration-300 ease-in-out" />
+        <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-cyan-300/50 dark:border-cyan-700/50">
+          <CardHeader className="border-b border-cyan-200 dark:border-cyan-800 pb-4">
+            <CardTitle className="flex items-center gap-3 text-cyan-800 dark:text-cyan-200">
+              <div className="p-2 bg-cyan-500/10 rounded-lg">
+                <Lightbulb className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+              </div>
               Quick Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 p-6">
-            <Button className="w-full justify-start bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300" variant="outline">
-              <Plus className="w-4 h-4 mr-2 transition-transform duration-300 ease-in-out" />
-              Log New Emission
-            </Button>
-            <Button className="w-full justify-start border-teal-200 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-300" variant="outline">
-              <Target className="w-4 h-4 mr-2 transition-transform duration-300 ease-in-out" />
-              Set New Goal
-            </Button>
-            <Button className="w-full justify-start border-cyan-200 dark:border-cyan-700 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-all duration-300" variant="outline">
-              <BarChart3 className="w-4 h-4 mr-2 transition-transform duration-300 ease-in-out" />
-              View Reports
-            </Button>
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-700 transition-all duration-300 ease-in-out">
-              <h4 className="font-medium mb-2 text-sm text-slate-800 dark:text-slate-200 transition-colors duration-300 ease-in-out">Today's Tip</h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400 transition-colors duration-300 ease-in-out">
-                {isIndividual() 
-                  ? "Try using public transportation or biking today to reduce your carbon footprint!"
-                  : "Consider implementing a company-wide recycling program to reduce waste emissions."
-                }
-              </p>
+          <CardContent className="space-y-3 p-6">
+            <a href="/log-emissions" className="block">
+              <Button className="w-full justify-start h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300">
+                <Plus className="w-5 h-5 mr-3" />
+                <span className="font-semibold">Log New Emission</span>
+              </Button>
+            </a>
+            <a href="/goals" className="block">
+              <Button className="w-full justify-start h-12 bg-white dark:bg-slate-800 border-2 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/30 hover:scale-105 transition-all duration-300">
+                <Target className="w-5 h-5 mr-3" />
+                <span className="font-semibold">Set New Goal</span>
+              </Button>
+            </a>
+            <a href="/reports" className="block">
+              <Button className="w-full justify-start h-12 bg-white dark:bg-slate-800 border-2 border-cyan-300 dark:border-cyan-700 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 hover:scale-105 transition-all duration-300">
+                <BarChart3 className="w-5 h-5 mr-3" />
+                <span className="font-semibold">View Reports</span>
+              </Button>
+            </a>
+            <div className="pt-4 mt-2 border-t-2 border-cyan-200 dark:border-cyan-800 bg-gradient-to-r from-emerald-50/50 to-cyan-50/50 dark:from-emerald-950/30 dark:to-cyan-950/30 -mx-6 px-6 py-4 rounded-b-xl">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-emerald-500/10 rounded-lg mt-1 flex-shrink-0">
+                  <Lightbulb className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold mb-1 text-emerald-800 dark:text-emerald-200">Today's Tip</h4>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                    {isIndividual() 
+                      ? "Try using public transportation or biking today to reduce your carbon footprint!"
+                      : "Consider implementing a company-wide recycling program to reduce waste emissions."
+                    }
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
-      <Card className="shadow-lg transition-all duration-300 ease-in-out">
-        <CardHeader className="transition-colors duration-300 ease-in-out">
-          <CardTitle className="flex items-center gap-2 transition-colors duration-300 ease-in-out">
-            <Award className="w-5 h-5 text-primary transition-colors duration-300 ease-in-out" />
-            Recent Achievements
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="transition-colors duration-300 ease-in-out">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 transition-all duration-300 ease-in-out">
-              <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400 transition-colors duration-300 ease-in-out" />
-              <div>
-                <h4 className="font-medium transition-colors duration-300 ease-in-out">First Week Complete</h4>
-                <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Logged emissions for 7 days</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 transition-all duration-300 ease-in-out">
-              <Target className="w-8 h-8 text-teal-600 dark:text-teal-400 transition-colors duration-300 ease-in-out" />
-              <div>
-                <h4 className="font-medium transition-colors duration-300 ease-in-out">Goal Setter</h4>
-                <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Created your first reduction goal</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 transition-all duration-300 ease-in-out">
-              <TrendingDown className="w-8 h-8 text-cyan-600 dark:text-cyan-400 transition-colors duration-300 ease-in-out" />
-              <div>
-                <h4 className="font-medium transition-colors duration-300 ease-in-out">Trend Tracker</h4>
-                <p className="text-sm text-muted-foreground transition-colors duration-300 ease-in-out">Reduced emissions by 15%</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
     </div>
   );
