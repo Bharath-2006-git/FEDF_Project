@@ -1193,12 +1193,26 @@ app.get("/api/tips", authenticateToken, async (req, res) => {
 
     if (error) throw error;
 
+    // Transform snake_case to camelCase
+    const transformedTips = (tips || []).map((tip: any) => ({
+      id: tip.id,
+      title: tip.title,
+      content: tip.content,
+      category: tip.category,
+      targetRole: tip.target_role,
+      impactLevel: tip.impact_level,
+      estimatedSavings: tip.estimated_savings,
+      difficulty: tip.difficulty,
+      explanation: tip.explanation,
+      source: tip.source,
+    }));
+
     if (limit) {
       const limitNum = parseInt(limit as string);
-      return res.json(tips?.slice(0, limitNum) || []);
+      return res.json(transformedTips.slice(0, limitNum));
     }
 
-    res.json(tips || []);
+    res.json(transformedTips);
   } catch (error) {
     console.error('Error fetching tips:', error);
     res.status(500).json({ message: "Failed to fetch tips" });
@@ -1217,19 +1231,27 @@ app.get("/api/tips/completed", authenticateToken, async (req, res) => {
 
     if (error) throw error;
 
-    res.json(completedTips || []);
+    // Transform snake_case to camelCase
+    const transformedCompleted = (completedTips || []).map((ct: any) => ({
+      id: ct.id,
+      userId: ct.user_id,
+      tipId: ct.tip_id,
+      completedAt: ct.completed_at,
+      estimatedSavings: ct.estimated_savings,
+    }));
+
+    res.json(transformedCompleted);
   } catch (error) {
     console.error('Error fetching completed tips:', error);
     res.status(500).json({ message: "Failed to fetch completed tips" });
   }
 });
 
-// POST /api/tips/:id/complete
-app.post("/api/tips/:id/complete", authenticateToken, async (req, res) => {
+// POST /api/tips/complete
+app.post("/api/tips/complete", authenticateToken, async (req, res) => {
   try {
     const user = req.user as JWTUser;
-    const tipId = parseInt(req.params.id);
-    const { estimatedSavings } = req.body;
+    const { tipId, estimatedSavings } = req.body;
 
     const { data: completed, error } = await supabase
       .from("completed_tips")
@@ -1243,15 +1265,24 @@ app.post("/api/tips/:id/complete", authenticateToken, async (req, res) => {
 
     if (error) throw error;
 
-    res.json({ message: "Tip marked as completed", completed });
+    // Transform response
+    const transformed = {
+      id: completed.id,
+      userId: completed.user_id,
+      tipId: completed.tip_id,
+      completedAt: completed.completed_at,
+      estimatedSavings: completed.estimated_savings,
+    };
+
+    res.json(transformed);
   } catch (error) {
     console.error('Error completing tip:', error);
     res.status(500).json({ message: "Failed to complete tip" });
   }
 });
 
-// DELETE /api/tips/:id/complete
-app.delete("/api/tips/:id/complete", authenticateToken, async (req, res) => {
+// DELETE /api/tips/complete/:id
+app.delete("/api/tips/complete/:id", authenticateToken, async (req, res) => {
   try {
     const user = req.user as JWTUser;
     const tipId = parseInt(req.params.id);
@@ -1305,7 +1336,21 @@ app.get("/api/tips/personalized", authenticateToken, async (req, res) => {
 
     if (error) throw error;
 
-    res.json(tips || []);
+    // Transform snake_case to camelCase
+    const transformedTips = (tips || []).map((tip: any) => ({
+      id: tip.id,
+      title: tip.title,
+      content: tip.content,
+      category: tip.category,
+      targetRole: tip.target_role,
+      impactLevel: tip.impact_level,
+      estimatedSavings: tip.estimated_savings,
+      difficulty: tip.difficulty,
+      explanation: tip.explanation,
+      source: tip.source,
+    }));
+
+    res.json(transformedTips);
   } catch (error) {
     console.error('Error fetching personalized tips:', error);
     res.json([]);
