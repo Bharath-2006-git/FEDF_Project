@@ -531,10 +531,10 @@ app.get("/api/emissions/summary", authenticateToken, async (req, res) => {
     }, {} as Record<string, number>);
 
     const highestDay = Object.entries(dailyEmissions)
-      .sort(([, a], [, b]) => b - a)[0];
+      .sort(([, a], [, b]) => (b as number) - (a as number))[0];
     
     const lowestDay = Object.entries(dailyEmissions)
-      .sort(([, a], [, b]) => a - b)[0];
+      .sort(([, a], [, b]) => (a as number) - (b as number))[0];
 
     res.json({
       totalEmissions: Math.round(totalEmissions * 1000) / 1000,
@@ -542,8 +542,8 @@ app.get("/api/emissions/summary", authenticateToken, async (req, res) => {
       byCategory,
       bySubcategory,
       averageDaily: Math.round(averageDaily * 1000) / 1000,
-      highestDay: highestDay ? { date: highestDay[0], value: Math.round(highestDay[1] * 1000) / 1000 } : null,
-      lowestDay: lowestDay ? { date: lowestDay[0], value: Math.round(lowestDay[1] * 1000) / 1000 } : null,
+      highestDay: highestDay ? { date: highestDay[0] as string, value: Math.round((highestDay[1] as number) * 1000) / 1000 } : null,
+      lowestDay: lowestDay ? { date: lowestDay[0] as string, value: Math.round((lowestDay[1] as number) * 1000) / 1000 } : null,
       uniqueDays: dates.size,
       period: {
         startDate: startDate || null,
@@ -1269,11 +1269,13 @@ app.get("/api/tips", authenticateToken, async (req, res) => {
     const user = req.user as JWTUser;
     const { category, limit } = req.query;
 
+    console.log(`[Tips] Fetching tips for user role: ${user.role}, category: ${category || 'all'}`);
+
     let query = supabase
       .from("tips")
       .select("*")
       .eq("is_active", true)
-      .in("target_role", [user.role, "all"]);
+      .or(`target_role.eq.${user.role},target_role.eq.all`);
 
     if (category) {
       query = query.eq("category", category);
@@ -1402,6 +1404,8 @@ app.get("/api/tips/personalized", authenticateToken, async (req, res) => {
   try {
     const user = req.user as JWTUser;
 
+    console.log(`[Personalized Tips] Fetching for user ${user.userId}, role: ${user.role}`);
+
     // Get user's emission categories
     const { data: emissions } = await supabase
       .from("emissions")
@@ -1421,16 +1425,23 @@ app.get("/api/tips/personalized", authenticateToken, async (req, res) => {
 
     // Get tips for top categories
     const categoriesToQuery = topCategories.length > 0 ? topCategories : ["energy", "transport"];
-    console.log(`🎯 Fetching personalized tips for user ${user.userId}, role: ${user.role}, categories:`, categoriesToQuery);
+    console.log(`[Personalized Tips] Top categories:`, categoriesToQuery);
 
-    const { data: tips, error } = await supabase
+    // Build query with OR condition for role matching
+    let query = supabase
       .from("tips")
       .select("*")
       .eq("is_active", true)
-      .in("target_role", [user.role, "all"])
-      .in("category", categoriesToQuery)
+      .or(`target_role.eq.${user.role},target_role.eq.all`)
       .order("impact_level", { ascending: false })
       .limit(15);
+
+    // Add category filter if we have categories
+    if (categoriesToQuery.length > 0) {
+      query = query.in("category", categoriesToQuery);
+    }
+
+    const { data: tips, error } = await query;
 
     if (error) {
       console.error('❌ Fetch personalized tips error:', JSON.stringify(error, null, 2));
