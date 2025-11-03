@@ -1173,6 +1173,145 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/tips
+app.get("/api/tips", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+    const { category, limit } = req.query;
+
+    let query = supabase
+      .from("tips")
+      .select("*")
+      .eq("is_active", true)
+      .in("target_role", [user.role, "all"]);
+
+    if (category) {
+      query = query.eq("category", category);
+    }
+
+    const { data: tips, error } = await query;
+
+    if (error) throw error;
+
+    if (limit) {
+      const limitNum = parseInt(limit as string);
+      return res.json(tips?.slice(0, limitNum) || []);
+    }
+
+    res.json(tips || []);
+  } catch (error) {
+    console.error('Error fetching tips:', error);
+    res.status(500).json({ message: "Failed to fetch tips" });
+  }
+});
+
+// GET /api/tips/completed
+app.get("/api/tips/completed", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+
+    const { data: completedTips, error } = await supabase
+      .from("completed_tips")
+      .select("*")
+      .eq("user_id", user.userId);
+
+    if (error) throw error;
+
+    res.json(completedTips || []);
+  } catch (error) {
+    console.error('Error fetching completed tips:', error);
+    res.status(500).json({ message: "Failed to fetch completed tips" });
+  }
+});
+
+// POST /api/tips/:id/complete
+app.post("/api/tips/:id/complete", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+    const tipId = parseInt(req.params.id);
+    const { estimatedSavings } = req.body;
+
+    const { data: completed, error } = await supabase
+      .from("completed_tips")
+      .insert({
+        user_id: user.userId,
+        tip_id: tipId,
+        estimated_savings: estimatedSavings || 0,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.json({ message: "Tip marked as completed", completed });
+  } catch (error) {
+    console.error('Error completing tip:', error);
+    res.status(500).json({ message: "Failed to complete tip" });
+  }
+});
+
+// DELETE /api/tips/:id/complete
+app.delete("/api/tips/:id/complete", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+    const tipId = parseInt(req.params.id);
+
+    const { error } = await supabase
+      .from("completed_tips")
+      .delete()
+      .eq("user_id", user.userId)
+      .eq("tip_id", tipId);
+
+    if (error) throw error;
+
+    res.json({ message: "Tip unmarked as completed" });
+  } catch (error) {
+    console.error('Error uncompleting tip:', error);
+    res.status(500).json({ message: "Failed to uncomplete tip" });
+  }
+});
+
+// GET /api/tips/personalized
+app.get("/api/tips/personalized", authenticateToken, async (req, res) => {
+  try {
+    const user = req.user as JWTUser;
+
+    // Get user's emission categories
+    const { data: emissions } = await supabase
+      .from("emissions")
+      .select("category, co2_emissions")
+      .eq("user_id", user.userId);
+
+    // Calculate top categories
+    const categoryTotals: Record<string, number> = {};
+    emissions?.forEach((e: any) => {
+      categoryTotals[e.category] = (categoryTotals[e.category] || 0) + parseFloat(e.co2_emissions);
+    });
+
+    const topCategories = Object.entries(categoryTotals)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
+      .slice(0, 3)
+      .map(([cat]) => cat);
+
+    // Get tips for top categories
+    const { data: tips, error } = await supabase
+      .from("tips")
+      .select("*")
+      .eq("is_active", true)
+      .in("target_role", [user.role, "all"])
+      .in("category", topCategories.length > 0 ? topCategories : ["energy", "transport"])
+      .order("impact_level", { ascending: false })
+      .limit(15);
+
+    if (error) throw error;
+
+    res.json(tips || []);
+  } catch (error) {
+    console.error('Error fetching personalized tips:', error);
+    res.json([]);
+  }
+});
+
 // Catch all for other API routes
 app.all("/api/*", (req, res) => {
   res.status(404).json({ message: "API endpoint not found", path: req.url });
