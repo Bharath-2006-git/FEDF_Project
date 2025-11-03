@@ -1278,8 +1278,8 @@ app.get("/api/tips", authenticateToken, async (req, res) => {
       });
     }
 
-    const user = req.user as JWTUser;
-    const { category, limit } = req.query;
+    const user = req.user as JWTUser;  
+    const { category, limit } = req.query; 
 
     console.log(`[Tips] Fetching tips for user role: ${user.role}, category: ${category || 'all'}`);
 
