@@ -90,13 +90,14 @@ export default function Dashboard() {
   const prepareHistoryData = () => {
     if (!dashboardData?.history) return [];
     return dashboardData.history.map(item => {
-      // Parse the date (format: YYYY-MM)
-      const dateStr = item.date.includes('-') ? `${item.date}-01` : item.date;
-      const date = new Date(dateStr);
+      const date = new Date(item.date);
       return {
         ...item,
-        month: !isNaN(date.getTime()) 
-          ? date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        displayDate: !isNaN(date.getTime()) 
+          ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : item.date,
+        fullDate: !isNaN(date.getTime())
+          ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : item.date
       };
     });
@@ -218,7 +219,8 @@ export default function Dashboard() {
           </CardHeader>
         </Card>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-2">
         <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 group overflow-hidden border border-emerald-200/30 dark:border-emerald-700/30">
           <CardHeader className="border-b border-border/50 bg-gradient-to-r from-emerald-50/50 via-teal-50/30 to-cyan-50/50 dark:from-emerald-950/50 dark:via-teal-950/30 dark:to-cyan-950/50 transition-all duration-300 ease-in-out">
             <CardTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 transition-colors duration-300 ease-in-out">
@@ -226,8 +228,8 @@ export default function Dashboard() {
               Emissions by {isCompany() ? "Department" : "Category"}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6 transition-colors duration-300 ease-in-out">
-            <div className="h-80">
+          <CardContent className="p-8 transition-colors duration-300 ease-in-out">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -285,36 +287,60 @@ export default function Dashboard() {
           <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-blue-50/50 via-cyan-50/30 to-teal-50/50 dark:from-blue-950/50 dark:via-cyan-950/30 dark:to-teal-950/50 transition-all duration-300 ease-in-out">
             <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300 transition-colors duration-300 ease-in-out">
               <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" />
-              Emissions Trend
+              Emissions Trend (Daily)
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6 transition-colors duration-300 ease-in-out">
-            <div className="h-80">
+          <CardContent className="p-8 transition-colors duration-300 ease-in-out">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={prepareHistoryData()}>
+                <AreaChart data={prepareHistoryData()} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
                   <defs>
                     <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
                       <stop offset="50%" stopColor="#06B6D4" stopOpacity={0.5}/>
                       <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
                     </linearGradient>
-                    <linearGradient id="colorEmissionsDark" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#60A5FA" stopOpacity={0.9}/>
-                      <stop offset="50%" stopColor="#22D3EE" stopOpacity={0.6}/>
-                      <stop offset="95%" stopColor="#34D399" stopOpacity={0.05}/>
-                    </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis dataKey="month" className="text-muted-foreground transition-colors duration-300 ease-in-out" />
-                  <YAxis className="text-muted-foreground transition-colors duration-300 ease-in-out" />
-                  <Tooltip formatter={(value) => [formatEmissionValue(Number(value)), "Emissions"]} />
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" stroke="#cbd5e1" />
+                  <XAxis 
+                    dataKey="displayDate" 
+                    className="text-muted-foreground transition-colors duration-300 ease-in-out"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fontSize: 12 }}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis 
+                    className="text-muted-foreground transition-colors duration-300 ease-in-out"
+                    tick={{ fontSize: 12 }}
+                    label={{ value: 'CO₂ Emissions (kg)', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [formatEmissionValue(Number(value)), "Emissions"]}
+                    labelFormatter={(label, payload) => {
+                      if (payload && payload[0]) {
+                        return payload[0].payload.fullDate;
+                      }
+                      return label;
+                    }}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
                   <Area 
                     type="monotone" 
                     dataKey="emissions" 
                     stroke="#3B82F6" 
                     strokeWidth={3}
                     fillOpacity={1} 
-                    fill="url(#colorEmissions)" 
+                    fill="url(#colorEmissions)"
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, strokeWidth: 2 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -322,10 +348,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/50 dark:to-emerald-950/50 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-teal-300/50 dark:border-teal-700/50">
-          <CardHeader className="border-b border-teal-200 dark:border-teal-800 pb-4">
-            <CardTitle className="flex items-center justify-between text-teal-800 dark:text-teal-200">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-teal-200/30 dark:border-teal-700/30">
+          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 pb-4">
+            <CardTitle className="flex items-center justify-between text-slate-800 dark:text-slate-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-teal-500/10 rounded-lg">
                   <Target className="w-5 h-5 text-teal-600 dark:text-teal-400" />
@@ -398,9 +424,9 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-cyan-300/50 dark:border-cyan-700/50">
-          <CardHeader className="border-b border-cyan-200 dark:border-cyan-800 pb-4">
-            <CardTitle className="flex items-center gap-3 text-cyan-800 dark:text-cyan-200">
+        <Card className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl shadow-2xl hover:shadow-3xl transition-all duration-500 border border-cyan-200/30 dark:border-cyan-700/30">
+          <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 pb-4">
+            <CardTitle className="flex items-center gap-3 text-slate-800 dark:text-slate-200">
               <div className="p-2 bg-cyan-500/10 rounded-lg">
                 <Lightbulb className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
               </div>
