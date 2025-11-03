@@ -68,7 +68,6 @@ export default function Signup() {
     setLoading(true);
     try {
       await signup({
-        username: formData.email,
         password: formData.password,
         email: formData.email,
         firstName: formData.firstName,
