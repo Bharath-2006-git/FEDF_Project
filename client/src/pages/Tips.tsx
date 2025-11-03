@@ -477,9 +477,16 @@ export default function Tips() {
                           <div className="flex-1 space-y-3">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1">
-                                <h3 className={`font-semibold text-slate-900 dark:text-slate-100 ${isCompleted ? 'line-through' : ''}`}>
-                                  {tip.title}
-                                </h3>
+                                <div className="flex items-center gap-2">
+                                  <h3 className={`font-semibold text-slate-900 dark:text-slate-100 ${isCompleted ? 'line-through' : ''}`}>
+                                    {tip.title}
+                                  </h3>
+                                  {isCompleted && (
+                                    <div className="flex-shrink-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                                      <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                                    </div>
+                                  )}
+                                </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                                   {tip.content}
                                 </p>
