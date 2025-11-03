@@ -1018,29 +1018,7 @@ app.get("/api/goals/:id/progress", authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/tips
-app.get("/api/tips", authenticateToken, async (req, res) => {
-  try {
-    const { category } = req.query;
-
-    let query = supabase
-      .from("tips")
-      .select("*")
-      .eq("is_active", true);
-
-    if (category) {
-      query = query.eq("category", category);
-    }
-
-    const { data: tips, error } = await query;
-    if (error) throw error;
-
-    res.json({ tips: tips || [] });
-  } catch (error) {
-    console.error('Error fetching tips:', error);
-    res.status(500).json({ message: "Failed to fetch tips" });
-  }
-});
+// (Removed duplicate /api/tips that returned { tips: [...] } to ensure consistent Tip[] response)
 
 // POST /api/reports/generate
 app.post("/api/reports/generate", authenticateToken, async (req, res) => {
